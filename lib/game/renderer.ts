@@ -9,13 +9,15 @@ import {
 } from './world';
 import { followCamera } from './camera';
 import { FrameClock } from './frame-clock';
+import { GameControls, createKeyboardHandlers, type GameAction } from './input';
 import { Simulation, type GameSnapshot } from './simulation';
 export type { GameSnapshot } from './simulation';
 export type GameHandle = {
   start: () => void;
   togglePause: () => void;
   getSnapshot: () => GameSnapshot;
-  input: (action: 'left' | 'right' | 'jump', held: boolean) => void;
+  setTouchRun: (enabled: boolean) => void;
+  input: (action: GameAction, held: boolean, source?: string) => void;
   dispose: () => void;
 };
 export function createGame(
@@ -33,7 +35,7 @@ export function createGame(
   renderer.domElement.tabIndex = 0;
   renderer.domElement.setAttribute(
     'aria-label',
-    '좌우 방향키로 이동, 스페이스로 점프',
+    '좌우 방향키로 이동, 스페이스로 점프, Shift로 달리기, Escape로 일시정지',
   );
   host.appendChild(renderer.domElement);
   const camera = new T.OrthographicCamera(-13, 13, 8, -8, 0.1, 160);
@@ -228,15 +230,13 @@ export function createGame(
   box(1.2, 2.4, 0.08, '#523929', 105, 1.2, 1.05);
   const state = simulation.state,
     frameClock = new FrameClock(),
-    held = new Set<string>(),
-    touch = new Set<string>();
+    controls = new GameControls();
   let frame = 0,
     elapsed = 0,
     lastNotify = 0,
     cameraX = 4;
   function clearInput() {
-    held.clear();
-    touch.clear();
+    controls.clear();
   }
   function snapshot() {
     onChange(simulation.snapshot());
@@ -252,37 +252,17 @@ export function createGame(
     }
     snapshot();
   }
-  const keydown = (e: KeyboardEvent) => {
-    if (e.code === 'Escape' && !e.repeat) {
-      togglePause();
-      return;
-    }
-    if ((e.target as HTMLElement)?.matches?.('button,input,textarea,select'))
-      return;
-    if (
-      [
-        'ArrowLeft',
-        'ArrowRight',
-        'Space',
-        'ArrowUp',
-        'KeyA',
-        'KeyD',
-        'KeyW',
-        'ShiftLeft',
-        'ShiftRight',
-      ].includes(e.code)
-    ) {
-      e.preventDefault();
-      held.add(e.code);
-    }
+  const { keydown, keyup } = createKeyboardHandlers(
+    controls,
+    () => state.phase === 'playing',
+    togglePause,
+  );
+  const blur = () => {
+    clearInput();
+    frameClock.reset();
+    simulation.pause();
+    snapshot();
   };
-  const keyup = (e: KeyboardEvent) => held.delete(e.code),
-    blur = () => {
-      clearInput();
-      frameClock.reset();
-      simulation.pause();
-      snapshot();
-    };
   window.addEventListener('keydown', keydown);
   window.addEventListener('keyup', keyup);
   window.addEventListener('blur', blur);
@@ -304,18 +284,8 @@ export function createGame(
   observer.observe(host);
   resize();
   function step(dt: number) {
-    const input = {
-      left: held.has('ArrowLeft') || held.has('KeyA') || touch.has('left'),
-      right: held.has('ArrowRight') || held.has('KeyD') || touch.has('right'),
-      jump:
-        held.has('Space') ||
-        held.has('ArrowUp') ||
-        held.has('KeyW') ||
-        touch.has('jump'),
-      run: held.has('ShiftLeft') || held.has('ShiftRight'),
-    };
     const beforeLives = state.lives;
-    simulation.advance(dt, input);
+    simulation.advance(dt, controls.sample());
     if (beforeLives !== state.lives) cameraX = 4;
     coinMeshes.forEach((m, i) => (m.visible = !simulation.collected.has(i)));
     questionMeshes.forEach(
@@ -381,9 +351,10 @@ export function createGame(
     },
     togglePause,
     getSnapshot: () => simulation.snapshot(),
-    input(action, pressed) {
-      if (pressed) touch.add(action);
-      else touch.delete(action);
+    setTouchRun: (enabled) => controls.setRunToggle(enabled),
+    input(action, pressed, source = 'touch') {
+      if (!pressed || state.phase === 'playing')
+        controls.set(action, source, pressed);
     },
     dispose() {
       cancelAnimationFrame(frame);

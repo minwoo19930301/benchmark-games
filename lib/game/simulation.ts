@@ -20,6 +20,8 @@ export type GameInput = {
   right: boolean;
   jump: boolean;
   run: boolean;
+  // An input edge can occur entirely between two rendered frames.
+  jumpPressed?: boolean;
 };
 export const idleInput: GameInput = {
   left: false,
@@ -48,6 +50,7 @@ export class Simulation {
   invincible = 0;
   elapsed = 0;
   private remainder = 0;
+  private pendingJump = false;
   start() {
     Object.assign(this.state, {
       phase: 'playing',
@@ -66,13 +69,19 @@ export class Simulation {
     this.resetPlayer();
     this.elapsed = 0;
     this.remainder = 0;
+    this.pendingJump = false;
   }
   resetPlayer() {
     Object.assign(this.player, newPlayer());
     this.invincible = 1.4;
   }
   pause() {
-    if (this.state.phase === 'playing') this.state.phase = 'paused';
+    if (this.state.phase === 'playing') {
+      this.state.phase = 'paused';
+      this.pendingJump = false;
+      this.player.jumpBuffer = 0;
+      this.player.jumpHeld = false;
+    }
   }
   resume() {
     if (this.state.phase === 'paused') this.state.phase = 'playing';
@@ -89,9 +98,18 @@ export class Simulation {
     if (!Number.isFinite(dt) || dt < 0 || dt > 1)
       throw new RangeError('Frame duration must be between 0 and 1 second');
     if (this.state.phase !== 'playing') return;
+    this.pendingJump ||= input.jumpPressed === true;
     this.remainder += dt;
     while (this.remainder >= 1 / 120) {
-      this.step(1 / 120, input);
+      // Keep a tap through zero-dt RAF resets or frames shorter than one step,
+      // then consume the edge once rather than once per physics substep.
+      const jumpPressed = this.pendingJump
+        ? true
+        : input.jumpPressed === undefined
+          ? undefined
+          : false;
+      this.pendingJump = false;
+      this.step(1 / 120, { ...input, jumpPressed });
       this.remainder -= 1 / 120;
     }
   }
