@@ -1,12 +1,18 @@
-# Mario 2.5D — Green Hills
+# Benchmark Games — Mario 2.5D, Sonic & More
 
-A separate, playable browser fan prototype with 3D scenery and a two-dimensional movement plane. Models, textures and this level arrangement are newly authored; no Nintendo game assets or music were extracted. Mario is Nintendo's character/trademark. This is unofficial and not endorsed by Nintendo.
-
-[![SOURCE CODE](https://img.shields.io/badge/SOURCE%20CODE-e7322d?style=for-the-badge)](https://github.com/minwoo19930301/mario-2-5d)
+[![PLAY DEMO](https://img.shields.io/badge/PLAY%20DEMO-GitHub%20Pages-4caf50?style=for-the-badge&logo=githubpages)](https://minwoo19930301.github.io/benchmark-games/)
+[![SOURCE CODE](https://img.shields.io/badge/SOURCE%20CODE-minwoo19930301-e7322d?style=for-the-badge)](https://github.com/minwoo19930301/benchmark-games)
 [![RUN LOCALLY](https://img.shields.io/badge/RUN%20LOCALLY-168343?style=for-the-badge)](#run)
-[![FLAMINGO ARCADE 02](https://img.shields.io/badge/FLAMINGO%20ARCADE%2002-db456e?style=for-the-badge)](https://github.com/minwoo19930301/flamingo-arcade-2)
 
-**독립 저장소 · 코드만 공개 · 미배포.** 플라밍고 모음집 안의 모드가 아니라 별도 게임입니다. React + Three.js + Vite 정적 클라이언트이며, 실행에 API 키·계정·Sites·Cloudflare 서버가 필요하지 않습니다.
+웹 브라우저에서 직접 구동되는 고성능 2D/2.5D/3D 게임 벤치마크 모음집입니다.  
+현재 **Game 01: Mario 2.5D (Green Hills)**가 탑재되어 있으며, 추후 **Sonic 2D/3D** 등 유명 게임 프로토타입이 순차적으로 추가됩니다.
+
+* **Game 01 (Playable)**: **Mario 2.5D — Green Hills** (Three.js + React 19 + 120Hz Fixed Physics)
+* **Game 02 (Planned)**: **Sonic Retro Runner** (High-speed Loop & Momentum Physics)
+* **Game 03 (Planned)**: Additional retro/fan benchmarks
+
+> [!NOTE]
+> 비공식 팬/벤치마크 프로토타입입니다. Mario 및 Nintendo 상표/캐릭터는 닌텐도의 자산이며, 모든 3D 모델 및 씬 배치는 Three.js 기반으로 자체 제작되었습니다.
 
 [![실제 로컬 실행 화면 — Mario 2.5D Green Hills](docs/preview.jpg)](#run)
 
