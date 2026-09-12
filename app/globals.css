@@ -281,19 +281,36 @@ body {
   bottom: 22px;
   left: 20px;
   right: 20px;
-  gap: 12px;
+  gap: 8px;
 }
 .touch-controls button {
-  width: 62px;
+  width: clamp(48px, 12vw, 62px);
   height: 58px;
   background: #173952b8;
   border: 2px solid #ffffffa1;
   font-size: 24px;
   touch-action: none;
 }
-.touch-controls button:last-child {
+.touch-help {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  font-size: 11px;
+  text-shadow: 0 1px 3px #132c3b;
+}
+.touch-controls .touch-run {
   margin-left: auto;
-  width: 86px;
+  width: clamp(60px, 17vw, 80px);
+  font-size: 14px;
+}
+.touch-controls .touch-run[aria-pressed='true'] {
+  background: #1d7034;
+  border-color: #ffe58b;
+  color: #ffe58b;
+}
+.touch-controls .touch-jump {
+  width: clamp(64px, 18vw, 86px);
   font-size: 17px;
   background: #de3d30d9;
 }
@@ -324,7 +341,7 @@ body {
     letter-spacing: -3px;
   }
   .game-footer {
-    bottom: 90px;
+    bottom: 116px;
     left: 20px;
     right: 20px;
   }
@@ -346,7 +363,7 @@ body {
     display: flex;
   }
   .game-footer {
-    bottom: 90px;
+    bottom: 116px;
   }
   .game-footer > span {
     display: none;

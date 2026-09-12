@@ -25,7 +25,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by the dev server. Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. Touch controls support movement and jumping. Release jump for a short hop. Jump on enemies, collect coins and reach the flag; three lives and a 180-second timer. Blur or a hidden tab pauses and clears held controls.
+Open the local URL printed by the dev server. Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. Touch controls support movement and jumping, plus a **RUN toggle** so running jumps need only two fingers. Release jump for a short hop. Brief jump taps are retained until the next physics step, including on high-refresh displays. Jump on enemies, collect coins and reach the flag; three lives and a 180-second timer. Blur or a hidden tab pauses and clears held controls. The touch RUN preference stays selected through pause/restart; movement still requires a fresh direction press.
 
 The default local address is `http://127.0.0.1:4180/`. `npm run build` only writes a static `dist/` directory; `npm run preview` serves that build locally. Neither command publishes or deploys anything. Font fallbacks, models and scenery work without external asset services.
 
@@ -39,9 +39,9 @@ npm run build
 npm audit
 ```
 
-The actual shared simulation runs at fixed 120 Hz. The 44 tests cover simulation, optional WebMCP contracts and the RAF clock. Complete-level controllers use normal movement/jump inputs at 30, 60 and 120 Hz, both with run held and with walking only, without teleporting or disabling enemies. The walk-only controller uses the movement/jump actions available on touch controls; it includes two natural deaths and finishes with one life, so this is not a no-death or real touch-event test. Other checks cover camera containment, pipe collision, variable jumps, lives, pause and restart. Contract tests use plain-object mocks, not a browser or WebGL context. Lint covers the complete retained source. The original game UI and Button primitive are preserved; unused starter dependencies and server/hosting integrations are removed.
+The actual shared simulation runs at fixed 120 Hz. The 59 tests cover simulation, input handling, optional WebMCP contracts and the RAF clock. Complete-level controllers now pass through the same input manager used by the UI at 30, 60 and 120 Hz, with touch RUN enabled and with walking only, without teleporting or disabling enemies. The walk-only controller includes two natural deaths and finishes with one life, so this is not a no-death or real touch-device test. Input regressions cover brief taps at 30/60/120/240 Hz, landing buffers, independent keys/fingers, OS repeat after pause, and touch/keyboard running parity. Other checks cover camera containment, pipe collision, variable jumps, lives, pause and restart. Contract tests use plain-object mocks, not a browser or WebGL context. Lint covers the complete retained source.
 
-CI performs clean installation, tests, type checking, lint and static build with read-only repository permission. It has no deployment job. Local source verification on 2026-09-07 passed all 44 tests, type checking, lint and build, with zero reported npm audit vulnerabilities. Actual desktop-browser checks verified the rendered scene, start/pause/resume controls and native WebMCP read/restart/pause calls. A frame-clock error found during this check was fixed and covered by six regression tests. Four repeated restart/resume cycles then produced no new browser warnings or errors. This is not full-level human-play or physical-device certification.
+CI performs clean installation, tests, type checking, lint and static build with read-only repository permission. It has no deployment job. Local source verification on 2026-09-07 passed all 59 tests, type checking, lint and build. Earlier baseline checks reported zero npm audit vulnerabilities and verified the desktop scene, start/pause/resume controls and native WebMCP read/restart/pause calls; see the verification record for their scope. This is not full-level human-play or physical-device certification.
 
 [검증 범위와 남은 한계](docs/verification.md)
 
@@ -52,6 +52,7 @@ CI performs clean installation, tests, type checking, lint and static build with
 - `lib/game/world.ts`: level geometry and player physics.
 - `lib/game/simulation.ts`: deterministic coins, enemies, timer, lives and finish state.
 - `lib/game/renderer.ts`: Three.js scenery, input, camera and resource lifecycle.
+- `lib/game/input.ts`: independent keyboard/pointer presses, queued jump taps and the touch RUN preference.
 - `lib/game/frame-clock.ts`: RAF-only timing with lifecycle reset and bounded frame durations.
 - `lib/game/webmcp.ts`: optional `document.modelContext` feature detection; read state, start/restart, and pause/resume tools. All accept an empty JSON object and unregister on lifecycle abort.
 

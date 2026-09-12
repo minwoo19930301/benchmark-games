@@ -86,7 +86,13 @@ export function overlap(
 }
 export function stepPlayer(
   p: Player,
-  input: { left: boolean; right: boolean; jump: boolean; run: boolean },
+  input: {
+    left: boolean;
+    right: boolean;
+    jump: boolean;
+    run: boolean;
+    jumpPressed?: boolean;
+  },
   dt: number,
   terrain = platforms,
 ) {
@@ -98,7 +104,9 @@ export function stepPlayer(
   if (direction) p.facing = direction;
   p.coyote = p.grounded ? 0.1 : Math.max(0, p.coyote - dt);
   p.jumpBuffer =
-    input.jump && !p.jumpHeld ? 0.12 : Math.max(0, p.jumpBuffer - dt);
+    (input.jumpPressed ?? (input.jump && !p.jumpHeld))
+      ? 0.12
+      : Math.max(0, p.jumpBuffer - dt);
   p.jumpHeld = input.jump;
   if (p.jumpBuffer > 0 && p.coyote > 0) {
     p.vy = 12.8;
