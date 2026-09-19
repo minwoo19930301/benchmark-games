@@ -4,17 +4,42 @@
 [![SOURCE CODE](https://img.shields.io/badge/SOURCE%20CODE-minwoo19930301-e7322d?style=for-the-badge)](https://github.com/minwoo19930301/benchmark-games)
 [![RUN LOCALLY](https://img.shields.io/badge/RUN%20LOCALLY-168343?style=for-the-badge)](#run)
 
-웹 브라우저에서 직접 구동되는 고성능 2D/2.5D/3D 게임 벤치마크 모음집입니다.  
-현재 **Game 01: Mario 2.5D (Green Hills)**가 탑재되어 있으며, 추후 **Sonic 2D/3D** 등 유명 게임 프로토타입이 순차적으로 추가됩니다.
+브라우저에서 플레이하는 Three.js 게임과 벤치마크 모음입니다. **Sonic — Seaside Sprint**가 기본으로 열리며, 상단 게임 선택기에서 **Mario 2.5D — Green Hills**로 전환할 수 있습니다. 선택한 게임만 불러옵니다.
 
-* **Game 01 (Playable)**: **Mario 2.5D — Green Hills** (Three.js + React 19 + 120Hz Fixed Physics)
-* **Game 02 (Planned)**: **Sonic Retro Runner** (High-speed Loop & Momentum Physics)
-* **Game 03 (Planned)**: Additional retro/fan benchmarks
+- **Game 01 · Playable:** [Mario 2.5D — Green Hills](https://minwoo19930301.github.io/benchmark-games/#mario)
+- **Game 02 · Playable:** [Sonic — Seaside Sprint](https://minwoo19930301.github.io/benchmark-games/#sonic)
+- **Game 03 · Planned:** Additional retro/fan benchmarks
 
 > [!NOTE]
-> 비공식 팬/벤치마크 프로토타입입니다. Mario 및 Nintendo 상표/캐릭터는 닌텐도의 자산이며, 모든 3D 모델 및 씬 배치는 Three.js 기반으로 자체 제작되었습니다.
+> 비공식 팬/벤치마크 프로토타입입니다. Sonic 관련 캐릭터·상표는 SEGA, Mario 관련 캐릭터·상표는 Nintendo에 속합니다. 양사와 공식 제휴 관계가 없습니다. 이 프로젝트의 캐릭터 모델과 배경은 Three.js로 직접 구성했습니다.
 
-[![실제 로컬 실행 화면 — Mario 2.5D Green Hills](docs/preview.jpg)](#run)
+[![Sonic — Seaside Sprint 실행 화면](docs/sonic-preview.png)](https://minwoo19930301.github.io/benchmark-games/#sonic)
+
+## Sonic — Seaside Sprint
+
+푸른 해안을 달리며 링을 모으고 결승선까지 도달하는 2.5D 코스입니다. 120Hz 고정 물리로 가속·제동·경사면 관성을 계산합니다. 부스트로 속도를 얻으면 원형 트랙의 바닥, 양옆, 정상을 연속해서 지나 **360도 루프**를 완주합니다. 속도가 부족하면 아래쪽 지상 경로로 통과할 수 있습니다.
+
+스프링, 부스트 패드, 적, 가시, 체크포인트가 배치되어 있습니다. 링이 있으면 피격 시 링을 잃고 잠시 보호받으며, 링 없이 맞으면 목숨을 잃습니다. 목숨은 3개이고, 남은 목숨이 있으면 마지막 체크포인트에서 이어갑니다. 소리는 사용자가 켰을 때만 재생되는 합성 효과음입니다. 직접 플레이한 최고 완주 시간은 해당 브라우저의 `localStorage`에 저장됩니다.
+
+| 동작 | 키보드 |
+| --- | --- |
+| 이동 | ← / → 또는 A / D |
+| 점프 | Space / W / ↑ |
+| 구르기 | ↓ / S |
+| 스핀 대시 | Shift를 눌러 충전한 뒤 떼기 |
+| 일시 정지 | Esc |
+
+화면의 터치 버튼으로도 이동·점프·구르기·스핀 대시를 조작할 수 있습니다. 창 포커스를 잃거나 탭을 숨기면 일시 정지하고 눌린 입력을 해제합니다.
+
+FPS 패널의 **자동 벤치마크**는 같은 게임 시뮬레이션에 일반 이동·점프·충전 입력을 보내 코스를 진행합니다. 플레이어를 순간 이동시키거나 무적 상태로 만들지 않습니다. 자동 완주는 개인 최고 기록에 포함되지 않으며, FPS 수치는 현재 브라우저와 기기의 실행 결과입니다.
+
+[소닉 검증 범위와 실행 근거](docs/sonic-verification.md)
+
+## Mario 2.5D — Green Hills
+
+[![실제 로컬 실행 화면 — Mario 2.5D Green Hills](docs/preview.jpg)](https://minwoo19930301.github.io/benchmark-games/#mario)
+
+Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. Touch controls support movement and jumping. Release jump for a short hop. Jump on enemies, collect coins and reach the flag; three lives and a 180-second timer. Blur or a hidden tab pauses and clears held controls.
 
 ## Run
 
@@ -25,9 +50,7 @@ npm ci
 npm run dev
 ```
 
-Open the local URL printed by the dev server. Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. Touch controls support movement and jumping. Release jump for a short hop. Jump on enemies, collect coins and reach the flag; three lives and a 180-second timer. Blur or a hidden tab pauses and clears held controls.
-
-The default local address is `http://127.0.0.1:4180/`. `npm run build` only writes a static `dist/` directory; `npm run preview` serves that build locally. Neither command publishes or deploys anything. Font fallbacks, models and scenery work without external asset services.
+The default local address is `http://127.0.0.1:4180/`. Open `#sonic` for Sonic or `#mario` for Mario; a URL without a game hash opens Sonic. `npm run build` writes a static `dist/` directory, and `npm run preview` serves it locally. Those local commands do not publish a deployment. A public GitHub Pages demo is linked above. Models, scenery, and font fallbacks work without external asset services.
 
 ## Verify
 
@@ -39,23 +62,31 @@ npm run build
 npm audit
 ```
 
-The actual shared simulation runs at fixed 120 Hz. The 44 tests cover simulation, optional WebMCP contracts and the RAF clock. Complete-level controllers use normal movement/jump inputs at 30, 60 and 120 Hz, both with run held and with walking only, without teleporting or disabling enemies. The walk-only controller uses the movement/jump actions available on touch controls; it includes two natural deaths and finishes with one life, so this is not a no-death or real touch-event test. Other checks cover camera containment, pipe collision, variable jumps, lives, pause and restart. Contract tests use plain-object mocks, not a browser or WebGL context. Lint covers the complete retained source. The original game UI and Button primitive are preserved; unused starter dependencies and server/hosting integrations are removed.
+The suite contains **61 tests: 44 retained tests and 17 Sonic tests**. Sonic checks cover momentum, braking, jump edges, spin dash, ring collection, enemy collisions, damage grace, lives, checkpoints, pause input cancellation, restart, and bounded frame durations. Complete-course controllers use ordinary charge, jump, and movement inputs at 30, 60, and 120 Hz. They verify continuous loop entry, traversal of the top and both sides, exit momentum, and arrival at the finish without changing player position or health directly. This deterministic coverage is separate from browser rendering and physical touch-device verification; see the [Sonic verification record](docs/sonic-verification.md) for the checked scope.
+
+### Historical Mario verification
+
+The original 44-test suite covers Mario simulation, optional WebMCP contracts and the RAF clock. Complete-level controllers use normal movement/jump inputs at 30, 60 and 120 Hz, both with run held and with walking only, without teleporting or disabling enemies. The walk-only controller uses the movement/jump actions available on touch controls; it includes two natural deaths and finishes with one life, so this is not a no-death or real touch-event test. Other checks cover camera containment, pipe collision, variable jumps, lives, pause and restart. Contract tests use plain-object mocks, not a browser or WebGL context. The original Mario game UI and Button primitive are preserved.
 
 CI performs clean installation, tests, type checking, lint and static build with read-only repository permission. It has no deployment job. Local source verification on 2026-09-07 passed all 44 tests, type checking, lint and build, with zero reported npm audit vulnerabilities. Actual desktop-browser checks verified the rendered scene, start/pause/resume controls and native WebMCP read/restart/pause calls. A frame-clock error found during this check was fixed and covered by six regression tests. Four repeated restart/resume cycles then produced no new browser warnings or errors. This is not full-level human-play or physical-device certification.
 
-[검증 범위와 남은 한계](docs/verification.md)
+[마리오 검증 범위와 남은 한계](docs/verification.md)
 
 ## Architecture
 
 - `index.html`, `src/main.tsx`, `vite.config.ts`: standalone Vite/React entry point and static build.
-- `app/page.tsx`, `app/globals.css`: retained game HUD, keyboard/touch UI and layout; the `app` directory name does not imply a Next.js server.
-- `lib/game/world.ts`: level geometry and player physics.
-- `lib/game/simulation.ts`: deterministic coins, enemies, timer, lives and finish state.
-- `lib/game/renderer.ts`: Three.js scenery, input, camera and resource lifecycle.
-- `lib/game/frame-clock.ts`: RAF-only timing with lifecycle reset and bounded frame durations.
-- `lib/game/webmcp.ts`: optional `document.modelContext` feature detection; read state, start/restart, and pause/resume tools. All accept an empty JSON object and unregister on lifecycle abort.
+- `app/arcade.tsx`: hash-based game selection and lazy loading.
+- `app/sonic.tsx`, `app/sonic.css`: Sonic HUD, controls, personal record, and benchmark panel.
+- `lib/sonic/world.ts`: shared terrain, loop, ring, spring, boost, enemy, hazard, and checkpoint geometry.
+- `lib/sonic/simulation.ts`: deterministic 120Hz movement, collisions, lives, and finish state.
+- `lib/sonic/scene.ts`: procedural Three.js coast, character, scenery, and camera.
+- `lib/sonic/renderer.ts`: input, animation loop, opt-in audio, benchmark controller, and resource lifecycle.
+- `app/page.tsx`, `app/globals.css`: retained Mario HUD, keyboard/touch UI and layout; the `app` directory name does not imply a Next.js server.
+- `lib/game/world.ts`, `lib/game/simulation.ts`, `lib/game/renderer.ts`: retained Mario geometry, simulation, and Three.js renderer.
+- `lib/game/frame-clock.ts`: shared RAF timing with lifecycle reset and bounded frame durations.
+- `lib/game/webmcp.ts`: optional Mario `document.modelContext` integration; read state, start/restart, and pause/resume tools. All accept an empty JSON object and unregister on lifecycle abort.
 
-WebMCP is an optional browser API integration independent of Sites and remains inert when `document.modelContext` is unavailable. Native read/start/pause calls were verified in the desktop test browser; support in other browsers is not assumed. This repository publishes source code, not a live deployment, and has no official Nintendo affiliation.
+Mario's optional WebMCP integration remains inert when `document.modelContext` is unavailable. Native read/start/pause calls were verified in the historical desktop test browser; support in other browsers is not assumed. The public demo and source are unofficial fan work with no SEGA or Nintendo affiliation.
 
 <!-- PROJECT-LINKS:START -->
 ## 3D Playground

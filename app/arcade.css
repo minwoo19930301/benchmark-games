@@ -1,0 +1,105 @@
+.arcade-bar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  height: 48px;
+  display: flex;
+  align-items: stretch;
+  background: #f7faff;
+  color: #16354e;
+  border-bottom: 1px solid #16354e22;
+  font-family: 'Avenir Next', Arial, sans-serif;
+}
+.arcade-wordmark {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: -2px;
+  text-decoration: none;
+}
+.arcade-wordmark span {
+  color: #245ce7;
+  margin: 0 3px;
+}
+.arcade-games {
+  display: flex;
+  gap: 3px;
+}
+.arcade-games a {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 22px;
+  border-bottom: 3px solid transparent;
+  font-size: 13px;
+  font-weight: 850;
+  text-decoration: none;
+}
+.arcade-games a small {
+  font:
+    10px ui-monospace,
+    monospace;
+  opacity: 0.65;
+}
+.arcade-games a span {
+  font-size: 10px;
+  font-weight: 600;
+}
+.arcade-games a[aria-current='page'] {
+  color: #174fdf;
+  background: #e8efff;
+  border-bottom-color: #174fdf;
+}
+.arcade-games a:hover {
+  background: #edf2fc;
+}
+.arcade-source {
+  margin-left: auto;
+  align-content: center;
+  padding: 0 24px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-decoration: none;
+}
+.arcade-source span {
+  margin-left: 8px;
+}
+.arcade-bar a:focus-visible {
+  outline: 3px solid #e19c00;
+  outline-offset: -4px;
+}
+.arcade-stage > .game-shell,
+.arcade-stage > .sonic-shell {
+  top: 48px;
+}
+.arcade-loading {
+  position: fixed;
+  inset: 48px 0 0;
+  display: grid;
+  place-items: center;
+  color: #173a76;
+  background: #aeeaff;
+  font:
+    700 16px Arial,
+    sans-serif;
+}
+@media (max-width: 650px) {
+  .arcade-wordmark {
+    padding: 0 13px;
+  }
+  .arcade-games a {
+    padding: 0 13px;
+    gap: 6px;
+    font-size: 12px;
+  }
+  .arcade-games a span {
+    display: none;
+  }
+  .arcade-source {
+    padding: 0 13px;
+    font-size: 9px;
+  }
+}
