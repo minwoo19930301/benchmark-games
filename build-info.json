@@ -1,5 +1,20 @@
 {
   "repository": "minwoo19930301/benchmark-games",
-  "sourceCommit": "59d7adda9673ba1ec951609cc4cd92d4b3fcbdd4",
-  "game": "Sonic \u2014 Seaside Sprint"
+  "sourceCommit": "2a846e3fe9d543e084741dac1d9fd85cf1f88cb7",
+  "games": [
+    "mario",
+    "sonic",
+    "smash",
+    "ocarina",
+    "commando",
+    "iron",
+    "pocket"
+  ],
+  "benchmarkSuite": [
+    "smash",
+    "ocarina",
+    "commando",
+    "iron",
+    "pocket"
+  ]
 }

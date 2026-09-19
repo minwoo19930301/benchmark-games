@@ -1,0 +1,1 @@
+var e=()=>({left:!1,right:!1,up:!1,down:!1,jump:!1,attack:!1,special:!1,guard:!1,interact:!1}),t=(e,t,n)=>Math.max(t,Math.min(n,e));export{e as n,t};

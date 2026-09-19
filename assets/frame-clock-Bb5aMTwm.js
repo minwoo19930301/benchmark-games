@@ -1,0 +1,1 @@
+var e=class{previous=null;reset(){this.previous=null}tick(e){if(!Number.isFinite(e))return this.reset(),0;let t=this.previous;return this.previous=e,t===null||e<=t?0:Math.min(.05,(e-t)/1e3)}};export{e as t};
