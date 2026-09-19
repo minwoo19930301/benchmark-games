@@ -1,6 +1,6 @@
 {
   "repository": "minwoo19930301/benchmark-games",
-  "sourceCommit": "2a846e3fe9d543e084741dac1d9fd85cf1f88cb7",
+  "sourceCommit": "784e41720f3eafcfd2556a881e54fb6d387628bf",
   "games": [
     "mario",
     "sonic",
@@ -8,13 +8,33 @@
     "ocarina",
     "commando",
     "iron",
-    "pocket"
+    "pocket",
+    "x4",
+    "x5",
+    "x6",
+    "colony",
+    "watchpoint",
+    "temple"
   ],
   "benchmarkSuite": [
     "smash",
     "ocarina",
     "commando",
     "iron",
-    "pocket"
+    "pocket",
+    "x4",
+    "x5",
+    "x6",
+    "colony",
+    "watchpoint",
+    "temple"
+  ],
+  "expansionSuite": [
+    "x4",
+    "x5",
+    "x6",
+    "colony",
+    "watchpoint",
+    "temple"
   ]
 }
