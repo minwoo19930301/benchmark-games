@@ -8,9 +8,44 @@ export const actions = [
   'special',
   'guard',
   'interact',
+  'reload',
+  'ultimate',
+  'switch',
+  'left2',
+  'right2',
+  'jump2',
 ] as const;
 export type Action = (typeof actions)[number];
-export type Input = Record<Action, boolean>;
+/** Coordinates are relative to the game canvas; deltas/edges last one physics step. */
+export type PointerInput = {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  primary: boolean;
+  secondary: boolean;
+  primaryPressed: boolean;
+  primaryReleased: boolean;
+  secondaryPressed: boolean;
+  secondaryReleased: boolean;
+  scroll: number;
+  aspect: number;
+};
+export type Input = Record<Action, boolean> & { pointer?: PointerInput };
+export const idlePointer = (): PointerInput => ({
+  x: 0.5,
+  y: 0.5,
+  dx: 0,
+  dy: 0,
+  primary: false,
+  secondary: false,
+  primaryPressed: false,
+  primaryReleased: false,
+  secondaryPressed: false,
+  secondaryReleased: false,
+  scroll: 0,
+  aspect: 16 / 9,
+});
 export const idleInput = (): Input => ({
   left: false,
   right: false,
@@ -21,6 +56,12 @@ export const idleInput = (): Input => ({
   special: false,
   guard: false,
   interact: false,
+  reload: false,
+  ultimate: false,
+  switch: false,
+  left2: false,
+  right2: false,
+  jump2: false,
 });
 export type RetroSnapshot = {
   phase: 'playing' | 'won' | 'lost';
@@ -31,9 +72,19 @@ export type RetroSnapshot = {
   stats: { label: string; value: string | number }[];
 };
 export interface RetroSimulation {
+  audioCues?: Partial<Record<SoundCue, number>>;
+  clearInput?(): void;
   step(dt: number, input: Input): void;
   snapshot(): RetroSnapshot;
 }
+export type SoundCue =
+  | 'shot'
+  | 'hit'
+  | 'jump'
+  | 'dash'
+  | 'pickup'
+  | 'explosion'
+  | 'ability';
 export interface RetroView {
   render(width: number, height: number): void;
   dispose(): void;
@@ -47,6 +98,10 @@ export interface Cartridge {
   description: string;
   objective: string;
   accent: string;
+  renderer?: 'canvas' | 'webgl';
+  pointerMode?: 'cursor' | 'lock';
+  bindings?: Record<string, Action>;
+  inputHint?: string;
   controls: { action: Action; label: string; key: string }[];
   create(): RetroSimulation;
   mount(canvas: HTMLCanvasElement, simulation: RetroSimulation): RetroView;

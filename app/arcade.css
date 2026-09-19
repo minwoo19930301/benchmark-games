@@ -731,3 +731,36 @@
     transition: none;
   }
 }
+
+.suite-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.library-benchmark .suite-buttons button:last-child {
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+.new-cartridges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  padding: 22px 0;
+  border-bottom: 2px solid #172430;
+}
+.new-cartridges > span {
+  width: 100%;
+  font:
+    700 11px 'Courier New',
+    monospace;
+  color: #a8472c;
+}
+.new-cartridges a {
+  color: #172430;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  border-bottom: 1px solid #17243044;
+  padding-bottom: 3px;
+}

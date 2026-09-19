@@ -557,3 +557,91 @@
     height: calc(100% - 242px);
   }
 }
+
+.retro-input-hint {
+  position: absolute;
+  left: 26px;
+  bottom: 44px;
+  z-index: 2;
+  padding: 5px 9px;
+  font-size: 10px;
+  background: #f8f7e7e8;
+  color: #263c46;
+  pointer-events: none;
+  max-width: calc(100% - 52px);
+}
+.retro-watchpoint .retro-canvas {
+  cursor: crosshair;
+}
+.retro-colony .retro-canvas {
+  cursor: crosshair;
+  touch-action: none;
+}
+.retro-shell:fullscreen {
+  inset: 0;
+}
+@media (max-width: 650px) {
+  .retro-input-hint {
+    bottom: 108px;
+    left: 8px;
+    max-width: calc(100% - 16px);
+    font-size: 9px;
+  }
+}
+
+.retro-shell.has-input-hint .retro-canvas {
+  bottom: 66px;
+  height: calc(100% - 181px);
+}
+.retro-input-hint {
+  height: 22px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 650px) {
+  .retro-shell.has-input-hint .retro-canvas {
+    bottom: 140px;
+    height: calc(100% - 274px);
+  }
+  .retro-input-hint {
+    height: 32px;
+    white-space: normal;
+    line-height: 12px;
+  }
+}
+
+@media (max-width: 650px), (pointer: coarse) {
+  .retro-watchpoint .retro-action-pad,
+  .retro-colony .retro-action-pad {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex: 1;
+  }
+  .retro-watchpoint .retro-action-pad button,
+  .retro-colony .retro-action-pad button {
+    min-width: 0;
+    padding: 3px 2px;
+    font-size: 8px;
+    height: 44px;
+  }
+  .retro-watchpoint .retro-action-pad strong,
+  .retro-colony .retro-action-pad strong {
+    font-size: 9px;
+    white-space: nowrap;
+  }
+  .retro-game-title {
+    min-width: 0;
+  }
+  .retro-game-title strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+@media (max-width: 500px) {
+  .retro-game-title {
+    max-width: calc(100% - 175px);
+  }
+}

@@ -33,7 +33,8 @@ export default function Retro({
   const [cartridge, setCartridge] = useState<Cartridge | null>(null),
     [state, setState] = useState<RuntimeState | null>(null),
     [error, setError] = useState(''),
-    [perf, setPerf] = useState(autoStart);
+    [perf, setPerf] = useState(autoStart),
+    [sound, setSound] = useState(false);
   const [result, setResult] = useState<BenchmarkRecord | null>(null);
   useEffect(() => {
     let cancelled = false;
@@ -75,7 +76,7 @@ export default function Retro({
     runtime.current?.input(action, held);
   return (
     <main
-      className={`retro-shell retro-${entry.id}`}
+      className={`retro-shell retro-${entry.id}${cartridge?.inputHint ? ' has-input-hint' : ''}`}
       style={{ '--game-accent': entry.accent } as React.CSSProperties}
     >
       <canvas
@@ -100,6 +101,32 @@ export default function Retro({
           ))}
         </dl>
         <div className="retro-tools">
+          {Number(entry.number) >= 8 && (
+            <button
+              aria-label="효과음"
+              onPointerDown={(event) => event.preventDefault()}
+              aria-pressed={sound}
+              onClick={() => {
+                void runtime.current?.sound(!sound).then(setSound);
+              }}
+            >
+              {sound ? '소리 켬' : '소리 끔'}
+            </button>
+          )}
+          <button
+            aria-label="게임 전체 화면"
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={() => {
+              if (document.fullscreenElement)
+                void document.exitFullscreen().catch(() => {});
+              else
+                void canvas.current?.parentElement
+                  ?.requestFullscreen?.()
+                  .catch(() => {});
+            }}
+          >
+            ⛶
+          </button>
           <button
             aria-pressed={perf}
             onPointerDown={(event) => event.preventDefault()}
@@ -148,7 +175,8 @@ export default function Retro({
             {phase === 'playing' ? state.fps : '—'} <small>FPS</small>
           </strong>
           <span>
-            {['pocket', 'commando'].includes(entry.id)
+            {cartridge?.renderer === 'canvas' ||
+            ['pocket', 'commando'].includes(entry.id)
               ? 'Canvas 2D'
               : `WebGL · ${state.drawCalls} draw calls`}
           </span>
@@ -245,9 +273,10 @@ export default function Retro({
           </div>
         </section>
       )}
-      <footer className="retro-controls">
+      <footer className="retro-controls" title={cartridge?.inputHint}>
         <span>
-          <kbd>← ↑ ↓ →</kbd> 이동
+          <kbd>{cartridge?.pointerMode === 'lock' ? 'W A S D' : '← ↑ ↓ →'}</kbd>{' '}
+          {cartridge?.pointerMode === 'cursor' ? '카메라' : '이동'}
         </span>
         {cartridge?.controls
           .filter(
@@ -263,6 +292,9 @@ export default function Retro({
           <kbd>ESC</kbd> 일시정지
         </span>
       </footer>
+      {cartridge?.inputHint && (
+        <div className="retro-input-hint">{cartridge.inputHint}</div>
+      )}
       <nav className="retro-touch" aria-label="터치 조작">
         <div className="retro-dpad">
           {(['up', 'left', 'down', 'right'] as const).map((action, index) => (
