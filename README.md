@@ -1,17 +1,54 @@
-# Benchmark Games — Mario 2.5D, Sonic & More
+# Benchmark Games — 방과후 오락실
 
 [![PLAY DEMO](https://img.shields.io/badge/PLAY%20DEMO-GitHub%20Pages-4caf50?style=for-the-badge&logo=githubpages)](https://minwoo19930301.github.io/benchmark-games/)
 [![SOURCE CODE](https://img.shields.io/badge/SOURCE%20CODE-minwoo19930301-e7322d?style=for-the-badge)](https://github.com/minwoo19930301/benchmark-games)
 [![RUN LOCALLY](https://img.shields.io/badge/RUN%20LOCALLY-168343?style=for-the-badge)](#run)
 
-브라우저에서 플레이하는 Three.js 게임과 벤치마크 모음입니다. **Sonic — Seaside Sprint**가 기본으로 열리며, 상단 게임 선택기에서 **Mario 2.5D — Green Hills**로 전환할 수 있습니다. 선택한 게임만 불러옵니다.
+브라우저에서 직접 플레이하고 성능도 기록하는 **7개 게임 모음**입니다. 기본 화면은 게임 목록인 **방과후 오락실(`#arcade`)**입니다. 90년대 게임에서 착안한 독립 패러디 5종과 기존 Mario·Sonic을 선택할 수 있으며, 선택한 게임만 불러옵니다.
 
-- **Game 01 · Playable:** [Mario 2.5D — Green Hills](https://minwoo19930301.github.io/benchmark-games/#mario)
-- **Game 02 · Playable:** [Sonic — Seaside Sprint](https://minwoo19930301.github.io/benchmark-games/#sonic)
-- **Game 03 · Planned:** Additional retro/fan benchmarks
+| 게임 · 경로 | 참고한 게임 | 플레이와 완료 목표 | 화면 |
+| --- | --- | --- | --- |
+| [옥상 대난투 · Rooftop Rumble](https://minwoo19930301.github.io/benchmark-games/#smash) · `#smash` | Super Smash Bros. | 피해량에 따라 커지는 밀쳐내기, 더블 점프와 우산 복귀. 상대를 3번 장외로 밀어내기 | Three.js 2.5D |
+| [야근의 오카리나 · Ocarina of Overtime](https://minwoo19930301.github.io/benchmark-games/#ocarina) · `#ocarina` | Zelda: Ocarina of Time | 숲의 선율석 3개를 순서대로 연주하고 수호자를 물리친 뒤 제단 활성화 | Three.js 3D |
+| [깡통 특공대 · Tin Commando](https://minwoo19930301.github.io/benchmark-games/#commando) · `#commando` | Metal Slug | 시장 골목에서 동료 3명 구출, 전차 탑승, 고철 탱크 격파와 탈출 | Canvas 2D 픽셀 |
+| [철권 택배 · Iron Fist Delivery](https://minwoo19930301.github.io/benchmark-games/#iron) · `#iron` | Tekken | 펀치·발차기·가드·횡이동으로 거리와 공격 빈틈을 읽고 2라운드 선승 | Three.js 3D |
+| [첫 번째 모험 · Pocket Pals: First Route](https://minwoo19930301.github.io/benchmark-games/#pocket) · `#pocket` | Pokémon 1세대 | 마을과 풀숲 탐험, 속성 전투, 서로 다른 친구 2종 포획 후 라이벌전 승리 | Canvas 2D 픽셀 |
 
-> [!NOTE]
-> 비공식 팬/벤치마크 프로토타입입니다. Sonic 관련 캐릭터·상표는 SEGA, Mario 관련 캐릭터·상표는 Nintendo에 속합니다. 양사와 공식 제휴 관계가 없습니다. 이 프로젝트의 캐릭터 모델과 배경은 Three.js로 직접 구성했습니다.
+<p>
+<a href="https://minwoo19930301.github.io/benchmark-games/#smash"><img src="public/previews/smash.png" width="180" alt="옥상 대난투 실행 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#ocarina"><img src="public/previews/ocarina.png" width="180" alt="야근의 오카리나 실행 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#commando"><img src="public/previews/commando.png" width="180" alt="깡통 특공대 실행 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#iron"><img src="public/previews/iron.png" width="180" alt="철권 택배 실행 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#pocket"><img src="public/previews/pocket.png" width="180" alt="첫 번째 모험 실행 화면"></a>
+</p>
+
+기존 게임: [Mario 2.5D — Green Hills](https://minwoo19930301.github.io/benchmark-games/#mario) · [Sonic — Seaside Sprint](https://minwoo19930301.github.io/benchmark-games/#sonic).
+
+비공식 팬 패러디입니다. 참고 작품의 상표·캐릭터 권리는 각 권리자에게 있으며 공식 제휴 관계가 없습니다. 새 패러디 5종의 캐릭터, 픽셀 스프라이트, 3D 모델과 배경은 코드로 직접 제작했습니다. 게임 실행에 외부 에셋 다운로드나 계정 연결이 필요하지 않습니다. 위 공개 주소의 최신 반영 여부는 로컬 소스 검증과 별도로 확인합니다.
+
+## 새 게임 5종 조작
+
+방향키 또는 WASD로 이동하고 **Esc**로 일시정지·재개합니다. 화면의 터치 버튼도 같은 게임 입력을 보냅니다. 창 포커스를 잃거나 탭을 숨기면 일시정지하고 눌린 입력을 해제합니다.
+
+| 게임 | J | K | L | E | Space · 추가 조작 |
+| --- | --- | --- | --- | --- | --- |
+| 옥상 대난투 | 택배 펀치 | 지상 박스 타격 / 공중 우산 복귀 | 방패 | — | 더블 점프 |
+| 야근의 오카리나 | 나무검 | 구르기 | 방패 | 선율 연주 / 제단 상호작용 | 점프 |
+| 깡통 특공대 | 사격 | 수류탄 | 앉기 | 동료 구출 / 전차 탑승 | 점프 |
+| 철권 택배 | 펀치 / 연속 타격 | 긴 발차기 | 가드 | — | 회피 스텝 · ↑↓ 횡이동 |
+| 첫 번째 모험 | 기본 공격 / 대화 | 속성 기술 | 포획 구슬 | 대화 / 회복 떡 | 전투 중 ←→ 친구 교체 |
+
+첫 번째 모험에서는 야생 친구의 **HP를 45% 이하**로 낮춰야 포획됩니다. 불꽃은 풀에, 풀은 물에, 물은 불꽃에 강합니다. 남서쪽 진료소 앞에서 E를 누르면 친구들의 HP, 포획 구슬과 회복 떡을 보충합니다.
+
+## 자동 벤치마크
+
+각 게임의 **자동 벤치마크**는 동일한 시뮬레이션에 일반 조작 입력을 보냅니다. 목록의 **5종 연속 벤치마크**는 옥상 대난투 → 야근의 오카리나 → 깡통 특공대 → 철권 택배 → 첫 번째 모험 순서로 실행합니다. 기존 Mario·Sonic은 이 5종 연속 실행에 포함되지 않습니다. 게임 도중 Esc로 일시정지하거나 연속 실행 중단 버튼으로 목록에 돌아갈 수 있습니다.
+
+결과에는 **평균 FPS, 프레임 간격 p95(ms), 프레임당 CPU 작업 시간(ms)**과 완료 여부, 점수, 시뮬레이션 시간, 화면 크기가 기록됩니다. 최근 30개 결과를 현재 브라우저의 `localStorage`에 보관하며 목록에서 JSON으로 내려받을 수 있습니다. 서버로 전송하지 않습니다.
+
+FPS는 실제 화면 갱신 속도이며 시뮬레이션은 120Hz 고정 간격입니다. CPU 작업 시간은 해당 프레임의 게임 갱신과 렌더링 명령 실행에 걸린 시간으로, GPU 처리 시간이나 전체 브라우저 비용을 뜻하지 않습니다. 같은 기기·브라우저·화면 크기에서 비교하세요. Canvas 2D와 WebGL의 그리기 호출 수는 의미가 달라 직접적인 GPU 부하 비교에 쓸 수 없습니다.
+
+[새 게임 검증 범위와 실행 근거](docs/retro-verification.md)
 
 [![Sonic — Seaside Sprint 실행 화면](docs/sonic-preview.png)](https://minwoo19930301.github.io/benchmark-games/#sonic)
 
@@ -50,7 +87,7 @@ npm ci
 npm run dev
 ```
 
-The default local address is `http://127.0.0.1:4180/`. Open `#sonic` for Sonic or `#mario` for Mario; a URL without a game hash opens Sonic. `npm run build` writes a static `dist/` directory, and `npm run preview` serves it locally. Those local commands do not publish a deployment. A public GitHub Pages demo is linked above. Models, scenery, and font fallbacks work without external asset services.
+The default local address is `http://127.0.0.1:4180/`. A URL without a game hash opens the arcade library, as does `#arcade`. Use `#smash`, `#ocarina`, `#commando`, `#iron`, or `#pocket` for the five new games; `#sonic` and `#mario` retain the existing games. `npm run build` writes a static `dist/` directory, and `npm run preview` serves it locally. Those local commands do not publish a deployment. The existing public GitHub Pages address is linked above; publication of a source change is a separate step. Models, scenery, and font fallbacks work without external asset services.
 
 ## Verify
 
@@ -62,7 +99,11 @@ npm run build
 npm audit
 ```
 
-The suite contains **61 tests: 44 retained tests and 17 Sonic tests**. Sonic checks cover momentum, braking, jump edges, spin dash, ring collection, enemy collisions, damage grace, lives, checkpoints, pause input cancellation, restart, and bounded frame durations. Complete-course controllers use ordinary charge, jump, and movement inputs at 30, 60, and 120 Hz. They verify continuous loop entry, traversal of the top and both sides, exit momentum, and arrival at the finish without changing player position or health directly. This deterministic coverage is separate from browser rendering and physical touch-device verification; see the [Sonic verification record](docs/sonic-verification.md) for the checked scope.
+2026-09-19 로컬 전체 **129개 테스트**, 타입 검사, lint, production build가 통과했고 npm audit에서 취약점 0개가 보고됐습니다.
+
+새 게임 테스트는 실제 전투·충돌·회복·퀘스트 조건과 일반 입력을 통한 완주를 검사합니다. 30·60·120Hz 화면 갱신 일정에서 120Hz 시뮬레이션을 실행하는 완주 검증과 브라우저 화면·성능 확인은 구분합니다. 현재 확인한 범위와 결과는 [새 게임 검증 기록](docs/retro-verification.md)에 적습니다.
+
+The retained baseline includes 44 Mario/shared tests and 17 Sonic tests. Sonic checks cover momentum, braking, jump edges, spin dash, ring collection, enemy collisions, damage grace, lives, checkpoints, pause input cancellation, restart, and bounded frame durations. Complete-course controllers use ordinary charge, jump, and movement inputs at 30, 60, and 120 Hz. They verify continuous loop entry, traversal of the top and both sides, exit momentum, and arrival at the finish without changing player position or health directly. This deterministic coverage is separate from browser rendering and physical touch-device verification; see the [Sonic verification record](docs/sonic-verification.md) for the checked scope.
 
 ### Historical Mario verification
 
@@ -75,7 +116,11 @@ CI performs clean installation, tests, type checking, lint and static build with
 ## Architecture
 
 - `index.html`, `src/main.tsx`, `vite.config.ts`: standalone Vite/React entry point and static build.
-- `app/arcade.tsx`: hash-based game selection and lazy loading.
+- `app/arcade.tsx`: hash-based game library, lazy loading, five-game benchmark queue, and local results/export.
+- `app/retro.tsx`, `app/retro.css`: shared HUD, start/pause UI, keyboard help, and touch controls for the five cartridges.
+- `lib/retro/types.ts`, `catalog.ts`, `runtime.ts`, `metrics.ts`: cartridge contract, registry, fixed 120Hz runner, input lifecycle, frame samples, and local records.
+- `lib/retro/{smash,ocarina,commando,iron,pocket}/`: each game's pure simulation, ordinary-input benchmark controller, and procedural WebGL or pixel renderer.
+- `public/previews/`: game screenshots used by the arcade library.
 - `app/sonic.tsx`, `app/sonic.css`: Sonic HUD, controls, personal record, and benchmark panel.
 - `lib/sonic/world.ts`: shared terrain, loop, ring, spring, boost, enemy, hazard, and checkpoint geometry.
 - `lib/sonic/simulation.ts`: deterministic 120Hz movement, collisions, lives, and finish state.

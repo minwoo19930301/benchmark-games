@@ -1,47 +1,120 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { catalog, findGame } from '../lib/retro/catalog';
+import {
+  readRecords,
+  saveRecord,
+  type BenchmarkRecord,
+} from '../lib/retro/metrics';
 import './arcade.css';
-
-const Mario = lazy(() => import('./page'));
-const Sonic = lazy(() => import('./sonic'));
-const selectedGame = () =>
-  window.location.hash === '#mario' ? 'mario' : 'sonic';
-
+const Mario = lazy(() => import('./page')),
+  Sonic = lazy(() => import('./sonic')),
+  Retro = lazy(() => import('./retro'));
+const selectedGame = () => window.location.hash.slice(1) || 'arcade';
+function exportRecords(records: BenchmarkRecord[]) {
+  const url = URL.createObjectURL(
+    new Blob(
+      [
+        JSON.stringify(
+          {
+            schema: 1,
+            note: 'Foreground browser measurements; compare same browser, viewport and hardware.',
+            records,
+          },
+          null,
+          2,
+        ),
+      ],
+      { type: 'application/json' },
+    ),
+  );
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'benchmark-games-results.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 export default function Arcade() {
-  const [selected, setSelected] = useState(selectedGame);
+  const [selected, setSelected] = useState(selectedGame),
+    [records, setRecords] = useState(readRecords),
+    [suite, setSuite] = useState<string[]>([]);
   useEffect(() => {
-    const changed = () => setSelected(selectedGame());
+    const changed = () => {
+      const id = selectedGame();
+      setSelected(id);
+      setSuite((current) =>
+        current.length && id !== current[0] ? [] : current,
+      );
+    };
     window.addEventListener('hashchange', changed);
     return () => window.removeEventListener('hashchange', changed);
   }, []);
+  const entry = findGame(selected),
+    inGame = !!entry || selected === 'mario' || selected === 'sonic';
   useEffect(() => {
-    document.title =
-      selected === 'sonic'
-        ? 'Sonic — Seaside Sprint | Benchmark Games'
-        : 'Mario 2.5D | Benchmark Games';
-  }, [selected]);
+    document.title = `${entry?.korean || (selected === 'mario' ? 'Mario 2.5D' : selected === 'sonic' ? 'Sonic — Seaside Sprint' : '방과후 오락실')} | Benchmark Games`;
+  }, [entry, selected]);
+  const complete = useCallback((record: BenchmarkRecord) => {
+    setRecords(saveRecord(record));
+    setSuite((current) =>
+      current[0] === record.game ? current.slice(1) : current,
+    );
+  }, []);
+  useEffect(() => {
+    if (suite.length && selected !== suite[0]) {
+      window.location.hash = suite[0];
+    }
+  }, [suite, selected]);
+  const runSuite = () => {
+    setSuite(catalog.map((game) => game.id));
+    window.location.hash = catalog[0].id;
+  };
+  const stopSuite = () => {
+    setSuite([]);
+    window.location.hash = 'arcade';
+  };
   return (
     <>
       <nav className="arcade-bar" aria-label="게임 선택">
         <a
-          href="#sonic"
+          href="#arcade"
           className="arcade-wordmark"
-          aria-label="Benchmark Games"
+          aria-label="Benchmark Games 게임 목록"
         >
           B<span>/</span>G
         </a>
         <div className="arcade-games">
-          <a
-            href="#mario"
-            aria-current={selected === 'mario' ? 'page' : undefined}
-          >
-            <small>01</small> MARIO <span>2.5D</span>
+          <a href="#arcade" aria-current={!inGame ? 'page' : undefined}>
+            ALL GAMES <small>07</small>
           </a>
-          <a
-            href="#sonic"
-            aria-current={selected === 'sonic' ? 'page' : undefined}
-          >
-            <small>02</small> SONIC <span>SEASIDE SPRINT</span>
-          </a>
+          {inGame && (
+            <>
+              <a
+                href="#mario"
+                aria-current={selected === 'mario' ? 'page' : undefined}
+              >
+                MARIO
+              </a>
+              <a
+                href="#sonic"
+                aria-current={selected === 'sonic' ? 'page' : undefined}
+              >
+                SONIC
+              </a>
+              {catalog.map((game) => (
+                <a
+                  key={game.id}
+                  href={`#${game.id}`}
+                  aria-current={selected === game.id ? 'page' : undefined}
+                >
+                  {game.id === 'ocarina'
+                    ? 'OCARINA'
+                    : game.id === 'commando'
+                      ? 'COMMANDO'
+                      : game.id.toUpperCase()}
+                </a>
+              ))}
+            </>
+          )}
         </div>
         <a
           className="arcade-source"
@@ -49,18 +122,208 @@ export default function Arcade() {
           target="_blank"
           rel="noreferrer"
         >
-          SOURCE <span aria-hidden="true">↗</span>
+          SOURCE ↗
         </a>
       </nav>
-      <div className="arcade-stage">
-        <Suspense
-          fallback={
-            <output className="arcade-loading">스테이지를 불러오는 중…</output>
-          }
-        >
-          {selected === 'sonic' ? <Sonic /> : <Mario />}
-        </Suspense>
-      </div>
+      {inGame ? (
+        <div className="arcade-stage">
+          <Suspense
+            fallback={
+              <output className="arcade-loading">
+                게임 카트리지를 불러오는 중…
+              </output>
+            }
+          >
+            {entry ? (
+              <Retro
+                key={entry.id}
+                entry={entry}
+                autoStart={suite[0] === entry.id}
+                suiteLabel={
+                  suite.length
+                    ? `5종 연속 벤치마크 · ${6 - suite.length}/5`
+                    : undefined
+                }
+                onComplete={complete}
+                onStopSuite={stopSuite}
+              />
+            ) : selected === 'sonic' ? (
+              <Sonic />
+            ) : (
+              <Mario />
+            )}
+          </Suspense>
+        </div>
+      ) : (
+        <main className="arcade-library">
+          <div className="library-masthead">
+            <span>BENCHMARK GAMES · VOL. 02</span>
+            <span>INSERT COIN? NO. JUST PLAY.</span>
+          </div>
+          <header className="library-heading">
+            <div>
+              <p>학교 끝나고, 여기서 만나.</p>
+              <h1>
+                AFTER
+                <br />
+                <span>SCHOOL</span>
+                <i>ARCADE</i>
+              </h1>
+            </div>
+            <aside>
+              <span className="library-edition">
+                90s
+                <br />
+                <b>REPLAY</b>
+              </span>
+              <p>
+                오락실의 한 판.
+                <br />
+                거실 TV 앞의 모험.
+                <br />
+                주머니 속 첫 번째 친구.
+              </p>
+              <small>
+                90년대 게임의 손맛을 다시 만든
+                <br />
+                5개의 독립 패러디 + Mario & Sonic
+              </small>
+            </aside>
+          </header>
+          <section className="library-benchmark">
+            <div>
+              <b>PLAY IT. MEASURE IT.</b>
+              <p>
+                직접 플레이하거나, 같은 입력으로 자동 주행하며 성능을
+                기록하세요.
+              </p>
+            </div>
+            <button onClick={runSuite}>
+              5종 연속 벤치마크 <span>↗</span>
+            </button>
+          </section>
+          <section className="cartridge-list" aria-label="패러디 게임 목록">
+            {catalog.map((game) => (
+              <article
+                className={`cartridge-row cartridge-${game.id}`}
+                key={game.id}
+                style={{ '--game-accent': game.accent } as React.CSSProperties}
+              >
+                <a
+                  className="cartridge-screen"
+                  href={`#${game.id}`}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                >
+                  <img
+                    src={`${import.meta.env.BASE_URL}previews/${game.id}.png`}
+                    alt=""
+                    loading="lazy"
+                  />
+                  <span>{game.genre}</span>
+                </a>
+                <div className="cartridge-copy">
+                  <p>
+                    <span>NO. {game.number}</span>{' '}
+                    <span>{game.year} REVISITED</span>
+                  </p>
+                  <h2>
+                    <a href={`#${game.id}`}>{game.korean}</a>
+                  </h2>
+                  <h3>{game.title}</h3>
+                  <p className="cartridge-description">{game.description}</p>
+                  <small>INSPIRED BY {game.reference}</small>
+                </div>
+                <a
+                  className="cartridge-play"
+                  href={`#${game.id}`}
+                  aria-label={`${game.korean} 열기`}
+                >
+                  PLAY <span>↗</span>
+                </a>
+              </article>
+            ))}
+          </section>
+          <section className="classic-shelf" aria-label="기존 게임">
+            <span>ALREADY IN YOUR COLLECTION</span>
+            <a href="#mario">
+              <b>01 / MARIO</b>
+              <span>GREEN HILLS · 2.5D ↗</span>
+            </a>
+            <a href="#sonic">
+              <b>02 / SONIC</b>
+              <span>SEASIDE SPRINT · 2.5D ↗</span>
+            </a>
+          </section>
+          <section className="benchmark-ledger">
+            <header>
+              <div>
+                <p>ON THIS BROWSER</p>
+                <h2>벤치마크 기록</h2>
+              </div>
+              <button
+                disabled={!records.length}
+                onClick={() => exportRecords(records)}
+              >
+                JSON 내려받기 ↓
+              </button>
+            </header>
+            <p className="ledger-note">
+              평균 FPS · 프레임 간격 p95 · 프레임당 CPU 작업 시간. 같은
+              기기·브라우저·화면 크기에서 비교하세요. 숨겨진 탭은
+              일시정지됩니다.
+            </p>
+            {records.length ? (
+              <div className="ledger-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>GAME</th>
+                      <th>RESULT</th>
+                      <th>AVG FPS</th>
+                      <th>P95 FRAME</th>
+                      <th>CPU / FRAME</th>
+                      <th>VIEWPORT</th>
+                      <th>TIME</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records.slice(0, 10).map((record, index) => (
+                      <tr key={`${record.recordedAt}-${index}`}>
+                        <td>{record.title}</td>
+                        <td>{record.outcome === 'won' ? 'CLEAR' : 'RETRY'}</td>
+                        <td>{record.averageFps.toFixed(1)}</td>
+                        <td>{record.p95FrameMs.toFixed(1)} ms</td>
+                        <td>{record.meanWorkMs.toFixed(2)} ms</td>
+                        <td>{record.viewport}</td>
+                        <td>{record.simulationSeconds.toFixed(1)} s</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="ledger-empty">
+                <span>NO RUNS YET / 00</span>
+                <p>
+                  각 게임의 ‘자동 벤치마크’를 끝내면 이곳에 결과가 쌓입니다.
+                </p>
+              </div>
+            )}
+          </section>
+          <footer className="library-footer">
+            <b>B/G — BUILT TO PLAY</b>
+            <p>
+              자체 제작한 캐릭터·배경·코드로 구성한 비공식 팬 패러디입니다.
+              <br />
+              참고 작품의 상표와 캐릭터 권리는 각 권리자에게 있습니다.
+            </p>
+            <a href="https://github.com/minwoo19930301/benchmark-games">
+              SOURCE & NOTES ↗
+            </a>
+          </footer>
+        </main>
+      )}
     </>
   );
 }

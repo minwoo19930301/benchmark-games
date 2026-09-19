@@ -1,0 +1,559 @@
+.retro-shell {
+  position: fixed;
+  inset: 48px 0 0;
+  overflow: hidden;
+  background: #d9e5df;
+  color: #162531;
+  font-family: 'Avenir Next', Arial, sans-serif;
+  --game-accent: #ec623b;
+}
+.retro-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+}
+.retro-hud {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 17px 26px;
+  background: #f9faf1ed;
+  border-bottom: 2px solid #162531;
+}
+.retro-game-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 33%;
+}
+.retro-game-title small {
+  font:
+    10px 'Courier New',
+    monospace;
+  letter-spacing: 1px;
+}
+.retro-game-title strong {
+  font:
+    900 17px 'Arial Black',
+    'Avenir Next',
+    sans-serif;
+  letter-spacing: -0.6px;
+}
+.retro-stats {
+  display: flex;
+  gap: 26px;
+  margin: 0 auto 0 0;
+}
+.retro-stats div {
+  min-width: 45px;
+}
+.retro-stats dt {
+  font:
+    9px 'Courier New',
+    monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.retro-stats dd {
+  margin: 2px 0 0;
+  font:
+    900 21px 'Avenir Next Condensed',
+    'Arial Narrow',
+    sans-serif;
+  white-space: nowrap;
+}
+.retro-tools {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+  align-items: center;
+}
+.retro-tools button,
+.retro-tools a {
+  border: 1px solid #16253138;
+  background: #fffdfa;
+  padding: 9px 10px;
+  font:
+    800 11px 'Avenir Next',
+    sans-serif;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+.retro-tools button[aria-pressed='true'] {
+  background: #162531;
+  color: #fff;
+}
+.retro-shell button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.retro-shell button:focus-visible,
+.retro-shell a:focus-visible {
+  outline: 3px solid var(--game-accent);
+  outline-offset: 3px;
+}
+.retro-mission {
+  position: absolute;
+  top: 78px;
+  left: 26px;
+  z-index: 2;
+  max-width: 70%;
+  padding: 8px 13px 11px;
+  background: #f9faf1ee;
+  color: #162531;
+  font-size: 11px;
+  font-weight: 700;
+  overflow: hidden;
+}
+.retro-mission i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--game-accent);
+}
+.retro-perf {
+  position: absolute;
+  right: 26px;
+  top: 124px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  background: #f9faf1ed;
+  border: 1px solid #16253133;
+  font:
+    10px 'Courier New',
+    monospace;
+}
+.retro-perf strong {
+  font-size: 25px;
+}
+.retro-perf small {
+  font-size: 11px;
+}
+.retro-perf b {
+  font-family: 'Avenir Next', sans-serif;
+  color: var(--game-accent);
+}
+.retro-overlay {
+  position: absolute;
+  inset: 115px 0 52px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 4;
+  padding: 24px 5vw;
+}
+.retro-intro {
+  width: min(400px, 43vw);
+  background: #fcfcf0f5;
+  padding: 28px 30px 23px;
+  border: 2px solid #162531;
+  box-shadow: 7px 7px 0 var(--game-accent);
+  pointer-events: auto;
+}
+.retro-eyebrow {
+  margin: 0 0 12px;
+  font:
+    700 10px 'Courier New',
+    monospace;
+  letter-spacing: 1.5px;
+  color: var(--game-accent);
+}
+.retro-intro h1 {
+  margin: 0 0 14px;
+  font:
+    900 clamp(32px, 3.5vw, 53px)/1.1 'Arial Black',
+    'Avenir Next',
+    sans-serif;
+  letter-spacing: -2px;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+.retro-intro > p:not(.retro-eyebrow) {
+  font-size: 12px;
+  line-height: 1.8;
+  word-break: keep-all;
+  margin: 0 0 16px;
+}
+.retro-goal {
+  border-top: 1px solid #16253135;
+  padding-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+.retro-goal b {
+  font:
+    10px 'Courier New',
+    monospace;
+  letter-spacing: 1px;
+  padding-top: 4px;
+  color: var(--game-accent);
+}
+.retro-starts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.retro-start {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--game-accent);
+  color: white;
+  border: 0;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+}
+.retro-start span {
+  font-size: 24px;
+  line-height: 1;
+}
+.retro-auto {
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid #162531;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.retro-reference {
+  display: block;
+  margin-top: 15px;
+  opacity: 0.65;
+  font-size: 9px;
+}
+.retro-controls {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 12px 26px;
+  z-index: 3;
+  background: #f9faf1e8;
+  border-top: 1px solid #16253125;
+  display: flex;
+  gap: 20px;
+  font-size: 10px;
+  font-weight: 650;
+}
+.retro-controls kbd {
+  font:
+    700 11px 'Courier New',
+    monospace;
+  border: 1px solid #16253133;
+  padding: 2px 5px;
+  margin-right: 4px;
+}
+.retro-touch {
+  display: none;
+}
+.retro-suite-label {
+  position: absolute;
+  top: 82px;
+  right: 26px;
+  z-index: 6;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: #ffe854;
+  padding: 7px 12px;
+  font-size: 11px;
+}
+.retro-suite-label button {
+  font: inherit;
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 850px) {
+  .retro-hud {
+    gap: 12px;
+    padding: 12px 16px;
+  }
+  .retro-game-title strong {
+    font-size: 13px;
+  }
+  .retro-game-title small {
+    font-size: 8px;
+  }
+  .retro-stats {
+    gap: 12px;
+  }
+  .retro-stats dd {
+    font-size: 16px;
+  }
+  .retro-tools a {
+    display: none;
+  }
+  .retro-mission {
+    top: 67px;
+    left: 16px;
+    font-size: 10px;
+  }
+  .retro-perf {
+    right: 16px;
+    top: 108px;
+  }
+  .retro-intro {
+    width: 350px;
+    max-width: 80vw;
+    padding: 22px;
+  }
+  .retro-controls {
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 9px;
+  }
+  .retro-suite-label {
+    top: auto;
+    bottom: 49px;
+    right: 16px;
+  }
+}
+@media (max-width: 650px), (pointer: coarse) {
+  .retro-controls {
+    display: none;
+  }
+  .retro-touch {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: absolute;
+    inset: auto 10px 12px;
+    z-index: 7;
+    gap: 12px;
+    pointer-events: none;
+  }
+  .retro-touch button {
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    border: 1px solid #1625317a;
+    color: #162531;
+    background: #fcfcf0da;
+    box-shadow: 0 2px 0 #1625315a;
+    min-height: 44px;
+    font-weight: 800;
+  }
+  .retro-dpad {
+    display: grid;
+    grid-template-columns: repeat(3, 42px);
+    grid-template-rows: repeat(2, 42px);
+    gap: 3px;
+  }
+  .direction-up {
+    grid-column: 2;
+  }
+  .direction-left {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .direction-down {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .direction-right {
+    grid-column: 3;
+    grid-row: 2;
+  }
+  .retro-action-pad {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    max-width: 230px;
+    gap: 5px;
+  }
+  .retro-action-pad button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 5px;
+    min-width: 45px;
+    font-size: 9px;
+  }
+  .retro-action-pad strong {
+    font:
+      900 14px 'Courier New',
+      monospace;
+  }
+  .retro-overlay {
+    bottom: 115px;
+  }
+  .retro-suite-label {
+    bottom: 110px;
+  }
+}
+@media (max-width: 500px) {
+  .retro-hud {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .retro-game-title {
+    max-width: calc(100% - 100px);
+    flex: 1 0 70%;
+  }
+  .retro-game-title strong {
+    font-size: 13px;
+  }
+  .retro-tools {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  .retro-tools button {
+    padding: 6px 8px;
+  }
+  .retro-stats {
+    gap: 22px;
+    flex-basis: 100%;
+    margin-top: 3px;
+  }
+  .retro-stats div {
+    min-width: 36px;
+  }
+  .retro-stats dt {
+    font-size: 8px;
+  }
+  .retro-stats dd {
+    font-size: 17px;
+  }
+  .retro-mission {
+    top: 96px;
+    left: 12px;
+    max-width: calc(100% - 24px);
+    font-size: 9px;
+    padding: 6px 9px 8px;
+  }
+  .retro-overlay {
+    top: 128px;
+    padding: 18px;
+  }
+  .retro-intro {
+    width: 100%;
+    max-width: none;
+    padding: 22px;
+    box-shadow: 5px 5px 0 var(--game-accent);
+  }
+  .retro-intro h1 {
+    font-size: 35px;
+  }
+  .retro-intro > p:not(.retro-eyebrow) {
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+  .retro-goal {
+    display: none;
+  }
+  .retro-perf {
+    top: 135px;
+    right: 12px;
+    padding: 8px 9px;
+    gap: 3px;
+    font-size: 8px;
+    opacity: 0.96;
+  }
+  .retro-perf strong {
+    font-size: 17px;
+  }
+  .retro-touch {
+    gap: 4px;
+  }
+  .retro-action-pad {
+    max-width: 207px;
+    gap: 4px;
+  }
+  .retro-action-pad button {
+    min-width: 42px;
+    min-height: 40px;
+    padding: 4px;
+    font-size: 8px;
+  }
+  .retro-dpad {
+    grid-template-columns: repeat(3, 37px);
+    grid-template-rows: repeat(2, 44px);
+  }
+  .retro-suite-label {
+    font-size: 9px;
+    padding: 5px 8px;
+    bottom: 109px;
+  }
+  .retro-reference {
+    font-size: 8px;
+  }
+}
+@media (max-height: 550px) {
+  .retro-overlay {
+    top: 72px;
+    bottom: 50px;
+    align-items: center;
+  }
+  .retro-intro {
+    padding: 15px 20px;
+    width: 350px;
+  }
+  .retro-intro h1 {
+    font-size: 29px;
+    margin-bottom: 7px;
+  }
+  .retro-intro > p:not(.retro-eyebrow) {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  .retro-goal,
+  .retro-reference {
+    display: none;
+  }
+  .retro-eyebrow {
+    margin-bottom: 6px;
+  }
+  .retro-starts {
+    flex-direction: row;
+  }
+  .retro-start {
+    font-size: 11px;
+    padding: 9px 12px;
+    flex: 1;
+  }
+  .retro-auto {
+    font-size: 10px;
+    flex: 1;
+  }
+}
+/* Keep each game's own health bars and dialog clear of shared controls. */
+.retro-canvas {
+  inset: 115px 0 44px;
+  height: calc(100% - 159px);
+}
+@media (max-width: 850px) {
+  .retro-canvas {
+    inset: 104px 0 40px;
+    height: calc(100% - 144px);
+  }
+}
+@media (max-width: 650px), (pointer: coarse) {
+  .retro-canvas {
+    inset: 104px 0 108px;
+    height: calc(100% - 212px);
+  }
+}
+@media (max-width: 500px) {
+  .retro-canvas {
+    inset: 134px 0 108px;
+    height: calc(100% - 242px);
+  }
+}
