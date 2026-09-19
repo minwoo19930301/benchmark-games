@@ -36,7 +36,8 @@ function exportRecords(records: BenchmarkRecord[]) {
 export default function Arcade() {
   const [selected, setSelected] = useState(selectedGame),
     [records, setRecords] = useState(readRecords),
-    [suite, setSuite] = useState<string[]>([]);
+    [suite, setSuite] = useState<string[]>([]),
+    [suiteSize, setSuiteSize] = useState(0);
   useEffect(() => {
     const changed = () => {
       const id = selectedGame();
@@ -64,9 +65,13 @@ export default function Arcade() {
       window.location.hash = suite[0];
     }
   }, [suite, selected]);
-  const runSuite = () => {
-    setSuite(catalog.map((game) => game.id));
-    window.location.hash = catalog[0].id;
+  const runSuite = (newOnly = false) => {
+    const games = newOnly
+      ? catalog.filter((game) => Number(game.number) >= 8)
+      : catalog;
+    setSuiteSize(games.length);
+    setSuite(games.map((game) => game.id));
+    window.location.hash = games[0].id;
   };
   const stopSuite = () => {
     setSuite([]);
@@ -84,7 +89,8 @@ export default function Arcade() {
         </a>
         <div className="arcade-games">
           <a href="#arcade" aria-current={!inGame ? 'page' : undefined}>
-            ALL GAMES <small>07</small>
+            ALL GAMES{' '}
+            <small>{String(catalog.length + 2).padStart(2, '0')}</small>
           </a>
           {inGame && (
             <>
@@ -141,7 +147,7 @@ export default function Arcade() {
                 autoStart={suite[0] === entry.id}
                 suiteLabel={
                   suite.length
-                    ? `5종 연속 벤치마크 · ${6 - suite.length}/5`
+                    ? `${suiteSize}종 연속 벤치마크 · ${suiteSize + 1 - suite.length}/${suiteSize}`
                     : undefined
                 }
                 onComplete={complete}
@@ -157,7 +163,7 @@ export default function Arcade() {
       ) : (
         <main className="arcade-library">
           <div className="library-masthead">
-            <span>BENCHMARK GAMES · VOL. 02</span>
+            <span>BENCHMARK GAMES · VOL. 03</span>
             <span>INSERT COIN? NO. JUST PLAY.</span>
           </div>
           <header className="library-heading">
@@ -172,7 +178,7 @@ export default function Arcade() {
             </div>
             <aside>
               <span className="library-edition">
-                90s
+                90s+
                 <br />
                 <b>REPLAY</b>
               </span>
@@ -184,9 +190,9 @@ export default function Arcade() {
                 주머니 속 첫 번째 친구.
               </p>
               <small>
-                90년대 게임의 손맛을 다시 만든
+                오락실부터 PC방까지, 다시 꺼내 든
                 <br />
-                5개의 독립 패러디 + Mario & Sonic
+                {catalog.length}개의 독립 패러디 + Mario & Sonic
               </small>
             </aside>
           </header>
@@ -198,12 +204,32 @@ export default function Arcade() {
                 기록하세요.
               </p>
             </div>
-            <button onClick={runSuite}>
-              5종 연속 벤치마크 <span>↗</span>
-            </button>
+            <div className="suite-buttons">
+              <button onClick={() => runSuite(true)}>
+                새 게임{' '}
+                {catalog.filter((game) => Number(game.number) >= 8).length}종
+                실행 <span>↗</span>
+              </button>
+              <button onClick={() => runSuite()}>
+                전체 {catalog.length}종 벤치마크 <span>↗</span>
+              </button>
+            </div>
+          </section>
+          <section className="new-cartridges" aria-label="이번에 추가된 게임">
+            <span>NEW / PC방과 플래시게임의 기억</span>
+            {catalog
+              .filter((game) => Number(game.number) >= 8)
+              .map((game) => (
+                <a key={game.id} href={`#${game.id}`}>
+                  {game.korean} ↗
+                </a>
+              ))}
           </section>
           <section className="cartridge-list" aria-label="패러디 게임 목록">
-            {catalog.map((game) => (
+            {[
+              ...catalog.filter((game) => Number(game.number) >= 8),
+              ...catalog.filter((game) => Number(game.number) < 8),
+            ].map((game) => (
               <article
                 className={`cartridge-row cartridge-${game.id}`}
                 key={game.id}
@@ -288,7 +314,7 @@ export default function Arcade() {
                     </tr>
                   </thead>
                   <tbody>
-                    {records.slice(0, 10).map((record, index) => (
+                    {records.slice(0, 15).map((record, index) => (
                       <tr key={`${record.recordedAt}-${index}`}>
                         <td>{record.title}</td>
                         <td>{record.outcome === 'won' ? 'CLEAR' : 'RETRY'}</td>

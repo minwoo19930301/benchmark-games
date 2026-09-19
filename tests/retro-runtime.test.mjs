@@ -38,6 +38,28 @@ function browser(t, options = {}) {
   const canvas = new ElementMock();
   canvas.clientWidth = 800;
   canvas.clientHeight = 600;
+  canvas.getBoundingClientRect = () => ({
+    left: 20,
+    top: 30,
+    width: 800,
+    height: 600,
+  });
+  canvas.setPointerCapture = () => {
+    if (documentMock.pointerLockElement)
+      throw new Error('InvalidStateError: pointer locked');
+  };
+  // Real browsers reject capture while pointer lock is active.
+  canvas.hasPointerCapture = () => false;
+  documentMock.pointerLockElement = null;
+  documentMock.exitPointerLock = () => {
+    documentMock.pointerLockElement = null;
+    documentMock.emit('pointerlockchange');
+  };
+  canvas.requestPointerLock = () => {
+    documentMock.pointerLockElement = canvas;
+    documentMock.emit('pointerlockchange');
+    return Promise.resolve();
+  };
   canvas.focuses = [];
   canvas.focus = (config) => {
     canvas.focuses.push(config);
@@ -143,6 +165,8 @@ function mockCartridge(options = {}) {
   let controllerCalls = 0;
   const cartridge = {
     id: 'test-cartridge',
+    pointerMode: options.pointerMode,
+    bindings: options.bindings,
     title: 'Test cartridge',
     create() {
       creations += 1;
@@ -565,4 +589,173 @@ test('initial cartridge setup failure never installs listeners, observers or RAF
   assert.equal(dom.totalListeners(), 0);
   assert.equal(dom.observers.length, 0);
   assert.equal(dom.callbacks.size, 0);
+});
+
+function pointerEvent(canvas, overrides = {}) {
+  return {
+    target: canvas,
+    clientX: 420,
+    clientY: 330,
+    pointerId: 1,
+    button: 0,
+    movementX: 0,
+    movementY: 0,
+    preventDefault() {},
+    ...overrides,
+  };
+}
+test('cursor commands preserve edges until a physics step and deliver drag/release once', (t) => {
+  const { dom, game, runtime } = mounted(t, {
+    cartridge: { pointerMode: 'cursor' },
+  });
+  runtime.start();
+  dom.frame(0);
+  dom.canvas.emit('pointerdown', pointerEvent(dom.canvas));
+  dom.document.emit(
+    'pointermove',
+    pointerEvent(dom.canvas, { clientX: 620, movementX: 200 }),
+  );
+  dom.frame(2);
+  assert.equal(game.simulations[1].steps.length, 0);
+  dom.frame(25);
+  const steps = game.simulations[1].steps;
+  assert.equal(steps.length, 3);
+  assert.equal(steps[0].input.pointer.x, 0.75);
+  assert.equal(steps[0].input.pointer.y, 0.5);
+  assert.equal(steps[0].input.pointer.dx, 200);
+  assert.equal(steps[0].input.pointer.primaryPressed, true);
+  assert.equal(steps[1].input.pointer.primaryPressed, false);
+  assert.equal(steps[1].input.pointer.dx, 0);
+  assert.equal(steps[2].input.pointer.primary, true);
+  dom.document.emit('pointerup', pointerEvent(dom.canvas));
+  dom.frame(50);
+  assert.equal(steps[3].input.pointer.primaryReleased, true);
+  assert.equal(steps[4].input.pointer.primaryReleased, false);
+  assert.equal(steps[4].input.pointer.primary, false);
+});
+test('pointer lock exits on pause, clears firing, and removes all pointer listeners on dispose', (t) => {
+  const { dom, game, runtime, states } = mounted(t, {
+    cartridge: { pointerMode: 'lock' },
+  });
+  runtime.start();
+  dom.frame(0);
+  dom.canvas.emit('pointerdown', pointerEvent(dom.canvas));
+  assert.equal(dom.document.pointerLockElement, dom.canvas);
+  dom.document.emit(
+    'pointermove',
+    pointerEvent(dom.canvas, { movementX: 23, movementY: -6 }),
+  );
+  dom.frame(17);
+  assert.equal(game.simulations[1].steps[0].input.pointer.dx, 23);
+  runtime.pause();
+  assert.equal(dom.document.pointerLockElement, null);
+  assert.equal(states.at(-1).phase, 'paused');
+  runtime.resume();
+  dom.frame(50);
+  dom.frame(67);
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.primary, false);
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.dx, 0);
+  runtime.dispose();
+  assert.equal(dom.totalListeners(), 0);
+});
+test('losing pointer lock pauses manual FPS but not automated input', (t) => {
+  const { dom, runtime, states } = mounted(t, {
+    cartridge: { pointerMode: 'lock' },
+  });
+  runtime.start();
+  dom.document.emit('pointerlockchange');
+  assert.equal(states.at(-1).phase, 'paused');
+  runtime.start(true);
+  dom.document.emit('pointerlockchange');
+  assert.equal(states.at(-1).phase, 'playing');
+});
+test('cartridge bindings let two keyboard players move independently', (t) => {
+  const { dom, game, runtime } = mounted(t, {
+    cartridge: { bindings: { KeyA: 'left2', KeyD: 'right2', KeyW: 'jump2' } },
+  });
+  runtime.start();
+  dom.key('keydown', 'KeyD');
+  dom.key('keydown', 'ArrowLeft');
+  dom.key('keydown', 'KeyW');
+  dom.frame(0);
+  dom.frame(17);
+  const input = game.simulations[1].steps[0].input;
+  assert.equal(input.right2, true);
+  assert.equal(input.left, true);
+  assert.equal(input.jump2, true);
+  assert.equal(input.right, false);
+  assert.equal(input.up, false);
+});
+
+test('chorded right-aim plus left-fire transitions through pointermove and releases both buttons', (t) => {
+  const { dom, game, runtime } = mounted(t, {
+    cartridge: { pointerMode: 'lock' },
+  });
+  runtime.start();
+  dom.frame(0);
+  dom.canvas.emit(
+    'pointerdown',
+    pointerEvent(dom.canvas, { button: 2, buttons: 2 }),
+  );
+  dom.frame(17);
+  assert.equal(game.simulations[1].steps[0].input.pointer.secondary, true);
+  assert.equal(game.simulations[1].steps[0].input.pointer.primary, false);
+  dom.document.emit(
+    'pointermove',
+    pointerEvent(dom.canvas, { button: 0, buttons: 3 }),
+  );
+  dom.frame(34);
+  assert.equal(
+    game.simulations[1].steps.at(-2).input.pointer.primaryPressed,
+    true,
+  );
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.primary, true);
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.secondary, true);
+  dom.document.emit(
+    'pointermove',
+    pointerEvent(dom.canvas, { button: 0, buttons: 2 }),
+  );
+  dom.frame(51);
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.primary, false);
+  dom.document.emit(
+    'pointerup',
+    pointerEvent(dom.canvas, { button: 2, buttons: 0 }),
+  );
+  dom.frame(68);
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.secondary, false);
+  assert.doesNotThrow(() =>
+    dom.canvas.emit('pointerdown', pointerEvent(dom.canvas, { buttons: 1 })),
+  );
+  dom.frame(85);
+  assert.equal(game.simulations[1].steps.at(-1).input.pointer.primary, true);
+});
+test('pause and pointer cancellation discard cartridge-local transient input', (t) => {
+  const { dom, game, runtime } = mounted(t, {
+    cartridge: { pointerMode: 'cursor' },
+  });
+  runtime.start();
+  let clears = 0;
+  game.simulations[1].clearInput = () => clears++;
+  dom.canvas.emit('pointercancel');
+  assert.equal(clears, 1);
+  runtime.pause();
+  assert.equal(clears, 2);
+});
+
+test('quick keyboard and touch taps are delivered once even between physics ticks', (t) => {
+  const { dom, game, runtime } = mounted(t);
+  runtime.start();
+  dom.frame(0);
+  dom.key('keydown', 'Space');
+  dom.key('keyup', 'Space');
+  runtime.input('attack', true);
+  runtime.input('attack', false);
+  dom.frame(2);
+  assert.equal(game.simulations[1].steps.length, 0);
+  dom.frame(25);
+  const steps = game.simulations[1].steps;
+  assert.equal(steps[0].input.jump, true);
+  assert.equal(steps[0].input.attack, true);
+  assert.equal(steps[1].input.jump, false);
+  assert.equal(steps[1].input.attack, false);
 });
