@@ -1,3 +1,4 @@
+import { pokemonPixels } from './sprites.ts';
 import type { RetroView } from '../types.ts';
 import {
   CLINIC,
@@ -11,126 +12,55 @@ import {
 } from './simulation.ts';
 
 const colors = {
-  ink: '#293b42',
-  paper: '#fff3d2',
-  pale: '#e9e7b5',
-  grass: '#b8ce87',
-  leaf: '#679f68',
-  darkLeaf: '#3c705c',
-  lightLeaf: '#a4ce80',
-  sand: '#dfc889',
-  sandLight: '#ecdba8',
-  water: '#78bbc0',
-  waterDark: '#448caa',
-  waterLight: '#b5e0d2',
-  roof: '#b95e61',
-  roofDark: '#854552',
-  roofLight: '#e18b7a',
-  wood: '#9c805e',
-  cream: '#f9dfa2',
-  orange: '#eaa156',
-  orangeDark: '#be664d',
-  teal: '#579daa',
+  ink: '#172d25',
+  paper: '#f0f1d1',
+  pale: '#d3ddad',
+  grass: '#d3ddad',
+  leaf: '#a3b58a',
+  darkLeaf: '#526b4f',
+  lightLeaf: '#d3ddad',
+  sand: '#a3b58a',
+  sandLight: '#f0f1d1',
+  water: '#a3b58a',
+  waterDark: '#526b4f',
+  waterLight: '#f0f1d1',
+  roof: '#526b4f',
+  roofDark: '#172d25',
+  roofLight: '#a3b58a',
+  wood: '#526b4f',
+  cream: '#f0f1d1',
+  orange: '#a3b58a',
+  orangeDark: '#526b4f',
+  teal: '#a3b58a',
 };
 
-// Every character and creature is an original, hand-placed pixel drawing.
-const sprites: Record<SpeciesId, string[]> = {
-  tangerex: [
-    '..........GG............',
-    '.........GgGG...........',
-    '........GGggG...........',
-    '........DDD.............',
-    '......DDoooDD...........',
-    '.....DoooooooD..........',
-    '....DoooooooooD.........',
-    '....DooWkoWkooD.........',
-    '....DooWkoWkooD.........',
-    '....DoooooooooD......DD.',
-    '.....DoCCCCCoD.....DooD.',
-    '......DCCkCCD.....DoooD.',
-    '......DCCCCCD.....DooD..',
-    '.....DoooooooD...DooD...',
-    '....DooCCCCoooDDDooD....',
-    '...DooDCCCCDooooooD.....',
-    '...DDDCCCCCCDDoooD......',
-    '.....DCCCCCCD.DDD.......',
-    '.....DCCCCCCD...........',
-    '.....DooooooD...........',
-    '....DoooDDoooD..........',
-    '...DCCCCDDCCCCD.........',
-    '....DDDD..DDDD..........',
-  ],
-  dokkaebud: [
-    '..........G.............',
-    '.....GG..GgG............',
-    '....GggGGggG.GGG........',
-    '.....GgggggGGgggG.......',
-    '......GGggggggGG........',
-    '........DgggDD..........',
-    '.....Y.DDggggDD.Y.......',
-    '....DYDggggggggDYD......',
-    '...DggggggggggggggD.....',
-    '...DggWWgggggWWgggD.....',
-    '...DggWkgggggWkgggD.....',
-    '...DggggggggggggggD.....',
-    '....DggCggkkggCggD......',
-    '.....DggggggggggD.......',
-    '...DDgggCCCCCCgggDD.....',
-    '..DggDgCCCCCCCCgDggD....',
-    '..DgDDgCCCYCCCggDDgD....',
-    '...D.DgCCCCCCCggD.D.....',
-    '.....DggCCCCCgggD.......',
-    '......DggggggggD........',
-    '......DggDDggggD........',
-    '.....DgggD.DggggD.......',
-    '......DDD...DDDD........',
-  ],
-  puddleot: [
-    '.....DDD.......DDD......',
-    '....DtttD.....DtttD.....',
-    '....DtCtDDDDDDtCtD......',
-    '.....DttttttttttD.......',
-    '....DttttttttttttD......',
-    '...DttttttttttttttD.....',
-    '...DtttWkttttWktttD.....',
-    '...DtttWkttttWktttD.....',
-    '..DCCCCttCCttCCCCCCD....',
-    '..DCCCCCkkkCCCCCCCD.....',
-    '...DDCCCCkCCCCCDD.......',
-    '..k..DCCCCCCCCD..k......',
-    '.....DttttttttD.........',
-    '....DttCCCCCCttD........',
-    '...DtttCCCCCCtttD.......',
-    '..DttDtCCCCCCtDttD......',
-    '..DDDttCCCCCCttDDD......',
-    '.....DtCCCCCCttD..DDD...',
-    '.....DttCCCCtttDDDtttD..',
-    '.....DttttttttttttttD...',
-    '....DttttDDttttDDDDD....',
-    '...DCCCCD..DCCCCD.......',
-    '....DDDD....DDDD........',
-  ],
-};
-
-const spritePalette: Record<string, string> = {
-  D: colors.ink,
-  k: colors.ink,
-  W: colors.paper,
-  C: colors.cream,
-  o: colors.orange,
-  g: colors.leaf,
-  G: colors.darkLeaf,
-  Y: colors.sand,
-  t: colors.teal,
-};
+const frontSprites = Object.fromEntries(
+  Object.keys(species).map((id) => [id, pokemonPixels(id as SpeciesId)]),
+);
+const backSprites = Object.fromEntries(
+  Object.keys(species).map((id) => [id, pokemonPixels(id as SpeciesId, true)]),
+);
+const shades = ['', '#f0f1d1', '#a3b58a', '#526b4f', '#172d25'];
 
 export function mountPocket(
   canvas: HTMLCanvasElement,
   game: PocketSimulation,
 ): RetroView {
   const context = canvas.getContext('2d', { alpha: false });
-  if (!context) throw new Error('Pocket Pals needs a 2D canvas.');
+  if (!context) throw new Error('Pokémon needs a 2D canvas.');
   const ctx = context;
+  const referenceSprites = new Map<string, HTMLImageElement>();
+  if (typeof Image !== 'undefined') {
+    for (const id of Object.keys(species))
+      for (const side of ['front', 'back']) {
+        const image = new Image();
+        image.src = new URL(
+          `assets/pokemon/${id}-${side}.png`,
+          document.baseURI,
+        ).href;
+        referenceSprites.set(`${id}-${side}`, image);
+      }
+  }
   let disposed = false;
   let calls = 0;
 
@@ -197,23 +127,46 @@ export function mountPocket(
     scale: number,
     mirror = false,
   ): void {
-    const pixels = sprites[id];
-    const x = cx - 12 * scale,
-      y = bottom - pixels.length * scale;
-    for (let row = 0; row < pixels.length; row++) {
-      for (let col = 0; col < pixels[row].length; col++) {
-        const color = spritePalette[pixels[row][col]];
+    const reference = referenceSprites.get(
+      `${id}-${mirror ? 'back' : 'front'}`,
+    );
+    if (reference?.complete && reference.naturalWidth > 0) {
+      const size = mirror ? 136 : 146;
+      if (mirror)
+        ctx.drawImage(reference, cx - size / 2, bottom - size, size, size);
+      else
+        ctx.drawImage(
+          reference,
+          20,
+          20,
+          60,
+          60,
+          cx - size / 2,
+          bottom - size,
+          size,
+          size,
+        );
+      calls++;
+      return;
+    }
+    const pixels = (mirror ? backSprites : frontSprites)[id];
+    const pixelScale = scale * 0.55;
+    const x = cx - 32 * pixelScale,
+      y = bottom - 64 * pixelScale;
+    for (let row = 0; row < 64; row++)
+      for (let col = 0; col < 64; col++) {
+        const color = shades[pixels[row][col]];
         if (color)
           rect(
-            x + (mirror ? 23 - col : col) * scale,
-            y + row * scale,
-            scale,
-            scale,
+            x + col * pixelScale,
+            y + row * pixelScale,
+            Math.ceil(pixelScale),
+            Math.ceil(pixelScale),
             color,
           );
       }
-    }
   }
+
   function trainer(
     x: number,
     y: number,
@@ -291,7 +244,7 @@ export function mountPocket(
     }
   }
   function world(): void {
-    rect(0, 0, 320, 240, colors.grass);
+    rect(0, 0, 320, 288, colors.grass);
     for (let row = 0; row < MAP_HEIGHT; row++) {
       for (let col = 0; col < MAP_WIDTH; col++) {
         const x = col * 16,
@@ -344,7 +297,7 @@ export function mountPocket(
     text('R1', 190, 58, colors.wood, 7);
     trainer(CLINIC.x * 16, CLINIC.y * 16, 'nurse');
     trainer(RIVAL.x * 16, RIVAL.y * 16, 'rival');
-    text('MISO', RIVAL.x * 16 - 10, 18, colors.ink, 6);
+    text('BLUE', RIVAL.x * 16 - 10, 18, colors.ink, 6);
     const { player } = game;
     trainer(
       player.x * 16,
@@ -358,20 +311,20 @@ export function mountPocket(
         rect(player.x * 16 + i, player.y * 16 - 1, 2, 4, colors.leaf);
     }
     box(6, 3, 149, 18);
-    text('CITRUS TOWN / ROUTE 1', 13, 8, colors.ink, 7);
+    text('PALLET TOWN / ROUTE 1', 13, 8, colors.ink, 7);
     box(252, 3, 62, 18);
     orb(258, 7);
     text(`${game.caught.length}/2`, 277, 8);
-    box(2, 207, 316, 32);
+    box(2, 207, 316, 80);
     paragraph(
       game.messageTime > 0
         ? game.message
-        : 'J / E: talk   Grass: wild pals   Clinic: free healing',
+        : 'J / E: talk   Grass: POKEMON   CENTER: heal',
       10,
       215,
-      60,
-      2,
-      10,
+      36,
+      4,
+      16,
     );
   }
   function health(
@@ -399,61 +352,101 @@ export function mountPocket(
   function battle(): void {
     const foe = game.battle;
     if (!foe) return;
-    rect(0, 0, 320, 240, colors.paper);
-    rect(0, 65, 320, 2, colors.pale);
-    rect(0, 69, 320, 1, colors.pale);
-    // Stepped pixel islands, as if the battle were taking place on a folded field map.
-    rect(194, 108, 100, 8, colors.pale);
-    rect(207, 105, 76, 14, colors.pale);
-    rect(14, 143, 114, 7, colors.pale);
-    rect(27, 140, 89, 13, colors.pale);
-    const bob = Math.floor(game.time * 2) % 2;
-    if (foe.outcome === 'caught') orb(239, 99);
-    else creature(foe.id, 242 + (foe.flash > 0 ? 2 : 0), 111 + bob, 3);
-    creature(game.pal.id, 68, 148 + bob, 3, true);
-    box(7, 7, 155, 46);
-    text(species[foe.id].name, 15, 14);
-    text(foe.kind === 'rival' ? 'Lv9' : 'Lv5', 132, 14, colors.wood, 7);
-    health(15, 28, foe.hp, foe.maxHp, 87);
+    rect(0, 0, 320, 288, '#ffffff');
+    // A front-facing opponent and a distinct back sprite, with the original diagonal battle layout.
+    if (foe.outcome === 'caught') orb(243, 115);
+    else creature(foe.id, 245 + (foe.flash > 0 ? 3 : 0), 128, 2.8);
+    creature(game.pal.id, 75 - (foe.flash > 0 ? 2 : 0), 202, 3.3, true);
+    text(species[foe.id].name, 20, 20, colors.ink, 12);
+    text(foe.kind === 'rival' ? ':L12' : ':L5', 97, 35, colors.ink, 10);
+    health(22, 51, foe.hp, foe.maxHp, 101);
+    rect(17, 64, 148, 2, colors.ink);
+    rect(15, 42, 2, 24, colors.ink);
+    rect(162, 60, 5, 6, colors.ink);
+    text(species[game.pal.id].name, 174, 140, colors.ink, 12);
+    text(':L9', 267, 154, colors.ink, 10);
+    health(178, 173, game.pal.hp, species[game.pal.id].maxHp, 111);
     text(
-      `${foe.hp}/${foe.maxHp}  ${species[foe.id].element.toUpperCase()}`,
-      15,
-      39,
-      colors.wood,
-      6,
-    );
-    text(
-      foe.kind === 'rival' ? 'MISO WANTS TO BATTLE!' : 'WILD PAL / ROUTE 1',
+      `${game.pal.hp} / ${species[game.pal.id].maxHp}`,
+      230,
+      185,
+      colors.ink,
       12,
-      61,
-      colors.wood,
-      6,
     );
-    text('YOUR TEAM', 12, 75, colors.wood, 6);
-    game.party.forEach((pal, index) => {
-      orb(14 + index * 15, 87, pal.hp > 0);
-      if (index === game.active) rect(14 + index * 15, 99, 10, 2, colors.ink);
-    });
-    box(151, 107, 163, 45);
-    text(species[game.pal.id].name, 160, 114);
-    text('Lv5', 283, 114, colors.wood, 7);
-    health(160, 127, game.pal.hp, species[game.pal.id].maxHp, 108);
-    text(
-      `${game.pal.hp}/${species[game.pal.id].maxHp} HP`,
-      160,
-      138,
-      colors.wood,
-      7,
-    );
-    text('< > SWITCH', 257, 139, colors.wood, 6);
-    box(3, 155, 314, 43);
-    paragraph(game.message, 12, 163, 59, 3, 10);
-    box(3, 200, 314, 39);
-    rect(163, 206, 1, 26, colors.sand);
-    text('J QUICK BUMP', 13, 207, colors.ink, 7);
-    text(`K ${species[game.pal.id].move}`, 173, 207, colors.ink, 7);
-    text(`L CATCH ORB x${game.balls}`, 13, 222, colors.ink, 7);
-    text(`E RICE CAKE x${game.cakes}`, 173, 222, colors.ink, 7);
+    rect(171, 204, 143, 2, colors.ink);
+    rect(313, 167, 2, 39, colors.ink);
+    box(2, 211, 316, 76);
+    const canChoose = foe.cooldown <= 0 && !foe.outcome;
+    if (canChoose) {
+      if (foe.menu === 'main') {
+        paragraph(
+          `What will ${species[game.pal.id].name} do?`,
+          13,
+          225,
+          20,
+          3,
+          15,
+        );
+        box(161, 211, 157, 76);
+        ['FIGHT', 'PKMN', 'ITEM', 'RUN'].forEach((label, i) => {
+          const x = 180 + (i % 2) * 70,
+            y = 228 + Math.floor(i / 2) * 30;
+          if (i === foe.cursor) text('▶', x - 12, y, colors.ink, 10);
+          text(label, x, y, colors.ink, 11);
+        });
+      } else if (foe.menu === 'moves') {
+        text('TYPE', 15, 224, colors.ink, 10);
+        text(
+          foe.cursor === 0
+            ? 'NORMAL'
+            : species[game.pal.id].element.toUpperCase(),
+          15,
+          243,
+          colors.ink,
+          10,
+        );
+        [
+          game.pal.id === 'charmander' ? 'SCRATCH' : 'TACKLE',
+          species[game.pal.id].move,
+        ].forEach((label, i) => {
+          text(
+            `${i === foe.cursor ? '▶' : ' '} ${label}`,
+            151,
+            227 + i * 24,
+            colors.ink,
+            11,
+          );
+        });
+      } else if (foe.menu === 'items') {
+        [`POKE BALL  ×${game.balls}`, `POTION     ×${game.cakes}`].forEach(
+          (label, i) =>
+            text(
+              `${i === foe.cursor ? '▶' : ' '} ${label}`,
+              20,
+              227 + i * 25,
+              colors.ink,
+              12,
+            ),
+        );
+      } else {
+        game.party.forEach((pal, i) =>
+          text(
+            `${i === foe.cursor ? '▶' : ' '} ${species[pal.id].name}  ${pal.hp}/${species[pal.id].maxHp}`,
+            15,
+            220 + i * 19,
+            colors.ink,
+            10,
+          ),
+        );
+      }
+    } else paragraph(game.message, 14, 225, 36, 3, 16);
+    if (foe.transition > 0) {
+      const band = Math.floor(foe.transition * 12) % 2;
+      if (band) {
+        rect(0, 0, 320, 288, colors.ink);
+        text('WILD POKEMON!', 70, 130, colors.paper, 16);
+      }
+    }
   }
 
   return {
@@ -476,14 +469,14 @@ export function mountPocket(
       calls = 0;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       rect(0, 0, physicalWidth, physicalHeight, colors.ink);
-      const scale = Math.min(physicalWidth / 320, physicalHeight / 240);
+      const scale = Math.min(physicalWidth / 320, physicalHeight / 288);
       ctx.setTransform(
         scale,
         0,
         0,
         scale,
         Math.round((physicalWidth - 320 * scale) / 2),
-        Math.round((physicalHeight - 240 * scale) / 2),
+        Math.round((physicalHeight - 288 * scale) / 2),
       );
       ctx.imageSmoothingEnabled = false;
       if (game.mode === 'world') world();
@@ -491,6 +484,7 @@ export function mountPocket(
     },
     dispose(): void {
       disposed = true;
+      referenceSprites.clear();
     },
     metrics: () => ({
       drawCalls: calls,

@@ -18,7 +18,10 @@ import {
 } from './world.ts';
 
 export const LOOK_SENSITIVITY = 0.0024;
-export const MAGAZINE = 24;
+export const MAGAZINE = 25;
+export const VISOR_DURATION = 6;
+export const HELIX_COOLDOWN = 8;
+export const BIOTIC_RADIUS = 4.5;
 export type AimPointer = PointerInput;
 export type WatchpointInput = Input;
 export interface Bot {
@@ -61,6 +64,11 @@ export interface Bolt {
   vz: number;
   life: number;
 }
+export type Rocket = Bolt;
+export interface Blast extends Point3 {
+  life: number;
+  radius: number;
+}
 export interface Beacon {
   x: number;
   z: number;
@@ -81,18 +89,20 @@ export class WatchpointSimulation implements RetroSimulation {
     pitch: 0,
     hp: 200,
     ammo: MAGAZINE,
-    reserve: 168,
+    reserve: 225,
     reload: 0,
     fire: 0,
     recoil: 0,
-    ads: false,
+    sprinting: false,
+    sprintRecovery: 0,
+    helixCooldown: 0,
+    helixFlash: 0,
+    visorTarget: -1,
     moving: false,
     walk: 0,
-    dash: 0,
-    dashCooldown: 0,
     healCooldown: 0,
     ultimate: 0,
-    overdrive: 0,
+    visor: 0,
     invulnerable: 2,
     hurt: 0,
     hit: 0,
@@ -107,6 +117,10 @@ export class WatchpointSimulation implements RetroSimulation {
   ];
   traces: Trace[] = [];
   bolts: Bolt[] = [];
+  rockets: Rocket[] = [];
+  blasts: Blast[] = [];
+  helixShots = 0;
+  visorHits = 0;
   beacon: Beacon | null = null;
   capture = 0;
   enemyCapture = 0;
@@ -124,10 +138,10 @@ export class WatchpointSimulation implements RetroSimulation {
     ability: 0,
   };
   wave = 0;
-  message = '정오의 항만 · 중앙 업링크를 점령하세요!';
+  message = 'SOLDIER: 76 · WATCHPOINT: GIBRALTAR';
   messageTime = 5;
   private nextBotId = 0;
-  private held = { jump: false, dash: false, heal: false, ultimate: false };
+  private held = { jump: false, helix: false, heal: false, ultimate: false };
 
   constructor() {
     this.spawnWave();
@@ -141,7 +155,7 @@ export class WatchpointSimulation implements RetroSimulation {
       progress: this.capture / 100,
       objective:
         this.phase === 'won'
-          ? '업링크 확보! 정오의 항만을 지켰습니다.'
+          ? '거점 확보! WATCHPOINT: GIBRALTAR 작전 완료.'
           : this.phase === 'lost'
             ? '작전 실패 · 다시 출격하세요.'
             : this.player.respawn > 0
@@ -175,10 +189,11 @@ export class WatchpointSimulation implements RetroSimulation {
     for (const key of [
       'fire',
       'recoil',
-      'dash',
-      'dashCooldown',
+      'sprintRecovery',
+      'helixCooldown',
+      'helixFlash',
       'healCooldown',
-      'overdrive',
+      'visor',
       'invulnerable',
       'hurt',
       'hit',
@@ -186,11 +201,18 @@ export class WatchpointSimulation implements RetroSimulation {
       p[key] = Math.max(0, p[key] - dt);
     const next = {
       jump: input.jump,
-      dash: input.special,
+      helix: !!(
+        input.guard ||
+        input.pointer?.secondary ||
+        input.pointer?.secondaryPressed
+      ),
       heal: input.interact,
       ultimate: !!input.ultimate,
     };
     if (p.respawn > 0) {
+      p.sprinting = false;
+      p.visor = 0;
+      p.visorTarget = -1;
       p.respawn = Math.max(0, p.respawn - dt);
       if (!p.respawn) {
         p.x = SPAWN.x;
@@ -222,31 +244,45 @@ export class WatchpointSimulation implements RetroSimulation {
           ),
         );
       }
-      p.ads = !!(pointer?.secondary || input.guard);
+      const wasSprinting = p.sprinting;
+      p.sprinting =
+        input.special &&
+        input.up &&
+        !input.down &&
+        !p.reload &&
+        !input.interact &&
+        !input.ultimate;
+      if (wasSprinting && !p.sprinting) p.sprintRecovery = 0.18;
+      if (p.sprinting && !wasSprinting) this.audioCues.dash++;
+      p.visorTarget = p.visor > 0 ? (this.visorTarget()?.id ?? -1) : -1;
       if (input.jump && !this.held.jump && p.y === 0) {
         p.vy = 7.4;
         this.audioCues.jump++;
       }
-      if (input.special && !this.held.dash && !p.dashCooldown) {
-        p.dash = 0.22;
-        p.dashCooldown = 4.5;
-        this.audioCues.dash++;
-      }
       if (input.interact && !this.held.heal && !p.healCooldown) {
-        this.beacon = { x: p.x, z: p.z, life: 7 };
-        p.healCooldown = 13;
+        this.beacon = { x: p.x, z: p.z, life: 5 };
+        p.healCooldown = 15;
         this.audioCues.ability++;
-        this.say('회복 비콘 전개 · 초록 원 안에서 회복');
+        this.say('생체장 전개 · 노란 원 안에서 자신과 아군 회복');
       }
       if (input.ultimate && !this.held.ultimate && p.ultimate >= 100) {
         p.ultimate = 0;
-        p.overdrive = 7;
+        p.visor = VISOR_DURATION;
         p.ammo = MAGAZINE;
         p.reload = 0;
         this.audioCues.ability++;
-        this.say('태양 과충전! 7초 동안 화력과 연사 속도 증가');
+        this.say('전술 조준경 가동 · 시야 안의 적 자동 조준 · 6초');
       }
       this.move(dt, input);
+      if (
+        next.helix &&
+        !this.held.helix &&
+        !p.helixCooldown &&
+        !p.sprinting &&
+        !p.sprintRecovery &&
+        !p.reload
+      )
+        this.launchHelix();
       if (p.reload > 0) {
         p.reload = Math.max(0, p.reload - dt);
         if (p.reload === 0) {
@@ -256,7 +292,11 @@ export class WatchpointSimulation implements RetroSimulation {
         }
       } else if (input.reload && p.ammo < MAGAZINE && p.reserve > 0)
         p.reload = 1.65;
-      else if (input.attack || pointer?.primary || pointer?.primaryPressed) {
+      else if (
+        !p.sprinting &&
+        !p.sprintRecovery &&
+        (input.attack || pointer?.primary || pointer?.primaryPressed)
+      ) {
         if (p.ammo > 0 && p.fire === 0) this.shoot();
         else if (p.ammo === 0 && p.reserve > 0) p.reload = 1.65;
       }
@@ -265,22 +305,29 @@ export class WatchpointSimulation implements RetroSimulation {
     this.updateBots(dt);
     this.updateAllies(dt);
     this.updateBolts(dt);
+    this.updateRockets(dt);
+    this.blasts.forEach((blast) => {
+      blast.life -= dt;
+    });
+    this.blasts = this.blasts.filter((blast) => blast.life > 0);
     if (this.phase !== 'playing') return;
     if (this.beacon) {
       this.beacon.life -= dt;
       if (this.beacon.life <= 0) this.beacon = null;
       else {
         if (
-          Math.hypot(p.x - this.beacon.x, p.z - this.beacon.z) < 4.2 &&
+          Math.hypot(p.x - this.beacon.x, p.z - this.beacon.z) <
+            BIOTIC_RADIUS &&
           p.respawn === 0
         )
-          p.hp = Math.min(200, p.hp + 23 * dt);
+          p.hp = Math.min(200, p.hp + 35 * dt);
         for (const ally of this.allies)
           if (
             ally.hp > 0 &&
-            Math.hypot(ally.x - this.beacon.x, ally.z - this.beacon.z) < 4.2
+            Math.hypot(ally.x - this.beacon.x, ally.z - this.beacon.z) <
+              BIOTIC_RADIUS
           )
-            ally.hp = Math.min(160, ally.hp + 18 * dt);
+            ally.hp = Math.min(160, ally.hp + 35 * dt);
       }
     }
     if (
@@ -306,7 +353,7 @@ export class WatchpointSimulation implements RetroSimulation {
     if (this.capture >= 100) {
       this.phase = 'won';
       this.score += 3000;
-      this.say('작전 성공 · SUNWARD UPLINK SECURED');
+      this.say('VICTORY · WATCHPOINT SECURED');
     } else if (this.enemyCapture >= 100 || this.time >= 150) {
       this.phase = 'lost';
       this.say('업링크를 빼앗겼습니다. 다시 출격하세요.');
@@ -326,8 +373,7 @@ export class WatchpointSimulation implements RetroSimulation {
       forward /= amount;
       side /= amount;
     }
-    if (p.dash > 0 && !amount) forward = 1;
-    const speed = p.dash > 0 ? 19 : p.ads ? 3.5 : 6.2;
+    const speed = p.sprinting ? 9.3 : 6.2;
     const dx =
       (Math.sin(p.yaw) * forward + Math.cos(p.yaw) * side) * speed * dt;
     const dz =
@@ -346,13 +392,22 @@ export class WatchpointSimulation implements RetroSimulation {
   private shoot(): void {
     const p = this.player;
     p.ammo--;
-    p.fire = p.overdrive > 0 ? 0.085 : 0.14;
+    p.fire = 0.1;
     p.recoil = 0.115;
     this.shots++;
     this.audioCues.shot++;
-    const spread = p.ads ? 0.002 : p.moving ? 0.014 : 0.007;
-    const yaw = p.yaw + Math.sin(this.shots * 7.31) * spread;
-    const pitch = p.pitch + Math.cos(this.shots * 4.73) * spread;
+    const spread = p.moving ? 0.008 : 0.003;
+    let yaw = p.yaw + Math.sin(this.shots * 7.31) * spread;
+    let pitch = p.pitch + Math.cos(this.shots * 4.73) * spread;
+    const assisted = p.visor > 0 ? this.visorTarget() : null;
+    if (assisted) {
+      yaw = Math.atan2(assisted.x - p.x, -(assisted.z - p.z));
+      pitch = Math.atan2(
+        1.15 - p.y - 1.62,
+        Math.hypot(assisted.x - p.x, assisted.z - p.z),
+      );
+      p.visorTarget = assisted.id;
+    }
     const direction = {
       x: Math.sin(yaw) * Math.cos(pitch),
       y: Math.sin(pitch),
@@ -395,22 +450,137 @@ export class WatchpointSimulation implements RetroSimulation {
       friendly: true,
     });
     if (hit) {
-      const damage = (headshot ? 54 : 32) * (p.overdrive > 0 ? 1.7 : 1);
-      hit.hp = Math.max(0, hit.hp - damage);
-      hit.flash = 0.16;
-      p.hit = 0.14;
-      this.audioCues.hit++;
-      if (headshot) this.headshots++;
-      if (!p.overdrive) p.ultimate = Math.min(100, p.ultimate + damage * 0.13);
-      this.score += headshot ? 30 : 10;
-      if (hit.hp === 0) {
-        p.kills++;
-        this.score += 300;
-        this.audioCues.explosion++;
-        this.say(`경비 로봇 제압 ${p.kills} · 거점을 확보하세요`);
+      const damage = headshot ? 40 : 20;
+      this.damageBot(hit, damage, headshot);
+      if (assisted) this.visorHits++;
+    }
+    p.pitch = Math.min(1.25, p.pitch + 0.006);
+  }
+
+  private visorTarget(): Bot | null {
+    const p = this.player,
+      eye = { x: p.x, y: p.y + 1.62, z: p.z };
+    let best: Bot | null = null,
+      bestAngle = Infinity;
+    for (const bot of this.bots) {
+      if (bot.hp <= 0) continue;
+      const distance = Math.hypot(bot.x - p.x, bot.z - p.z);
+      const yaw = Math.atan2(bot.x - p.x, -(bot.z - p.z));
+      const pitch = Math.atan2(1.15 - eye.y, distance);
+      const dx = Math.abs(angleDifference(yaw, p.yaw)),
+        dy = Math.abs(pitch - p.pitch);
+      if (
+        distance > 60 ||
+        dx > 0.55 ||
+        dy > 0.42 ||
+        !visible(eye, { x: bot.x, y: 1.15, z: bot.z })
+      )
+        continue;
+      const angle = Math.hypot(dx, dy);
+      if (angle < bestAngle) {
+        best = bot;
+        bestAngle = angle;
       }
     }
-    p.pitch = Math.min(1.25, p.pitch + (p.ads ? 0.004 : 0.009));
+    return best;
+  }
+
+  private damageBot(bot: Bot, damage: number, headshot = false): void {
+    const p = this.player,
+      actual = Math.min(bot.hp, damage);
+    if (actual <= 0) return;
+    bot.hp = Math.max(0, bot.hp - damage);
+    bot.flash = 0.16;
+    p.hit = 0.14;
+    this.audioCues.hit++;
+    if (headshot) this.headshots++;
+    if (!p.visor) p.ultimate = Math.min(100, p.ultimate + actual * 0.16);
+    this.score += headshot ? 30 : 10;
+    if (bot.hp === 0) {
+      p.kills++;
+      this.score += 300;
+      this.audioCues.explosion++;
+      this.say(`ELIMINATED · TRAINING BOT ${p.kills}`);
+    }
+  }
+
+  private launchHelix(): void {
+    const p = this.player;
+    const direction = {
+      x: Math.sin(p.yaw) * Math.cos(p.pitch),
+      y: Math.sin(p.pitch),
+      z: -Math.cos(p.yaw) * Math.cos(p.pitch),
+    };
+    this.rockets.push({
+      x: p.x,
+      y: p.y + 1.5,
+      z: p.z,
+      vx: direction.x * 35,
+      vy: direction.y * 35,
+      vz: direction.z * 35,
+      life: 2.2,
+    });
+    p.helixCooldown = HELIX_COOLDOWN;
+    p.helixFlash = 0.22;
+    p.fire = Math.max(p.fire, 0.25);
+    this.helixShots++;
+    this.audioCues.ability++;
+  }
+
+  private updateRockets(dt: number): void {
+    for (const rocket of this.rockets) {
+      const from = { x: rocket.x, y: rocket.y, z: rocket.z };
+      const speed = Math.hypot(rocket.vx, rocket.vy, rocket.vz);
+      const direction = {
+        x: rocket.vx / speed,
+        y: rocket.vy / speed,
+        z: rocket.vz / speed,
+      };
+      const travel = speed * dt;
+      let nearest = obstacleDistance(from, direction),
+        direct: Bot | null = null;
+      for (const bot of this.bots) {
+        if (bot.hp <= 0) continue;
+        const hit = rayBox(
+          from,
+          direction,
+          { x: bot.x - 0.4, y: 0.2, z: bot.z - 0.35 },
+          { x: bot.x + 0.4, y: 1.98, z: bot.z + 0.35 },
+        );
+        if (hit < nearest) {
+          nearest = hit;
+          direct = bot;
+        }
+      }
+      const amount = Math.min(travel, nearest);
+      rocket.x += direction.x * amount;
+      rocket.y += direction.y * amount;
+      rocket.z += direction.z * amount;
+      rocket.life -= dt;
+      if (nearest <= travel) {
+        rocket.life = 0;
+        const impact = {
+          x: rocket.x - direction.x * 0.04,
+          y: rocket.y - direction.y * 0.04,
+          z: rocket.z - direction.z * 0.04,
+        };
+        this.blasts.push({ ...impact, life: 0.35, radius: 3 });
+        this.audioCues.explosion++;
+        for (const bot of this.bots) {
+          if (bot.hp <= 0) continue;
+          const center = { x: bot.x, y: 1.1, z: bot.z };
+          const distance = Math.hypot(
+            center.x - impact.x,
+            center.y - impact.y,
+            center.z - impact.z,
+          );
+          if (bot === direct) this.damageBot(bot, 120);
+          else if (distance < 3 && visible(impact, center))
+            this.damageBot(bot, Math.round(80 * (1 - distance / 3)));
+        }
+      }
+    }
+    this.rockets = this.rockets.filter((rocket) => rocket.life > 0);
   }
 
   private spawnWave(): void {
@@ -653,7 +823,12 @@ export function watchpointBenchmark(
       1.7 - eye.y,
       Math.hypot(target.x - p.x, target.z - p.z),
     );
-    input.pointer!.secondary = true;
+    if (
+      p.helixCooldown === 0 &&
+      Math.abs(angleDifference(desiredYaw, p.yaw)) < 0.04 &&
+      Math.abs(desiredPitch - p.pitch) < 0.04
+    )
+      input.pointer!.secondary = true;
     if (
       Math.abs(angleDifference(desiredYaw, p.yaw)) < 0.04 &&
       Math.abs(desiredPitch - p.pitch) < 0.04
@@ -675,11 +850,7 @@ export function watchpointBenchmark(
     const side = Math.cos(p.yaw) * dx + Math.sin(p.yaw) * dz;
     if (Math.abs(front) > 0.4) input[front > 0 ? 'up' : 'down'] = true;
     if (Math.abs(side) > 0.4) input[side > 0 ? 'right' : 'left'] = true;
-    if (
-      !target &&
-      Math.abs(angleDifference(desiredYaw, p.yaw)) < 0.2 &&
-      !p.dashCooldown
-    )
+    if (!target && Math.abs(angleDifference(desiredYaw, p.yaw)) < 0.2)
       input.special = true;
   }
   if (p.ammo <= 3 && !p.reload) input.reload = true;

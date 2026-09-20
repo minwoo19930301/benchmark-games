@@ -1,87 +1,55 @@
 # Benchmark Games — 방과후 오락실
 
-[![PLAY DEMO](https://img.shields.io/badge/PLAY%20DEMO-GitHub%20Pages-4caf50?style=for-the-badge&logo=githubpages)](https://minwoo19930301.github.io/benchmark-games/)
-[![SOURCE CODE](https://img.shields.io/badge/SOURCE%20CODE-minwoo19930301-e7322d?style=for-the-badge)](https://github.com/minwoo19930301/benchmark-games)
-[![RUN LOCALLY](https://img.shields.io/badge/RUN%20LOCALLY-168343?style=for-the-badge)](#run)
+[직접 플레이](https://minwoo19930301.github.io/benchmark-games/#arcade) · [구현·검증 범위](docs/rebuild-verification.md) · [에셋 출처](docs/ASSET-CREDITS.md)
 
-브라우저에서 직접 플레이하고 성능도 기록하는 **13개 게임 모음**입니다. 기본 화면은 게임 목록인 **방과후 오락실(`#arcade`)**입니다. 오락실·PC방·플래시게임에서 착안한 독립 패러디 11종과 기존 Mario·Sonic을 선택할 수 있으며, 선택한 게임만 불러옵니다.
+브라우저에서 플레이하고 성능을 측정하는 **13개 게임 모음**입니다. 11종을 원작의 캐릭터, 화면 구성, 조작 방식에 맞춰 다시 구현했습니다. 이전의 택배·야근·가상 캐릭터 테마를 제거했습니다. Mario와 Sonic은 기존 버전입니다.
 
-## 새로 추가된 6종
+## 다시 만든 11종
 
-| 게임                                                                                                    | 참고 작품                     | 이번에 구현한 플레이                                                                                      |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [네온 회수 작전](https://minwoo19930301.github.io/benchmark-games/#x4) · `#x4`                          | Mega Man X4                   | 대시 점프·벽차기·차지 버스터·세이버, 비 내리는 화물 도시와 볼트 맨티스 보스                               |
-| [궤도 잔광](https://minwoo19930301.github.io/benchmark-games/#x5) · `#x5`                               | Mega Man X5                   | 저중력·공중 대시·움직이는 발판, 궤도 기지와 노틸러스 보스                                                 |
-| [식의 용광로](https://minwoo19930301.github.io/benchmark-games/#x6) · `#x6`                             | Mega Man X6                   | 컨베이어·증기 분출·레이저 경고, 용광로와 신더 재칼 보스                                                   |
-| [콜로니 커맨드](https://minwoo19930301.github.io/benchmark-games/#colony) · `#colony`                   | StarCraft                     | 일꾼 채집·광물 경제·병영/포탑 건설·생산 대기열·드래그 선택·우클릭 명령·전장의 안개·적 기지 공격           |
-| [워치포인트: 항만 수호대](https://minwoo19930301.github.io/benchmark-games/#watchpoint) · `#watchpoint` | Overwatch                     | 마우스 시점 FPS·소총/정밀 조준·재장전·대시·회복 비콘·궁극기·아군/적 봇·거점 점령/경합                     |
-| [불꽃과 물방울](https://minwoo19930301.github.io/benchmark-games/#temple) · `#temple`                   | Fireboy and Watergirl / Flash | 한 키보드 2인 협동, 캐릭터 전환으로 혼자 플레이, 원소 함정·수정·압력 발판·문 고정 레버·증기 분출과 3개 방 |
-
-<p>
-<a href="https://minwoo19930301.github.io/benchmark-games/#x4"><img src="public/previews/x4.png" width="240" alt="네온 회수 작전 실제 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#x5"><img src="public/previews/x5.png" width="240" alt="궤도 잔광 실제 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#x6"><img src="public/previews/x6.png" width="240" alt="식의 용광로 실제 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#colony"><img src="public/previews/colony.png" width="240" alt="콜로니 커맨드 실제 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#watchpoint"><img src="public/previews/watchpoint.png" width="240" alt="워치포인트 실제 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#temple"><img src="public/previews/temple.png" width="240" alt="불꽃과 물방울 실제 실행 화면"></a>
-</p>
-
-각 작품의 핵심 조작을 독자적인 스테이지와 아트로 만든 짧은 플레이 구간입니다. 원작의 전체 캠페인·모든 유닛과 영웅·온라인 대전·애니메이션과 밸런스 전체를 재현한 제품은 아닙니다. X 계열은 각기 다른 세 스테이지이며, RTS와 FPS는 각각 한 임무/전장입니다. 실제 플레이 스크린샷과 검증 범위는 [추가 게임 검증 기록](docs/expansion-verification.md)에 남깁니다.
-
-| 새 게임             | 조작                                                                                                                                       |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| X4 · X5 · X6 패러디 | ←→/AD 이동 · Space 점프/벽차기 · J 누르기/떼기 차지 버스터 · K 세이버/탄환 베기 · L 대시 · E 동료 구조. X5/X6는 공중 대시 가능             |
-| 콜로니 커맨드       | 좌클릭/드래그 선택 · 우클릭 이동/공격/채집 · 하단 명령 버튼으로 건설·생산 · 미니맵으로 시점 이동 · 방향키 카메라                           |
-| 워치포인트          | 화면 클릭으로 마우스 시점 고정 · WASD 이동 · 좌클릭/J 사격 · 우클릭/L 정밀 조준 · Space 점프 · Shift/K 대시 · E 회복 · R 재장전 · Q 궁극기 |
-| 불꽃과 물방울       | 방향키/Space 선택 캐릭터 · WAD 다른 캐릭터 · F 캐릭터 교체 · E 레버 · R 현재 방 다시 시작                                                  |
-
-**Esc**는 일시정지하며 FPS의 마우스 고정도 해제합니다. 마우스 고정을 지원하지 않는 환경에서는 누른 채 드래그해 시점을 돌립니다. 상단 **소리 끔/켬**으로 직접 합성한 효과음을 켤 수 있고 **⛶**는 전체 화면입니다. RTS/FPS의 세밀한 조작은 마우스와 키보드 기준입니다.
-
-| 게임 · 경로                                                                                                     | 참고한 게임            | 플레이와 완료 목표                                                               | 화면           |
-| --------------------------------------------------------------------------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------- | -------------- |
-| [옥상 대난투 · Rooftop Rumble](https://minwoo19930301.github.io/benchmark-games/#smash) · `#smash`              | Super Smash Bros.      | 피해량에 따라 커지는 밀쳐내기, 더블 점프와 우산 복귀. 상대를 3번 장외로 밀어내기 | Three.js 2.5D  |
-| [야근의 오카리나 · Ocarina of Overtime](https://minwoo19930301.github.io/benchmark-games/#ocarina) · `#ocarina` | Zelda: Ocarina of Time | 숲의 선율석 3개를 순서대로 연주하고 수호자를 물리친 뒤 제단 활성화               | Three.js 3D    |
-| [깡통 특공대 · Tin Commando](https://minwoo19930301.github.io/benchmark-games/#commando) · `#commando`          | Metal Slug             | 시장 골목에서 동료 3명 구출, 전차 탑승, 고철 탱크 격파와 탈출                    | Canvas 2D 픽셀 |
-| [철권 택배 · Iron Fist Delivery](https://minwoo19930301.github.io/benchmark-games/#iron) · `#iron`              | Tekken                 | 펀치·발차기·가드·횡이동으로 거리와 공격 빈틈을 읽고 2라운드 선승                 | Three.js 3D    |
-| [첫 번째 모험 · Pocket Pals: First Route](https://minwoo19930301.github.io/benchmark-games/#pocket) · `#pocket` | Pokémon 1세대          | 마을과 풀숲 탐험, 속성 전투, 서로 다른 친구 2종 포획 후 라이벌전 승리            | Canvas 2D 픽셀 |
+| 게임 | 구현한 플레이 | 현재 범위 |
+| --- | --- | --- |
+| [슈퍼스매시브라더스](https://minwoo19930301.github.io/benchmark-games/#smash) | 마리오 대 커비, 드림랜드 3단 발판, 퍼센트·스톡, 방향 공격·공중기·차지 스매시·실드·구르기·잡기·던지기·복귀 | 두 캐릭터의 3스톡 CPU 대전 한 판 |
+| [철권 3](https://minwoo19930301.github.io/benchmark-games/#iron) | 진 대 화랑, 네 팔다리 공격, 상·중·하단, 뒤로 가드, 횡이동, 대시, 띄우기·공중 타격·다운 | 두 캐릭터의 일부 기술과 2선승 대전 |
+| [시간의 오카리나](https://minwoo19930301.github.io/benchmark-games/#ocarina) | 링크·나비, 코키리 숲과 데크나무 내부, Z 주목, 검 연계·회전베기·방향 방패·구르기·6음 오카리나 | 숲과 던전 방 하나로 압축한 퀘스트 |
+| [메탈슬러그](https://minwoo19930301.github.io/benchmark-games/#commando) | 마르코·모덴군, 한 번의 피격으로 목숨 소모, 근접 칼, 헤비 머신건 탄약, 수류탄, 포로, SV-001 장갑·파괴 시 탈출 | 정글·폐허와 테츠유키 전투를 포함한 짧은 미션 |
+| [포켓몬스터 1세대](https://minwoo19930301.github.io/benchmark-games/#pocket) | 레드·파이리, 1세대 앞/뒤 스프라이트, FIGHT/PKMN/ITEM/RUN 메뉴, 타입 상성·교체·포획·라이벌 | 5종의 포켓몬과 두 종류 포획 퀘스트 |
+| [록맨 X4](https://minwoo19930301.github.io/benchmark-games/#x4) | X·제로, 스카이 라군, 대시 점프·벽차기·차지 버스터·세이버, 에레기온 | 짧은 재구성 스테이지 |
+| [록맨 X5](https://minwoo19930301.github.io/benchmark-games/#x5) | 저중력 천문대, 공중 대시·이동 발판, 다크 네크로뱃 | 짧은 재구성 스테이지 |
+| [록맨 X6](https://minwoo19930301.github.io/benchmark-games/#x6) | 마그마 에어리어, 위험 구간, 블레이즈 히트닉스 | 짧은 재구성 스테이지 |
+| [스타크래프트](https://minwoo19930301.github.io/benchmark-games/#colony) | 테란 SCV·마린·커맨드센터·배럭·보급고·벙커, 광물 운반, 보급 제한, 선행 건물, 주둔·하차·선택·명령·전장의 안개 | 테란 대 테란의 지상전 한 임무 |
+| [오버워치](https://minwoo19930301.github.io/benchmark-games/#watchpoint) | 솔저: 76, 25발 펄스 소총, 나선 로켓, 질주, 생체장, 시야·엄폐를 따르는 6초 전술 조준경 | 9개 봇과 아군 2명이 있는 항만 훈련 전장 |
+| [불소년과 물소녀](https://minwoo19930301.github.io/benchmark-games/#temple) | 불·물 캐릭터, 숲의 사원, 원소 함정·색상 다이아몬드·압력 발판·레버·출구 | 한 키보드 협동 또는 교대 조작, 방 3개 |
 
 <p>
-<a href="https://minwoo19930301.github.io/benchmark-games/#smash"><img src="public/previews/smash.png" width="180" alt="옥상 대난투 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#ocarina"><img src="public/previews/ocarina.png" width="180" alt="야근의 오카리나 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#commando"><img src="public/previews/commando.png" width="180" alt="깡통 특공대 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#iron"><img src="public/previews/iron.png" width="180" alt="철권 택배 실행 화면"></a>
-<a href="https://minwoo19930301.github.io/benchmark-games/#pocket"><img src="public/previews/pocket.png" width="180" alt="첫 번째 모험 실행 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#smash"><img src="public/previews/smash.png" width="360" alt="슈퍼스매시브라더스 실제 플레이 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#iron"><img src="public/previews/iron.png" width="360" alt="철권 3 실제 플레이 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#ocarina"><img src="public/previews/ocarina.png" width="360" alt="시간의 오카리나 실제 플레이 화면"></a>
+<a href="https://minwoo19930301.github.io/benchmark-games/#pocket"><img src="public/previews/pocket.png" width="360" alt="포켓몬스터 전투 메뉴 실제 화면"></a>
 </p>
 
-기존 게임: [Mario 2.5D — Green Hills](https://minwoo19930301.github.io/benchmark-games/#mario) · [Sonic — Seaside Sprint](https://minwoo19930301.github.io/benchmark-games/#sonic).
+원작 전체를 실행하는 에뮬레이터가 아닙니다. 스테이지 배치, 모델, 기술 수와 프레임 수치가 원작과 다르며, 전체 캠페인·전체 로스터·온라인 대전은 구현하지 않았습니다. 포켓몬 스프라이트는 공개된 PokéAPI 저장소에서 가져와 프로젝트에 포함했고, 메탈슬러그 캐릭터·배경, 록맨 X·제로에도 출처를 기록한 스프라이트를 포함했습니다. 3D 모델과 나머지 배경은 코드로 제작했습니다. 권리·출처 구분은 [에셋 기록](docs/ASSET-CREDITS.md)에 있습니다.
 
-비공식 팬 패러디입니다. 참고 작품의 상표·캐릭터 권리는 각 권리자에게 있으며 공식 제휴 관계가 없습니다. 독립 패러디 11종의 캐릭터, 픽셀 스프라이트, 3D 모델과 배경은 코드로 직접 제작했습니다. 게임 실행에 외부 에셋 다운로드나 계정 연결이 필요하지 않습니다. 위 공개 주소의 최신 반영 여부는 로컬 소스 검증과 별도로 확인합니다.
+## 조작
 
-## 기존 패러디 5종 조작
+각 게임 하단에 현재 조작이 표시됩니다. **Esc**는 일시정지, 상단 **소리** 버튼은 합성 효과음, **⛶**는 전체 화면입니다.
 
-방향키 또는 WASD로 이동하고 **Esc**로 일시정지·재개합니다. 화면의 터치 버튼도 같은 게임 입력을 보냅니다. 창 포커스를 잃거나 탭을 숨기면 일시정지하고 눌린 입력을 해제합니다.
+| 게임 | 주요 키 |
+| --- | --- |
+| 스매시 | 방향키 이동·방향 공격 · Space 점프 · J 공격 · Q 차지 스매시 · K 특수기 · L 실드/구르기 · E 잡기/던지기 |
+| 철권 | J 왼손 · K 오른손 · U 왼발 · I 오른발 · 뒤로 가드 · 아래로 웅크리기 · 위/Space 횡이동 · 방향키 두 번 대시 |
+| 젤다 | WASD/방향키 이동 · Z 주목 · J 검/길게 눌렀다 떼면 회전베기 · K 구르기 · L 방패 · E 오카리나 · Space 점프 · 오른쪽 마우스 드래그 시점 |
+| 메탈슬러그 | 방향키 이동/위 조준 · J 사격/근접 칼 · K 수류탄 · Space 점프 · L/아래 앉기 · E 슬러그 탑승 |
+| 포켓몬 | 방향키 이동/메뉴 선택 · Space 확인 · F 뒤로 · J 기본기 · K 속성기 · L 몬스터볼 · E 대화/회복 |
+| 록맨 X4·5·6 | 좌우 이동 · Space 점프/벽차기 · J 엑스 차지 버스터/제로 세이버 · K 제로 세이버(X6는 엑스도 사용) · L 대시 · F X/제로 선택 · E 구조 |
+| 스타크래프트 | 클릭/드래그 선택 · 우클릭 이동/공격/채집/벙커 진입 · 하단 건설·생산·명령 버튼 · 미니맵 시점 이동 |
+| 오버워치 | WASD 이동 · 클릭/J 사격 · 우클릭/L 나선 로켓 · Shift/K 누르는 동안 질주 · E 생체장 · R 재장전 · Q 전술 조준경 |
+| 불소년·물소녀 | 방향키/Space 선택 캐릭터 · WAD 다른 캐릭터 · F 전환 · E 레버 · R 현재 방 재시작 |
 
-| 게임            | J                | K                               | L         | E                         | Space · 추가 조작     |
-| --------------- | ---------------- | ------------------------------- | --------- | ------------------------- | --------------------- |
-| 옥상 대난투     | 택배 펀치        | 지상 박스 타격 / 공중 우산 복귀 | 방패      | —                         | 더블 점프             |
-| 야근의 오카리나 | 나무검           | 구르기                          | 방패      | 선율 연주 / 제단 상호작용 | 점프                  |
-| 깡통 특공대     | 사격             | 수류탄                          | 앉기      | 동료 구출 / 전차 탑승     | 점프                  |
-| 철권 택배       | 펀치 / 연속 타격 | 긴 발차기                       | 가드      | —                         | 회피 스텝 · ↑↓ 횡이동 |
-| 첫 번째 모험    | 기본 공격 / 대화 | 속성 기술                       | 포획 구슬 | 대화 / 회복 떡            | 전투 중 ←→ 친구 교체  |
+## 벤치마크
 
-첫 번째 모험에서는 야생 친구의 **HP를 45% 이하**로 낮춰야 포획됩니다. 불꽃은 풀에, 풀은 물에, 물은 불꽃에 강합니다. 남서쪽 진료소 앞에서 E를 누르면 친구들의 HP, 포획 구슬과 회복 떡을 보충합니다.
+게임 목록의 **스매시·철권 벤치마크** 또는 **전체 11종 벤치마크**를 실행합니다. 각 게임에서도 개별 실행할 수 있습니다. 자동 플레이는 실제 이동·공격·명령 입력을 사용하며, 위치·체력·승리 상태를 바꾸지 않습니다. 창을 숨기거나 포커스를 잃으면 일시정지합니다.
 
-## 자동 벤치마크
-
-각 게임의 **자동 벤치마크**는 동일한 시뮬레이션에 일반 조작 입력을 보냅니다. 목록의 **새 게임 6종 실행**은 X4 → X5 → X6 → 콜로니 → 워치포인트 → 불꽃과 물방울 순서로 실행합니다. **전체 11종 벤치마크**는 기존 독립 패러디 5종도 함께 실행합니다. 기존 Mario·Sonic은 이 연속 실행에 포함되지 않습니다. 게임 도중 Esc로 일시정지하거나 연속 실행 중단 버튼으로 목록에 돌아갈 수 있습니다.
-
-결과에는 **평균 FPS, 프레임 간격 p95(ms), 프레임당 CPU 작업 시간(ms)**과 완료 여부, 점수, 시뮬레이션 시간, 화면 크기가 기록됩니다. 최근 30개 결과를 현재 브라우저의 `localStorage`에 보관하며 목록에서 JSON으로 내려받을 수 있습니다. 서버로 전송하지 않습니다.
-
-FPS는 실제 화면 갱신 속도이며 시뮬레이션은 120Hz 고정 간격입니다. CPU 작업 시간은 해당 프레임의 게임 갱신과 렌더링 명령 실행에 걸린 시간으로, GPU 처리 시간이나 전체 브라우저 비용을 뜻하지 않습니다. 같은 기기·브라우저·화면 크기에서 비교하세요. Canvas 2D와 WebGL의 그리기 호출 수는 의미가 달라 직접적인 GPU 부하 비교에 쓸 수 없습니다.
-
-[기존 패러디 5종 검증](docs/retro-verification.md) · [확장판 6종 검증과 실측 결과](docs/expansion-verification.md)
-
-[![Sonic — Seaside Sprint 실행 화면](docs/sonic-preview.png)](https://minwoo19930301.github.io/benchmark-games/#sonic)
+평균 FPS, 프레임 간격 p95, 프레임당 CPU 작업 시간, 결과, 시뮬레이션 시간과 화면 크기를 기록합니다. 기록에 구현 버전을 포함합니다. 이전 패러디 버전의 기록과는 별도 저장합니다. 최근 30개 결과는 현재 브라우저에 저장되며 JSON으로 내려받을 수 있습니다. 서버로 전송하지 않습니다. CPU 작업 시간은 GPU 비용이 아니며, 같은 기기·브라우저·화면에서 비교해야 합니다.
 
 ## Sonic — Seaside Sprint
 
@@ -111,14 +79,14 @@ Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. To
 
 ## Run
 
-Node 22.13+ and npm:
+Node 22.13+와 npm이 필요합니다.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-The default local address is `http://127.0.0.1:4180/`. A URL without a game hash opens the arcade library, as does `#arcade`. Use `#x4`, `#x5`, `#x6`, `#colony`, `#watchpoint`, or `#temple` for the latest additions; `#smash`, `#ocarina`, `#commando`, `#iron`, and `#pocket` select the previous parody games; `#sonic` and `#mario` retain the existing games. `npm run build` writes a static `dist/` directory, and `npm run preview` serves it locally. Those local commands do not publish a deployment. The existing public GitHub Pages address is linked above; publication of a source change is a separate step. Models, scenery, and font fallbacks work without external asset services.
+`http://127.0.0.1:4180/`에서 목록을 엽니다. `npm run build`는 정적 `dist/`를 만들며, 선택한 게임만 지연 로드합니다. 게임 실행에 외부 에셋 서버나 API 키는 필요하지 않습니다.
 
 ## Verify
 
@@ -130,41 +98,16 @@ npm run build
 npm audit
 ```
 
-2026-09-20 현재 **206개 테스트**, 타입 검사·lint·빌드가 통과했고, 새 6종의 브라우저 자동 완주를 확인했습니다. 상세 검증 결과는 [확장판 검증 기록](docs/expansion-verification.md)에 기록합니다. 이전 2026-09-19 버전은 129개 테스트가 통과했습니다.
-
-새 게임 테스트는 실제 전투·충돌·회복·퀘스트 조건과 일반 입력을 통한 완주를 검사합니다. 30·60·120Hz 화면 갱신 일정에서 120Hz 시뮬레이션을 실행하는 완주 검증과 브라우저 화면·성능 확인은 구분합니다. 이번 확장판의 확인 범위와 결과는 [확장판 검증 기록](docs/expansion-verification.md)에 적습니다.
-
-The retained baseline includes 44 Mario/shared tests and 17 Sonic tests. Sonic checks cover momentum, braking, jump edges, spin dash, ring collection, enemy collisions, damage grace, lives, checkpoints, pause input cancellation, restart, and bounded frame durations. Complete-course controllers use ordinary charge, jump, and movement inputs at 30, 60, and 120 Hz. They verify continuous loop entry, traversal of the top and both sides, exit momentum, and arrival at the finish without changing player position or health directly. This deterministic coverage is separate from browser rendering and physical touch-device verification; see the [Sonic verification record](docs/sonic-verification.md) for the checked scope.
-
-### Historical Mario verification
-
-The original 44-test suite covers Mario simulation, optional WebMCP contracts and the RAF clock. Complete-level controllers use normal movement/jump inputs at 30, 60 and 120 Hz, both with run held and with walking only, without teleporting or disabling enemies. The walk-only controller uses the movement/jump actions available on touch controls; it includes two natural deaths and finishes with one life, so this is not a no-death or real touch-event test. Other checks cover camera containment, pipe collision, variable jumps, lives, pause and restart. Contract tests use plain-object mocks, not a browser or WebGL context. The original Mario game UI and Button primitive are preserved.
-
-CI performs clean installation, tests, type checking, lint and static build with read-only repository permission. It has no deployment job. Local source verification on 2026-09-07 passed all 44 tests, type checking, lint and build, with zero reported npm audit vulnerabilities. Actual desktop-browser checks verified the rendered scene, start/pause/resume controls and native WebMCP read/restart/pause calls. A frame-clock error found during this check was fixed and covered by six regression tests. Four repeated restart/resume cycles then produced no new browser warnings or errors. This is not full-level human-play or physical-device certification.
-
-[마리오 검증 범위와 남은 한계](docs/verification.md)
+현재 재구현의 테스트 결과, 실제 화면과 범위는 [재구현 검증 기록](docs/rebuild-verification.md)을 확인하세요. 과거 배포 기록: [초기 5종](docs/retro-verification.md), [추가 6종](docs/expansion-verification.md), [Mario](docs/verification.md), [Sonic](docs/sonic-verification.md).
 
 ## Architecture
 
-- `index.html`, `src/main.tsx`, `vite.config.ts`: standalone Vite/React entry point and static build.
-- `app/arcade.tsx`: hash-based game library, lazy loading, six-game expansion and eleven-game benchmark queues, and local results/export.
-- `app/retro.tsx`, `app/retro.css`: shared HUD, start/pause UI, keyboard help, and touch controls for the eleven parody cartridges.
-- `lib/retro/types.ts`, `catalog.ts`, `runtime.ts`, `metrics.ts`: cartridge contract, registry, fixed 120Hz runner, input lifecycle, frame samples, and local records.
-- `lib/retro/{smash,ocarina,commando,iron,pocket}/`: each game's pure simulation, ordinary-input benchmark controller, and procedural WebGL or pixel renderer.
-- `lib/retro/{reploid,colony,watchpoint,temple}/`: the six expansion cartridges (three action stages share the reploid engine).
-- `lib/retro/audio.ts`: opt-in synthesized effects with bounded voices and disposal.
-- `public/previews/`: game screenshots used by the arcade library.
-- `app/sonic.tsx`, `app/sonic.css`: Sonic HUD, controls, personal record, and benchmark panel.
-- `lib/sonic/world.ts`: shared terrain, loop, ring, spring, boost, enemy, hazard, and checkpoint geometry.
-- `lib/sonic/simulation.ts`: deterministic 120Hz movement, collisions, lives, and finish state.
-- `lib/sonic/scene.ts`: procedural Three.js coast, character, scenery, and camera.
-- `lib/sonic/renderer.ts`: input, animation loop, opt-in audio, benchmark controller, and resource lifecycle.
-- `app/page.tsx`, `app/globals.css`: retained Mario HUD, keyboard/touch UI and layout; the `app` directory name does not imply a Next.js server.
-- `lib/game/world.ts`, `lib/game/simulation.ts`, `lib/game/renderer.ts`: retained Mario geometry, simulation, and Three.js renderer.
-- `lib/game/frame-clock.ts`: shared RAF timing with lifecycle reset and bounded frame durations.
-- `lib/game/webmcp.ts`: optional Mario `document.modelContext` integration; read state, start/restart, and pause/resume tools. All accept an empty JSON object and unregister on lifecycle abort.
-
-Mario's optional WebMCP integration remains inert when `document.modelContext` is unavailable. Native read/start/pause calls were verified in the historical desktop test browser; support in other browsers is not assumed. The public demo and source are unofficial fan work with no SEGA or Nintendo affiliation.
+- `app/arcade.tsx`: 게임 목록, 경로, 자동 실행 큐와 결과 내보내기.
+- `app/retro.tsx`: 시작·일시정지·도움말·터치 입력. 게임 내부 HUD가 화면 중심을 차지합니다.
+- `lib/retro/runtime.ts`: 120Hz 고정 갱신, 입력 수명 관리와 프레임 계측.
+- `lib/retro/{smash,iron,ocarina,commando,pocket,reploid,colony,watchpoint,temple}`: 순수 시뮬레이션, 실제 입력 벤치마크, 화면 렌더러.
+- `public/previews`: 실제 브라우저 스크린샷. `public/assets/pokemon`: 로컬 1세대 스프라이트와 출처 기록.
+- `lib/game`, `lib/sonic`: 기존 Mario와 Sonic. Mario의 선택적 `document.modelContext` 지원은 해당 API가 없으면 작동하지 않습니다.
 
 <!-- PROJECT-LINKS:START -->
 

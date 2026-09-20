@@ -10,9 +10,30 @@ export const POND = {
 } as const;
 export const SHRINE = { x: 0, z: -30 } as const;
 export const MELODY_STONES = [
-  { x: -9, z: 7, name: 'Dew', color: '#70ddd0', glyph: 'drop' },
-  { x: 9, z: 0.5, name: 'Root', color: '#f5cd66', glyph: 'leaf' },
-  { x: -6.5, z: -10, name: 'Dawn', color: '#c0a0fc', glyph: 'star' },
+  {
+    x: -9,
+    z: 7,
+    name: 'Saria',
+    color: '#70ddd0',
+    glyph: 'drop',
+    notes: ['down', 'right', 'left', 'down', 'right', 'left'],
+  },
+  {
+    x: 9,
+    z: 0.5,
+    name: 'Zelda',
+    color: '#f5cd66',
+    glyph: 'leaf',
+    notes: ['left', 'up', 'right', 'left', 'up', 'right'],
+  },
+  {
+    x: -6.5,
+    z: -10,
+    name: 'Sun',
+    color: '#c0a0fc',
+    glyph: 'star',
+    notes: ['right', 'down', 'up', 'right', 'down', 'up'],
+  },
 ] as const;
 export const ENEMY_SPAWNS = [
   { x: 1.5, z: 5.5, boss: false },

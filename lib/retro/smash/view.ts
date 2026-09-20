@@ -1,234 +1,424 @@
 import * as THREE from 'three';
 import type { RetroView } from '../types.ts';
-import { platforms, SmashSimulation } from './simulation.ts';
+import { SmashSimulation } from './simulation.ts';
 import {
-  animateFigure,
-  box,
-  createFigure,
-  disposeScene,
-  label,
-  material,
-  mesh,
-} from './art.ts';
+  animateFighter,
+  createKirby,
+  createMario,
+  releasePaintCache,
+} from './models.ts';
+import { createDreamLand } from './stage.ts';
+
+function portrait(
+  c: CanvasRenderingContext2D,
+  kirby: boolean,
+  x: number,
+  y: number,
+  scale = 1,
+): void {
+  c.save();
+  c.translate(x, y);
+  c.scale(scale, scale);
+  const oval = (
+    color: string,
+    px: number,
+    py: number,
+    rx: number,
+    ry: number,
+  ) => {
+    c.fillStyle = color;
+    c.beginPath();
+    c.ellipse(px, py, rx, ry, 0, 0, Math.PI * 2);
+    c.fill();
+  };
+  if (kirby) {
+    oval('#ca2459', -23, 28, 24, 11);
+    oval('#ca2459', 23, 28, 24, 11);
+    oval('#ff8fc2', 0, 0, 43, 37);
+    oval('#ff8fc2', -44, 5, 14, 12);
+    oval('#ff8fc2', 44, 5, 14, 12);
+    for (const side of [-1, 1]) {
+      oval('#202445', side * 12, -4, 6, 15);
+      oval('#4a8edc', side * 12, 3, 3, 6);
+      oval('#fff', side * 12, -11, 3, 5);
+      oval('#f35893', side * 28, 10, 8, 4);
+    }
+    c.strokeStyle = '#8c365e';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.arc(0, 10, 7, 0.1, Math.PI - 0.1);
+    c.stroke();
+  } else {
+    oval('#3c231c', 0, 6, 36, 40);
+    oval('#ffc494', 0, 7, 31, 36);
+    oval('#ffc494', -31, 8, 8, 13);
+    oval('#ffc494', 31, 8, 8, 13);
+    oval('#e82e37', 0, -24, 39, 25);
+    oval('#e82e37', 0, -12, 44, 8);
+    oval('#fff8e9', 0, -25, 14, 13);
+    c.fillStyle = '#d82032';
+    c.font = '900 23px Arial';
+    c.textAlign = 'center';
+    c.fillText('M', 0, -17);
+    for (const side of [-1, 1]) {
+      oval('#fff', side * 11, 2, 7, 12);
+      oval('#267dbe', side * 11, 4, 4, 8);
+      oval('#12273b', side * 11, 5, 2, 6);
+    }
+    for (let lobe = -2; lobe <= 2; lobe++)
+      oval('#493023', lobe * 8, 21 - Math.abs(lobe), 8, 7);
+    oval('#ffc494', 0, 12, 13, 10);
+  }
+  c.restore();
+}
+function drawHUD(c: CanvasRenderingContext2D, game: SmashSimulation): void {
+  const w = c.canvas.width,
+    h = c.canvas.height;
+  c.clearRect(0, 0, w, h);
+  const text = (
+    message: string,
+    x: number,
+    y: number,
+    size: number,
+    color = '#fff',
+    align: CanvasTextAlign = 'left',
+  ) => {
+    c.font = `900 ${size}px Arial, sans-serif`;
+    c.textAlign = align;
+    c.lineJoin = 'round';
+    c.lineWidth = size > 36 ? 5 : 3;
+    c.strokeStyle = 'rgba(30,40,52,.78)';
+    c.strokeText(message, x, y);
+    c.fillStyle = color;
+    c.fillText(message, x, y);
+  };
+  c.fillStyle = 'rgba(249,250,232,.86)';
+  c.beginPath();
+  c.roundRect(24, 20, 200, 35, 4);
+  c.fill();
+  c.font = '800 17px Arial';
+  c.fillStyle = '#335755';
+  c.textAlign = 'left';
+  c.fillText('DREAM LAND · 3 STOCK', 38, 43);
+  const remain = Math.max(0, 180 - game.time),
+    mins = Math.floor(remain / 60),
+    secs = Math.floor(remain % 60);
+  text(
+    `${mins}:${String(secs).padStart(2, '0')}`,
+    w - 30,
+    62,
+    46,
+    '#fff',
+    'right',
+  );
+  const panelW = Math.min(390, w * 0.32),
+    gap = Math.min(80, w * 0.06),
+    start = w / 2 - panelW - gap / 2;
+  [game.player, game.opponent].forEach((body, index) => {
+    const x = start + index * (panelW + gap),
+      y = h - 112;
+    const color = index ? '#326fd4' : '#d82943';
+    c.fillStyle = 'rgba(246,247,235,.92)';
+    c.beginPath();
+    c.moveTo(x + 20, y + 5);
+    c.lineTo(x + panelW, y + 5);
+    c.lineTo(x + panelW - 20, y + 101);
+    c.lineTo(x, y + 101);
+    c.closePath();
+    c.fill();
+    c.fillStyle = color;
+    c.beginPath();
+    c.moveTo(x + 20, y + 5);
+    c.lineTo(x + 116, y + 5);
+    c.lineTo(x + 96, y + 101);
+    c.lineTo(x, y + 101);
+    c.closePath();
+    c.fill();
+    portrait(c, !!index, x + 57, y + 58, 0.95);
+    const damageColor =
+      body.percent >= 100
+        ? '#d92c3c'
+        : body.percent >= 60
+          ? '#e47b29'
+          : '#263340';
+    c.font = '900 53px Arial';
+    c.textAlign = 'left';
+    c.fillStyle = damageColor;
+    c.fillText(`${Math.floor(body.percent)}%`, x + 116, y + 58);
+    c.font = '900 16px Arial';
+    c.fillStyle = '#283d4b';
+    c.fillText(body.character.toUpperCase(), x + 119, y + 82);
+    c.fillStyle = color;
+    c.font = '900 12px Arial';
+    c.fillText(index ? 'CPU' : '1P', x + panelW - 45, y + 29);
+    for (let stock = 0; stock < body.stocks; stock++)
+      portrait(c, !!index, x + 247 + stock * 28, y + 76, 0.23);
+    if (body.charging) {
+      c.fillStyle = '#f0b52f';
+      c.fillRect(x + 120, y + 90, ((panelW - 146) * body.charge) / 1.2, 4);
+    }
+  });
+  if (game.time < 1.4)
+    text(
+      game.time < 0.65 ? 'READY' : 'GO!',
+      w / 2,
+      h * 0.44,
+      75,
+      game.time < 0.65 ? '#fff4ab' : '#ffce49',
+      'center',
+    );
+  if (game.phase !== 'playing') {
+    text('GAME!', w / 2, h * 0.42, 98, '#ffdd5a', 'center');
+    text(
+      game.phase === 'won' ? 'MARIO WINS!' : 'KIRBY WINS!',
+      w / 2,
+      h * 0.54,
+      32,
+      '#fff',
+      'center',
+    );
+  }
+}
 
 export function mountSmash(
   canvas: HTMLCanvasElement,
   game: SmashSimulation,
 ): RetroView {
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha: false,
+  });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.2;
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x66517a);
-  scene.fog = new THREE.Fog(0x66517a, 45, 95);
-  const camera = new THREE.PerspectiveCamera(43, 1, 0.1, 140);
-  camera.position.set(1, 9, 24);
-  camera.lookAt(0, 3, 0);
-  scene.add(new THREE.HemisphereLight(0xffd9b6, 0x233449, 2.5));
-  const sun = new THREE.DirectionalLight(0xffc589, 3);
-  sun.position.set(-15, 25, 12);
+  scene.background = new THREE.Color(0x8ac8df);
+  scene.fog = new THREE.Fog(0xbde2de, 42, 95);
+  const camera = new THREE.OrthographicCamera(-20, 20, 8, -8, 0.1, 160);
+  const sky = new THREE.HemisphereLight(0xfffbef, 0x698b63, 2.2);
+  scene.add(sky);
+  const sun = new THREE.DirectionalLight(0xffe9bc, 2.2);
+  sun.position.set(-10, 23, 17);
   sun.castShadow = true;
   sun.shadow.mapSize.set(1024, 1024);
   sun.shadow.camera.left = -25;
   sun.shadow.camera.right = 25;
-  sun.shadow.camera.top = 20;
-  sun.shadow.camera.bottom = -15;
+  sun.shadow.camera.top = 28;
+  sun.shadow.camera.bottom = -10;
+  sun.shadow.normalBias = 0.035;
   scene.add(sun);
-  const brick = material(0x493f59);
-  const concrete = material(0xa3a0ae);
-  const blue = material(0x248eac);
-  const amber = material(0xffba4e);
-  const steel = material(0x26344a, 0.4, 0.5);
-  box(scene, brick, 0, -7.2, -0.7, 26, 13.8, 7);
-  for (const platform of platforms) {
-    box(
-      scene,
-      concrete,
-      platform.x,
-      platform.y - 0.3,
-      0,
-      platform.width,
-      0.6,
-      platform.y ? 3 : 7,
-    );
-    box(
-      scene,
-      platform.y ? blue : amber,
-      platform.x,
-      platform.y - 0.12,
-      1.6 + (platform.y ? 0 : 2),
-      platform.width,
-      0.15,
-      0.12,
-    );
-    if (platform.y)
-      for (const side of [-1, 1]) {
-        const brace = box(
-          scene,
-          steel,
-          platform.x + side * 1.3,
-          platform.y - 1,
-          0,
-          0.16,
-          2,
-          0.16,
-        );
-        brace.rotation.z = side * 0.45;
-      }
-  }
-  for (let x = -12; x <= 12; x += 2) {
-    box(scene, steel, x, 0.9, -3, 0.09, 1.8, 0.09);
-  }
-  box(scene, steel, 0, 1.8, -3, 25, 0.09, 0.09);
-  for (let x = -11; x < 12; x += 3.5)
-    for (let y = -2; y > -13; y -= 3)
-      box(scene, material(0xd99060), x, y, 2.87, 1.6, 1.25, 0.04);
-  const tank = new THREE.Group();
-  tank.position.set(-10, 0, -1.5);
-  scene.add(tank);
-  mesh(
-    new THREE.CylinderGeometry(1.25, 1.25, 2.5, 12),
-    material(0x8396a2, 0.35, 0.5),
-    tank,
-    0,
-    1.9,
-    0,
-  );
-  mesh(new THREE.ConeGeometry(1.4, 0.6, 12), steel, tank, 0, 3.45, 0);
-  for (const x of [-0.8, 0.8]) box(tank, steel, x, 0.55, 0, 0.15, 1.1, 0.15);
-  const sign = label('옥상 배송 조합', '#ffe49c', '#1c344a', 9, 1.8);
-  sign.position.set(0, 9.5, -5);
-  scene.add(sign);
-  const moon = mesh(
-    new THREE.SphereGeometry(4, 20, 16),
-    new THREE.MeshBasicMaterial({ color: 0xffbfa0 }),
-    scene,
-    -19,
-    20,
-    -37,
-  );
-  moon.castShadow = false;
-  const citySurface = material(0x32334e);
-  const windowSurface = new THREE.MeshBasicMaterial({ color: 0xffd991 });
-  for (let index = 0; index < 18; index += 1) {
-    const x = -42 + index * 5;
-    const height = 8 + ((index * 7) % 17);
-    const z = -17 - (index % 3) * 7;
-    box(scene, citySurface, x, height / 2 - 8, z, 3.8, height, 4);
-    for (let y = -5; y < height - 9; y += 3)
-      for (const offset of [-0.9, 0.9])
-        box(scene, windowSurface, x + offset, y, z + 2.02, 0.45, 0.9, 0.04);
-  }
-  // Rooftop details: parcel stacks, a dish, and a glowing delivery beacon.
-  for (let i = 0; i < 4; i += 1) {
-    const parcel = box(
-      scene,
-      material(0xad795b),
-      10 + (i % 2) * 0.8,
-      0.4 + Math.floor(i / 2) * 0.7,
-      -2,
-      0.75,
-      0.7,
-      0.8,
-    );
-    parcel.rotation.y = i * 0.13;
-  }
-  const dish = mesh(
-    new THREE.SphereGeometry(1, 14, 8, 0, Math.PI),
-    concrete,
-    scene,
-    11,
-    2.7,
-    -2.2,
-  );
-  dish.scale.z = 0.3;
-  dish.rotation.x = -0.5;
-  const figures = [
-    createFigure('raccoon', 0x19afd0, scene),
-    createFigure('raccoon', 0xef7047, scene),
-  ];
-  const statusLabels = [
-    label('0% · ●●●', '#baf4ff'),
-    label('0% · ●●●', '#ffd7b3'),
-  ];
-  statusLabels.forEach((item) => {
-    item.scale.set(4, 0.85, 1);
-    scene.add(item);
+  createDreamLand(scene);
+  const models = [createMario(scene), createKirby(scene)];
+  const ballGeometry = new THREE.SphereGeometry(0.3, 12, 8),
+    ballMaterial = new THREE.MeshBasicMaterial({ color: 0xff972e });
+  const balls = Array.from({ length: 12 }, () => {
+    const ball = new THREE.Mesh(ballGeometry, ballMaterial);
+    ball.visible = false;
+    scene.add(ball);
+    return ball;
   });
-  const previousLabels = ['', ''];
-  let width = 0;
-  let height = 0;
+  const impactGeometry = new THREE.RingGeometry(0.38, 0.67, 10),
+    impactMaterial = new THREE.MeshBasicMaterial({
+      color: 0xfff8af,
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthTest: false,
+    });
+  const impactMeshes = Array.from({ length: 20 }, () => {
+    const object = new THREE.Mesh(impactGeometry, impactMaterial.clone());
+    object.visible = false;
+    scene.add(object);
+    return object;
+  });
+  const smokeGeometry = new THREE.SphereGeometry(0.15, 8, 5),
+    smokeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xfff9ef,
+      transparent: true,
+      opacity: 0.6,
+    });
+  const trails = Array.from({ length: 20 }, () => {
+    const m = new THREE.Mesh(smokeGeometry, smokeMaterial);
+    m.visible = false;
+    scene.add(m);
+    return m;
+  });
+  const markerGeometry = new THREE.ConeGeometry(0.2, 0.33, 3),
+    markers = [0xe32c48, 0x317aea].map((color) => {
+      const marker = new THREE.Mesh(
+        markerGeometry,
+        new THREE.MeshBasicMaterial({ color }),
+      );
+      marker.rotation.z = Math.PI;
+      scene.add(marker);
+      return marker;
+    });
+  const hudCanvas = document.createElement('canvas');
+  hudCanvas.width = 1600;
+  hudCanvas.height = 640;
+  const hudContext = hudCanvas.getContext('2d')!,
+    hudTexture = new THREE.CanvasTexture(hudCanvas);
+  hudTexture.colorSpace = THREE.SRGBColorSpace;
+  const hudScene = new THREE.Scene(),
+    hudCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 2);
+  const hudMaterial = new THREE.MeshBasicMaterial({
+    map: hudTexture,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const hudPlane = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), hudMaterial);
+  hudPlane.position.z = -1;
+  hudScene.add(hudPlane);
+  let width = 0,
+    height = 0,
+    lookX = 0,
+    lookY = 3.5,
+    halfHeight = 7.8,
+    lastTime = 0,
+    hudKey = '',
+    drawCalls = 0;
   return {
     render(nextWidth, nextHeight) {
-      if (nextWidth !== width || nextHeight !== height) {
+      if (width !== nextWidth || height !== nextHeight) {
         width = nextWidth;
         height = nextHeight;
         renderer.setSize(width, height, false);
-        camera.aspect = width / Math.max(1, height);
-        const portrait = THREE.MathUtils.clamp(
-          (1.35 - camera.aspect) / 0.35,
-          0,
-          1,
-        );
-        const stageWidth = 34 - portrait * 6;
-        const fitDistance =
-          stageWidth /
-          (2 *
-            Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) *
-            camera.aspect);
-        camera.position.set(
-          1,
-          9 + portrait * 3,
-          Math.max(24 + portrait * 21, fitDistance),
-        );
-        camera.updateProjectionMatrix();
+        const hudWidth = width / Math.max(1, height) < 1.3 ? 920 : 1600;
+        hudCanvas.width = hudWidth;
+        hudCanvas.height = 640;
+        hudKey = '';
       }
       const bodies = [game.player, game.opponent];
       bodies.forEach((body, index) => {
-        const figure = figures[index];
-        figure.root.position.set(body.x, body.y, 0);
-        figure.root.rotation.y = body.facing < 0 ? Math.PI : 0;
-        figure.root.visible =
-          body.stocks > 0 &&
-          !(
-            game.time > 0 &&
-            body.invulnerable > 0 &&
-            Math.floor(game.time * 12) % 2 === 0
+        animateFighter(models[index], body, game.time);
+        markers[index].position.set(body.x, body.y + (index ? 2.5 : 3.8), 0.5);
+        markers[index].visible = body.stocks > 0;
+        for (let i = 0; i < 10; i++) {
+          const puff = trails[index * 10 + i];
+          puff.visible = body.stun > 0 && Math.abs(body.vx) > 10;
+          puff.position.set(
+            body.x - body.vx * i * 0.014,
+            body.y + 1.1 - body.vy * i * 0.014,
+            0.2,
           );
-        animateFigure(figure, game.time, body.vx, body.attack);
-        figure.shield.visible = body.guarding;
-        figure.shield.scale.setScalar(0.75 + body.shield * 0.25);
-        figure.parcel.visible = body.attack > 0 && body.attackKind === 'parcel';
-        figure.umbrella.visible = body.recoveryUsed && !body.grounded;
-        figure.head.rotation.z +=
-          body.tell > 0 ? Math.sin(game.time * 40) * 0.1 : 0;
-        const message = `${Math.round(body.percent)}% · ${'●'.repeat(Math.max(0, body.stocks))}`;
-        if (message !== previousLabels[index]) {
-          const replacement = label(message, index ? '#ffd7b3' : '#baf4ff');
-          const old = statusLabels[index];
-          old.material.map?.dispose();
-          old.material.dispose();
-          old.removeFromParent();
-          statusLabels[index] = replacement;
-          replacement.scale.set(4, 0.85, 1);
-          scene.add(replacement);
-          previousLabels[index] = message;
+          puff.scale.setScalar(0.6 + i * 0.15);
         }
-        statusLabels[index].position.set(body.x, body.y + 4, 0);
-        statusLabels[index].visible = body.stocks > 0;
       });
-      camera.lookAt(
-        0,
-        3 + (game.flash > 0 ? Math.sin(game.time * 100) * game.flash * 0.2 : 0),
-        0,
+      balls.forEach((ball, index) => {
+        const data = game.fireballs[index];
+        ball.visible = !!data;
+        if (data) {
+          ball.position.set(data.x, data.y, 0.35);
+          ball.scale.setScalar(1 + Math.sin(game.time * 50) * 0.12);
+        }
+      });
+      impactMeshes.forEach((object, index) => {
+        const effect = game.impacts[index];
+        object.visible = !!effect;
+        if (effect) {
+          object.position.set(effect.x, effect.y, 1.6);
+          const big = effect.kind === 'ko';
+          const scale = big
+            ? 2 + (1 - effect.life / 0.7) * 6
+            : 1 + (1 - effect.life / 0.3) * 2;
+          object.scale.set(scale, big ? scale * 0.55 : scale, 1);
+          object.rotation.z = game.time * 4;
+          object.material.color.set(
+            effect.kind === 'shield' ? 0x88caff : big ? 0xffd843 : 0xfff5c4,
+          );
+          object.material.opacity = Math.min(1, effect.life * 5);
+        }
+      });
+      const minY =
+        Math.min(
+          0,
+          ...bodies.filter((b) => b.stocks > 0).map((b) => Math.max(-8, b.y)),
+        ) - 2.8;
+      const maxY = Math.max(
+        10,
+        ...bodies
+          .filter((b) => b.stocks > 0)
+          .map((b) => Math.min(24, b.y + 3.5)),
       );
+      const aspect = width / Math.max(1, height),
+        desiredX = THREE.MathUtils.clamp(
+          (game.player.x + game.opponent.x) / 2,
+          -8,
+          8,
+        );
+      const desiredHalf = Math.max(
+        7.8,
+        (maxY - minY) * 0.57,
+        (Math.abs(game.player.x - game.opponent.x) + 11) / (2 * aspect),
+      );
+      const elapsed = Math.max(
+          1 / 120,
+          Math.min(0.1, game.time - lastTime || 1 / 60),
+        ),
+        smoothing = 1 - Math.exp(-elapsed * 5);
+      lookX += (desiredX - lookX) * smoothing;
+      lookY += ((minY + maxY) / 2 - lookY) * smoothing;
+      halfHeight += (desiredHalf - halfHeight) * smoothing;
+      lastTime = game.time;
+      camera.left = -halfHeight * aspect;
+      camera.right = halfHeight * aspect;
+      camera.top = halfHeight;
+      camera.bottom = -halfHeight;
+      camera.updateProjectionMatrix();
+      const shake =
+        game.flash > 0 && game.flash < 0.15
+          ? Math.sin(game.time * 130) * game.flash * 1.3
+          : 0;
+      camera.position.set(lookX + shake, lookY + 3.3, 34);
+      camera.lookAt(lookX, lookY, 0);
+      const key = `${Math.floor(game.time * 10)}:${game.player.percent}:${game.opponent.percent}:${game.player.stocks}:${game.opponent.stocks}:${game.phase}`;
+      if (key !== hudKey) {
+        drawHUD(hudContext, game);
+        hudTexture.needsUpdate = true;
+        hudKey = key;
+      }
+      renderer.autoClear = true;
       renderer.render(scene, camera);
+      drawCalls = renderer.info.render.calls;
+      renderer.autoClear = false;
+      renderer.clearDepth();
+      renderer.render(hudScene, hudCamera);
+      drawCalls += renderer.info.render.calls;
+      renderer.autoClear = true;
     },
     metrics: () => ({
-      drawCalls: renderer.info.render.calls,
-      entities: 2 + platforms.length,
+      drawCalls,
+      entities: 6 + game.fireballs.length + game.impacts.length,
     }),
-    dispose: () => disposeScene(scene, renderer),
+    dispose() {
+      const geometries = new Set<THREE.BufferGeometry>(),
+        materials = new Set<THREE.Material>(),
+        textures = new Set<THREE.Texture>();
+      for (const root of [scene, hudScene])
+        root.traverse((object) => {
+          if (!(object instanceof THREE.Mesh)) return;
+          geometries.add(object.geometry);
+          for (const material of Array.isArray(object.material)
+            ? object.material
+            : [object.material]) {
+            materials.add(material);
+            const map = (material as THREE.MeshBasicMaterial).map;
+            if (map) textures.add(map);
+          }
+        });
+      geometries.forEach((g) => g.dispose());
+      textures.forEach((t) => t.dispose());
+      materials.forEach((m) => m.dispose());
+      impactMaterial.dispose();
+      sun.shadow.map?.dispose();
+      sun.shadow.mapPass?.dispose();
+      renderer.dispose();
+      releasePaintCache();
+    },
   };
 }

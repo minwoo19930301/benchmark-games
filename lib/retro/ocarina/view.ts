@@ -1,7 +1,7 @@
 import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { RetroView } from '../types.ts';
-import { OcarinaSimulation } from './simulation.ts';
+import { OcarinaSimulation, melodyNames } from './simulation.ts';
 import { GATE_Z, MELODY_STONES, POND, ROCKS, SHRINE, WORLD } from './world.ts';
 
 const random = (value: number) => {
@@ -22,18 +22,76 @@ export function mountOcarina(
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio || 1, 1.5));
   renderer.outputColorSpace = T.SRGBColorSpace;
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
-  renderer.shadowMap.enabled = false;
+  renderer.toneMappingExposure = 1.0;
+  renderer.autoClear = false;
+  renderer.info.autoReset = false;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = T.PCFSoftShadowMap;
   const scene = new T.Scene();
-  scene.background = new T.Color('#476b69');
-  scene.fog = new T.Fog('#617f72', 34, 77);
-  const camera = new T.PerspectiveCamera(47, 1, 0.1, 130);
-  scene.add(new T.HemisphereLight('#d5e6d1', '#283528', 2.15));
-  const sun = new T.DirectionalLight('#ffe4aa', 2.65);
+  scene.background = new T.Color('#779b91');
+  scene.fog = new T.Fog('#6d8b79', 23, 74);
+  const camera = new T.PerspectiveCamera(61, 1, 0.08, 130);
+  scene.add(new T.HemisphereLight('#d9eccb', '#243d2b', 1.3));
+  const sun = new T.DirectionalLight('#ffe4aa', 2.25);
   sun.position.set(-12, 26, 14);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, {
+    left: -26,
+    right: 26,
+    top: 35,
+    bottom: -32,
+    near: 1,
+    far: 95,
+  });
+  sun.shadow.bias = -0.0004;
+  sun.shadow.normalBias = 0.08;
   scene.add(sun);
 
   const materials = new Map<string, T.Material>();
+  const textures = new Set<T.Texture>();
+  function paintedTexture(
+    width: number,
+    height: number,
+    draw: (ctx: CanvasRenderingContext2D) => void,
+  ): T.CanvasTexture {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    draw(canvas.getContext('2d')!);
+    const texture = new T.CanvasTexture(canvas);
+    texture.colorSpace = T.SRGBColorSpace;
+    textures.add(texture);
+    return texture;
+  }
+  const barkTexture = paintedTexture(128, 256, (ctx) => {
+    ctx.fillStyle = '#795b39';
+    ctx.fillRect(0, 0, 128, 256);
+    for (let i = 0; i < 35; i++) {
+      ctx.strokeStyle = i % 3 ? '#503e2a' : '#a28252';
+      ctx.lineWidth = 1 + (i % 3);
+      ctx.beginPath();
+      ctx.moveTo((i * 23) % 128, 0);
+      for (let y = 0; y < 260; y += 16)
+        ctx.lineTo(((i * 23) % 128) + Math.sin(y / 38 + i) * 7, y);
+      ctx.stroke();
+    }
+    for (let i = 0; i < 13; i++) {
+      ctx.fillStyle = '#597444';
+      ctx.fillRect((i * 37) % 128, 150 + ((i * 29) % 100), 3, 19);
+    }
+  });
+  const grassTexture = paintedTexture(128, 128, (ctx) => {
+    ctx.fillStyle = '#688447';
+    ctx.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 420; i++) {
+      ctx.fillStyle = i % 2 ? '#759553' : '#536f3c';
+      ctx.fillRect((i * 47) % 128, (i * 71) % 128, 2 + (i % 4), 1 + (i % 3));
+    }
+  });
+  grassTexture.wrapS = grassTexture.wrapT = T.RepeatWrapping;
+  grassTexture.repeat.set(22, 30);
+
   function mat(
     color: string,
     glow = false,
@@ -81,6 +139,8 @@ export function mountOcarina(
     mesh.position.set(x, y, z);
     mesh.scale.set(sx, sy, sz);
     parent.add(mesh);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
     return mesh;
   }
   const box = (
@@ -129,37 +189,24 @@ export function mountOcarina(
     return part;
   }
   function glyph(parent: T.Object3D, color: string, scale = 1) {
-    // A four-petal hour flower: an original forest emblem, not a game logo.
     const group = new T.Group();
     group.scale.setScalar(scale);
     parent.add(group);
-    for (let index = 0; index < 4; index += 1) {
-      const petal = object(
-        shapes.rock,
-        color,
-        Math.sin((index * Math.PI) / 2) * 0.3,
-        Math.cos((index * Math.PI) / 2) * 0.3,
-        0,
-        0.12,
-        0.27,
-        0.065,
-        group,
-      );
-      petal.rotation.z = (-index * Math.PI) / 2;
-      petal.material = mat(color, true);
-    }
-    const center = object(
-      shapes.rock,
-      color,
-      0,
-      0,
-      0.025,
-      0.13,
-      0.13,
-      0.08,
-      group,
-    );
-    center.material = mat(color, true);
+    const triangle = new T.Shape();
+    triangle.moveTo(0, 0.29);
+    triangle.lineTo(-0.25, -0.145);
+    triangle.lineTo(0.25, -0.145);
+    triangle.closePath();
+    const shape = new T.ExtrudeGeometry(triangle, {
+      depth: 0.055,
+      bevelEnabled: false,
+    });
+    for (const [x, y] of [
+      [0, 0.38],
+      [-0.255, -0.06],
+      [0.255, -0.06],
+    ])
+      object(shape, color, x, y, 0, 1, 1, 1, group).material = mat(color, true);
     return group;
   }
   function blob(parent: T.Object3D, size: number) {
@@ -180,7 +227,7 @@ export function mountOcarina(
   }
 
   box(
-    '#496943',
+    '#789559',
     (WORLD.left + WORLD.right) / 2,
     -0.36,
     (WORLD.far + WORLD.near) / 2,
@@ -188,7 +235,12 @@ export function mountOcarina(
     0.7,
     WORLD.near - WORLD.far + 11,
   );
-  const dirt = mat('#aa9363');
+  mat('#789559').map = grassTexture;
+  mat('#789559').needsUpdate = true;
+  const dirt = mat('#a89566');
+  const bark = mat('#8b714d');
+  bark.map = barkTexture;
+  bark.needsUpdate = true;
   function pathSegment(
     ax: number,
     az: number,
@@ -315,7 +367,7 @@ export function mountOcarina(
   const trunkGeometry = new T.CylinderGeometry(0.43, 0.72, 1, 7);
   const treeTrunks = new T.InstancedMesh(
     trunkGeometry,
-    mat('#645443'),
+    bark,
     treePositions.length,
   );
   const crowns = new T.InstancedMesh(
@@ -370,6 +422,10 @@ export function mountOcarina(
       );
     }
   });
+  treeTrunks.castShadow = true;
+  treeTrunks.receiveShadow = true;
+  crowns.castShadow = true;
+  highlights.castShadow = true;
   scene.add(treeTrunks, crowns, highlights);
   const originalCrowns = Array.from({ length: crowns.count }, (_, index) => {
     const matrix = new T.Matrix4();
@@ -416,15 +472,154 @@ export function mountOcarina(
     ball(index % 3 ? '#e8c574' : '#b89ac1', x, 0.62, z, 0.16, 0.1, 0.16);
   }
 
+  // Kokiri stump homes share the existing solid rock footprints.
+  for (const home of ROCKS.filter((rock) => rock.z > 8)) {
+    const trunk = cylinder('#8b714d', home.x, 1.45, home.z, home.radius, 2.9);
+    trunk.material = bark;
+    cylinder('#c4a069', home.x, 2.95, home.z, home.radius * 1.1, 0.22);
+    for (let root = 0; root < 4; root++) {
+      const angle = (root * Math.PI) / 2;
+      connector(
+        scene,
+        new T.Vector3(home.x, 0.5, home.z),
+        new T.Vector3(
+          home.x + Math.sin(angle) * home.radius,
+          0.07,
+          home.z + Math.cos(angle) * home.radius,
+        ),
+        0.16,
+        '#76583b',
+      );
+    }
+    object(
+      shapes.smoothBall,
+      '#293627',
+      home.x,
+      0.93,
+      home.z + home.radius * 0.94,
+      home.radius * 0.4,
+      0.87,
+      0.075,
+    );
+    box(
+      '#bf9d62',
+      home.x,
+      0.06,
+      home.z + home.radius,
+      home.radius * 0.8,
+      0.1,
+      0.38,
+    );
+    ball(
+      '#72a453',
+      home.x - home.radius * 0.4,
+      3.2,
+      home.z,
+      home.radius,
+      0.33,
+      home.radius * 0.9,
+    );
+    const window = object(
+      shapes.circle,
+      '#e3ca7d',
+      home.x + home.radius * 0.5,
+      1.83,
+      home.z + home.radius * 0.88,
+      0.22,
+      0.22,
+      1,
+    );
+    window.material = mat('#e3ca7d', true);
+  }
+
+  // The Great Deku Tree: a huge furrowed face over the walkable mouth opening.
+  for (const side of [-1, 1]) {
+    const trunk = object(
+      shapes.cylinder,
+      '#8b714d',
+      side * 5,
+      5.6,
+      GATE_Z - 1.9,
+      3.2,
+      11.2,
+      3.2,
+    );
+    trunk.material = bark;
+    for (let root = 0; root < 4; root++)
+      connector(
+        scene,
+        new T.Vector3(side * 5, 1.4, GATE_Z - 1.1),
+        new T.Vector3(side * (6 + root * 2.5), 0.2, GATE_Z + 0.4),
+        0.65,
+        '#755737',
+      );
+    const cheek = ball(
+      '#8b714d',
+      side * 2.8,
+      6.3,
+      GATE_Z + 0.3,
+      2.25,
+      2.5,
+      1.6,
+    );
+    cheek.material = bark;
+    ball('#382d21', side * 2.15, 8.15, GATE_Z + 1.45, 1.1, 0.31, 0.15);
+    const brow = ball(
+      '#8b714d',
+      side * 2.1,
+      8.62,
+      GATE_Z + 1.52,
+      1.32,
+      0.3,
+      0.24,
+    );
+    brow.material = bark;
+    brow.rotation.z = -side * 0.13;
+    for (let beard = 0; beard < 4; beard++)
+      connector(
+        scene,
+        new T.Vector3(side * (0.5 + beard * 0.35), 5.3, GATE_Z + 1.6),
+        new T.Vector3(side * (1.5 + beard * 0.4), 3.4, GATE_Z + 1.25),
+        0.26,
+        '#765936',
+      );
+  }
+  const forehead = box('#8b714d', 0, 10.05, GATE_Z - 1.65, 8, 4.5, 5.9);
+  forehead.material = bark;
+  const nose = object(
+    shapes.rock,
+    '#8b714d',
+    0,
+    7.2,
+    GATE_Z + 1.7,
+    0.83,
+    1.57,
+    0.98,
+  );
+  nose.material = bark;
+  for (let crown = 0; crown < 12; crown++) {
+    const angle = (crown * Math.PI * 2) / 12;
+    object(
+      shapes.rock,
+      crown % 2 ? '#476d3f' : '#375b34',
+      Math.sin(angle) * 7,
+      12.5 + (crown % 3) * 1.3,
+      GATE_Z - 3 + Math.cos(angle) * 5,
+      5.8,
+      3.3,
+      5.4,
+    );
+  }
+
   // Masonry wall and hinged barred doors share the simulation's actual opening.
   for (const side of [-1, 1]) {
-    box('#626e60', side * 10.2, 1.55, GATE_Z, 13.6, 3.1, 1.3);
-    box('#84917a', side * 10.2, 3.18, GATE_Z, 13.8, 0.32, 1.7);
+    box('#695b40', side * 10.2, 1.55, GATE_Z, 13.6, 3.1, 1.3);
+    box('#806d48', side * 10.2, 3.18, GATE_Z, 13.8, 0.32, 1.7);
     for (let row = 0; row < 3; row += 1) {
       for (let block = 0; block < 5; block += 1) {
         const x = side * (4.2 + block * 2.7);
         const masonry = box(
-          row % 2 ? '#78836e' : '#858d79',
+          row % 2 ? '#837047' : '#766344',
           x,
           0.55 + row * 0.96,
           GATE_Z + 0.72,
@@ -435,13 +630,13 @@ export function mountOcarina(
         masonry.rotation.z = (random(row * 5 + block) - 0.5) * 0.025;
       }
     }
-    cylinder('#919987', side * 3.6, 2.35, GATE_Z, 0.73, 4.7);
-    cylinder('#a6ad95', side * 3.6, 0.23, GATE_Z, 1.0, 0.46);
-    cylinder('#a6ad95', side * 3.6, 4.5, GATE_Z, 0.95, 0.38);
-    box('#97a18c', side * 3.6, 4.88, GATE_Z, 1.6, 0.5, 1.8);
+    cylinder('#826b43', side * 3.6, 2.35, GATE_Z, 0.73, 4.7);
+    cylinder('#9a8050', side * 3.6, 0.23, GATE_Z, 1.0, 0.46);
+    cylinder('#9a8050', side * 3.6, 4.5, GATE_Z, 0.95, 0.38);
+    box('#7c683f', side * 3.6, 4.88, GATE_Z, 1.6, 0.5, 1.8);
     ball('#4e7448', side * 3.6, 5.23, GATE_Z, 0.95, 0.25, 0.95);
   }
-  box('#929a85', 0, 5.2, GATE_Z, 8.8, 0.64, 1.55);
+  box('#8b714d', 0, 5.2, GATE_Z, 8.8, 0.64, 1.55);
   const gateEmblem = new T.Group();
   gateEmblem.position.set(0, 5.35, GATE_Z + 0.82);
   scene.add(gateEmblem);
@@ -467,7 +662,7 @@ export function mountOcarina(
     doors.push(hinge);
   }
 
-  // Ordered song stones each carry a different color, number and flower glyph.
+  // Ordered song stones each carry a different color, number and Triforce emblem.
   const stoneGlows: {
     halo: T.Mesh;
     flower: T.Group;
@@ -568,12 +763,13 @@ export function mountOcarina(
     inner.material = mat('#ffe0a0', true);
     flames.push(flame);
   }
-  // Shrine courtyard: stone paving, broken pillars, and a suspended time flower.
-  box('#808675', 0, 0.09, -25.4, 13.5, 0.18, 14.2);
+  // Inner chamber: stone paving, broken pillars and a suspended Triforce.
+  const innerFloor = box('#786142', 0, 0.09, -25.4, 33.8, 0.18, 17.8);
+  innerFloor.material = bark;
   for (let row = 0; row < 6; row += 1)
     for (let column = 0; column < 5; column += 1) {
       const tile = box(
-        (row + column) % 3 ? '#929681' : '#a4a18a',
+        (row + column) % 3 ? '#96754c' : '#866740',
         -5.5 + column * 2.75,
         0.205,
         -19.7 - row * 2.3,
@@ -586,10 +782,81 @@ export function mountOcarina(
   for (const side of [-1, 1])
     for (const z of [-20, -28.4]) {
       const height = z === -20 ? 3.6 : 5.4;
-      cylinder('#9ca18a', side * 7.3, height / 2, z, 0.65, height);
-      cylinder('#b0b198', side * 7.3, 0.24, z, 0.95, 0.48);
-      ball('#4d704b', side * 7.3, height, z, 0.84, 0.3, 0.86);
+      const innerRoot = cylinder(
+        '#8b714d',
+        side * 18,
+        height / 2,
+        z,
+        1.15,
+        height,
+      );
+      innerRoot.material = bark;
+      cylinder('#826744', side * 18, 0.24, z, 1.4, 0.48);
+      ball('#4d704b', side * 18, height, z, 1.3, 0.3, 1.1);
     }
+  // The inner arena is a hollow wooden chamber, not a second open forest.
+  // Its enclosing trunks lie outside the same movement bounds as the simulation.
+  for (const side of [-1, 1]) {
+    const wall = box('#8b714d', side * 18, 5, -25.5, 2, 10, 19);
+    wall.material = bark;
+    for (let rib = 0; rib < 5; rib++) {
+      const root = cylinder(
+        '#8b714d',
+        side * 17.75,
+        4.5,
+        -17.7 - rib * 3.6,
+        0.7,
+        9,
+      );
+      root.material = bark;
+      connector(
+        scene,
+        new T.Vector3(side * 17.6, 7, -17.7 - rib * 3.6),
+        new T.Vector3(side * 11, 10, -17.7 - rib * 3.6),
+        0.5,
+        '#685338',
+      );
+    }
+  }
+  const chamberBack = box('#8b714d', 0, 5, -35, 36, 10, 2);
+  chamberBack.material = bark;
+  const chamberRoof = box('#8b714d', 0, 10.2, -25.8, 36, 0.7, 18.6);
+  chamberRoof.material = bark;
+  const webPoints: number[] = [];
+  const webCenter = new T.Vector3(9.8, 5.9, -33.88);
+  for (let spoke = 0; spoke < 10; spoke++) {
+    const angle = (spoke * Math.PI * 2) / 10;
+    webPoints.push(
+      webCenter.x,
+      webCenter.y,
+      webCenter.z,
+      webCenter.x + Math.cos(angle) * 4,
+      webCenter.y + Math.sin(angle) * 3.1,
+      webCenter.z,
+    );
+    for (let ring = 1; ring <= 4; ring++) {
+      const next = angle + (Math.PI * 2) / 10;
+      webPoints.push(
+        webCenter.x + Math.cos(angle) * ring,
+        webCenter.y + Math.sin(angle) * ring * 0.775,
+        webCenter.z,
+        webCenter.x + Math.cos(next) * ring,
+        webCenter.y + Math.sin(next) * ring * 0.775,
+        webCenter.z,
+      );
+    }
+  }
+  const webGeometry = new T.BufferGeometry();
+  webGeometry.setAttribute(
+    'position',
+    new T.Float32BufferAttribute(webPoints, 3),
+  );
+  const webMaterial = new T.LineBasicMaterial({
+    color: '#d6d1ae',
+    transparent: true,
+    opacity: 0.37,
+  });
+  scene.add(new T.LineSegments(webGeometry, webMaterial));
   cylinder('#788675', SHRINE.x, 0.27, SHRINE.z, 2.2, 0.54);
   cylinder('#a8ad90', SHRINE.x, 0.64, SHRINE.z, 1.7, 0.25);
   cylinder('#a8ad90', SHRINE.x, 1.1, SHRINE.z, 0.72, 0.8);
@@ -606,7 +873,7 @@ export function mountOcarina(
     blob(root, 0.65);
     const torso = object(
       shapes.cone,
-      '#487641',
+      '#28743d',
       0,
       0.96,
       0,
@@ -651,7 +918,7 @@ export function mountOcarina(
     }
     const cap = object(
       shapes.cone,
-      '#46723d',
+      '#2f7839',
       0,
       1.92,
       -0.15,
@@ -663,7 +930,7 @@ export function mountOcarina(
     cap.rotation.x = -0.65;
     const capTail = object(
       shapes.cone,
-      '#386936',
+      '#266535',
       0,
       1.9,
       -0.56,
@@ -679,7 +946,7 @@ export function mountOcarina(
       const leg = new T.Group();
       leg.position.set(side * 0.19, 0.68, 0);
       figure.add(leg);
-      cylinder('#ddd0a3', 0, -0.18, 0, 0.12, 0.36, leg);
+      cylinder('#d6af80', 0, -0.18, 0, 0.12, 0.36, leg);
       cylinder('#68472f', 0, -0.44, 0, 0.15, 0.36, leg);
       box('#68472f', 0, -0.56, 0.1, 0.29, 0.17, 0.46, leg);
       legs.push(leg);
@@ -692,38 +959,84 @@ export function mountOcarina(
       arms.push(arm);
     }
     const shield = new T.Group();
-    shield.position.set(-0.09, -0.29, 0.2);
-    arms[0].add(shield);
-    const shieldFace = object(
-      shapes.cylinder,
-      '#977146',
-      0,
-      0,
-      0,
-      0.39,
-      0.09,
-      0.51,
-      shield,
-    );
-    shieldFace.rotation.x = Math.PI / 2;
-    const shieldRim = new T.Mesh(
-      new T.TorusGeometry(0.4, 0.045, 5, 8),
-      mat('#c6af77'),
-    );
-    shieldRim.scale.y = 1.2;
-    shieldRim.position.z = 0.045;
-    shield.add(shieldRim);
-    const shieldFlower = glyph(shield, '#94b074', 0.52);
-    shieldFlower.position.z = 0.07;
+    figure.add(shield);
+    const shieldOutline = new T.Shape();
+    shieldOutline.moveTo(-0.34, 0.43);
+    shieldOutline.lineTo(0.34, 0.43);
+    shieldOutline.lineTo(0.41, 0.13);
+    shieldOutline.lineTo(0.24, -0.35);
+    shieldOutline.lineTo(0, -0.54);
+    shieldOutline.lineTo(-0.24, -0.35);
+    shieldOutline.lineTo(-0.41, 0.13);
+    shieldOutline.closePath();
+    const shieldShape = new T.ExtrudeGeometry(shieldOutline, {
+      depth: 0.11,
+      bevelEnabled: true,
+      bevelThickness: 0.025,
+      bevelSize: 0.02,
+      bevelSegments: 1,
+    });
+    object(shieldShape, '#87603c', 0, 0, 0, 1, 1, 1, shield);
+    const shieldTexture = paintedTexture(256, 320, (ctx) => {
+      ctx.clearRect(0, 0, 256, 320);
+      ctx.fillStyle = '#a27b4c';
+      ctx.beginPath();
+      ctx.moveTo(28, 16);
+      ctx.lineTo(228, 16);
+      ctx.lineTo(248, 100);
+      ctx.lineTo(195, 250);
+      ctx.lineTo(128, 307);
+      ctx.lineTo(60, 250);
+      ctx.lineTo(8, 100);
+      ctx.closePath();
+      ctx.fill();
+      ctx.save();
+      ctx.clip();
+      for (let i = 0; i < 16; i++) {
+        ctx.strokeStyle = i % 2 ? '#74532e' : '#bb945d';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(i * 19, 0);
+        ctx.bezierCurveTo(i * 19 - 15, 90, i * 19 + 13, 200, i * 19 - 6, 330);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = '#b72c29';
+      ctx.lineWidth = 17;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(128, 253);
+      ctx.lineTo(127, 198);
+      ctx.bezierCurveTo(58, 209, 53, 107, 116, 102);
+      ctx.bezierCurveTo(182, 96, 183, 180, 130, 174);
+      ctx.bezierCurveTo(104, 171, 105, 139, 132, 139);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(128, 84);
+      ctx.lineTo(128, 46);
+      ctx.moveTo(128, 65);
+      ctx.lineTo(83, 42);
+      ctx.moveTo(128, 65);
+      ctx.lineTo(173, 42);
+      ctx.stroke();
+      ctx.restore();
+    });
+    const shieldMat = new T.MeshBasicMaterial({
+      map: shieldTexture,
+      transparent: true,
+      side: T.DoubleSide,
+    });
+    const shieldDecal = new T.Mesh(new T.PlaneGeometry(0.82, 1.02), shieldMat);
+    shieldDecal.position.set(0, -0.03, 0.14);
+    shield.add(shieldDecal);
     const sword = new T.Group();
     sword.position.set(0, -0.42, 0.1);
-    arms[1].add(sword);
+    arms[0].add(sword);
     cylinder('#665039', 0, 0, 0, 0.055, 0.23, sword);
-    box('#d4b66b', 0, 0.13, 0, 0.37, 0.09, 0.12, sword);
-    box('#d7bd81', 0, 0.67, 0, 0.13, 0.98, 0.085, sword);
+    box('#3e6091', 0, 0.13, 0, 0.37, 0.09, 0.12, sword);
+    box('#cbd8dd', 0, 0.67, 0, 0.13, 0.98, 0.085, sword);
     const tip = object(
       shapes.cone,
-      '#e1c78d',
+      '#e4eff1',
       0,
       1.25,
       0,
@@ -766,108 +1079,125 @@ export function mountOcarina(
     slash.visible = false;
     figure.add(slash);
     scene.add(root);
-    return { root, figure, arms, legs, flute, slash, shield };
+    return { root, figure, arms, legs, flute, slash, shield, sword };
   }
   const hero = adventurer();
 
   const foes = simulation.enemies.map((enemy) => {
-    const root = new T.Group();
-    const model = new T.Group();
+    const root = new T.Group(),
+      model = new T.Group();
     root.add(model);
     scene.add(root);
-    const scale = enemy.boss ? 1.55 : 0.9;
-    model.scale.setScalar(scale);
-    blob(root, enemy.boss ? 1.3 : 0.8);
-    const bodyColor = enemy.boss ? '#777e6b' : '#856544';
-    const armor = enemy.boss ? '#a5a78a' : '#789052';
-    object(shapes.cylinder, bodyColor, 0, 0.95, 0, 0.57, 1.1, 0.43, model);
-    for (const side of [-1, 1]) {
-      box('#514b3d', side * 0.31, 0.22, 0.1, 0.35, 0.38, 0.55, model);
-      ball(armor, side * 0.66, 1.1, 0, 0.35, 0.33, 0.35, model);
-      connector(
-        model,
-        new T.Vector3(side * 0.68, 1.02, 0),
-        new T.Vector3(side * 0.8, 0.55, 0.15),
-        0.15,
-        bodyColor,
-      );
-    }
-    const mask = ball(armor, 0, 1.68, 0, 0.53, 0.46, 0.43, model);
-    mask.rotation.y = 0.22;
-    for (const side of [-1, 1]) {
-      const eye = box(
-        '#f3ca79',
-        side * 0.2,
-        1.73,
-        0.409,
-        0.13,
-        0.12,
-        0.05,
-        model,
-      );
-      eye.material = mat('#f3ca79', true);
-    }
-    box('#464c3b', 0, 1.45, 0.4, 0.23, 0.08, 0.08, model);
-    if (enemy.boss) {
-      for (const side of [-1, 1]) {
-        connector(
-          model,
-          new T.Vector3(side * 0.3, 1.98, 0),
-          new T.Vector3(side * 0.75, 2.63, -0.15),
-          0.09,
-          '#c4bea0',
-        );
-        connector(
-          model,
-          new T.Vector3(side * 0.57, 2.35, -0.1),
-          new T.Vector3(side * 1.01, 2.45, -0.12),
-          0.065,
-          '#c4bea0',
-        );
-      }
-      const chest = new T.Group();
-      chest.position.set(0, 1.02, 0.45);
-      model.add(chest);
-      glyph(chest, '#de9b63', 0.67);
-      ball('#527b47', -0.25, 2.02, -0.2, 0.32, 0.19, 0.32, model);
-    } else {
-      for (let leaf = 0; leaf < 3; leaf += 1) {
-        const sprout = object(
-          shapes.cone,
-          '#75964f',
-          (leaf - 1) * 0.2,
-          2.1,
-          0,
-          0.24,
-          0.68,
-          0.13,
-          model,
-        );
-        sprout.rotation.z = (leaf - 1) * -0.35;
-      }
-    }
-    const club = cylinder('#67543c', 0.88, 0.92, 0.32, 0.105, 0.85, model);
-    club.rotation.x = -0.4;
+    const boss = enemy.boss;
+    model.scale.setScalar(boss ? 1.45 : 0.75);
+    blob(root, boss ? 2.0 : 0.9);
+    const legs: T.Group[] = [];
     ball(
-      enemy.boss ? '#a3a78d' : '#7d684c',
-      0.88,
-      1.41,
-      0.14,
-      0.27,
-      0.35,
-      0.27,
+      boss ? '#695c44' : '#6b6251',
+      0,
+      0.9,
+      -0.25,
+      boss ? 0.88 : 0.6,
+      0.53,
+      0.86,
       model,
     );
+    ball(boss ? '#866846' : '#e3d4a8', 0, 1.08, 0.37, 0.62, 0.65, 0.4, model);
+    if (boss) {
+      ball('#321f27', 0, 1.18, 0.718, 0.43, 0.39, 0.105, model);
+      ball('#e0af3f', 0, 1.18, 0.79, 0.31, 0.29, 0.067, model).material = mat(
+        '#e0af3f',
+        true,
+      );
+      ball('#152723', 0, 1.18, 0.847, 0.071, 0.24, 0.03, model);
+      for (const side of [-1, 1])
+        connector(
+          model,
+          new T.Vector3(side * 0.27, 0.72, 0.62),
+          new T.Vector3(side * 0.43, 0.31, 0.99),
+          0.1,
+          '#d5bf8b',
+        );
+    } else {
+      for (const side of [-1, 1]) {
+        ball('#342f29', side * 0.22, 1.22, 0.704, 0.14, 0.17, 0.065, model);
+        ball('#ba4733', side * 0.22, 1.22, 0.764, 0.045, 0.065, 0.025, model);
+      }
+      box('#746c53', 0, 0.95, 0.747, 0.12, 0.18, 0.05, model);
+      for (let tooth = -2; tooth <= 2; tooth++)
+        box('#e9dcba', tooth * 0.092, 0.83, 0.727, 0.056, 0.15, 0.07, model);
+    }
+    for (const side of [-1, 1])
+      for (let i = 0; i < 4; i++) {
+        const leg = new T.Group();
+        leg.position.set(side * 0.42, 0.89, -0.65 + i * 0.4);
+        model.add(leg);
+        const spread = 0.95 + (i % 2) * 0.27;
+        connector(
+          leg,
+          new T.Vector3(0, 0, 0),
+          new T.Vector3(side * spread, 0.36, (i - 1.5) * 0.43),
+          boss ? 0.12 : 0.095,
+          '#6b5e3f',
+        );
+        connector(
+          leg,
+          new T.Vector3(side * spread, 0.36, (i - 1.5) * 0.43),
+          new T.Vector3(side * (spread + 0.32), -0.83, (i - 1.5) * 0.54),
+          0.065,
+          '#b19a68',
+        );
+        legs.push(leg);
+      }
     const warning = new T.Mesh(
-      new T.RingGeometry(enemy.boss ? 2.65 : 1.9, enemy.boss ? 2.85 : 2.08, 32),
-      mat('#efa460', true, 0.55),
+      new T.RingGeometry(boss ? 2.65 : 1.9, boss ? 2.85 : 2.08, 32),
+      mat('#d77144', true, 0.45),
     );
     warning.rotation.x = -Math.PI / 2;
     warning.position.y = 0.065;
     root.add(warning);
-    return { root, model, warning };
+    return { root, model, warning, legs };
   });
 
+  const navi = new T.Group();
+  scene.add(navi);
+  ball('#c3f6ff', 0, 0, 0, 0.105, 0.105, 0.105, navi).material = mat(
+    '#aff1ff',
+    true,
+  );
+  const naviWings: T.Mesh[] = [];
+  for (const side of [-1, 1])
+    for (const row of [-1, 1]) {
+      const wing = object(
+        shapes.smoothBall,
+        '#e1fdff',
+        side * 0.16,
+        row * 0.09,
+        0,
+        0.14,
+        row > 0 ? 0.22 : 0.14,
+        0.018,
+        navi,
+      );
+      wing.rotation.z = -side * row * 0.6;
+      wing.material = mat('#e1fdff', true, 0.66);
+      naviWings.push(wing);
+    }
+  const targetMarker = new T.Group();
+  scene.add(targetMarker);
+  const markerTip = object(
+    shapes.cone,
+    '#f6d45a',
+    0,
+    0,
+    0,
+    0.24,
+    0.45,
+    0.12,
+    targetMarker,
+  );
+  markerTip.rotation.z = Math.PI;
+  markerTip.material = mat('#f6d45a', true);
   // Small floating motes and note flowers make active interactions legible.
   const motes = new T.InstancedMesh(
     shapes.rock,
@@ -946,8 +1276,215 @@ export function mountOcarina(
         retiredGeometry.add(part.geometry);
         scene.remove(part);
       });
-      scene.add(new T.Mesh(combined, material));
+      const mergedMesh = new T.Mesh(combined, material);
+      mergedMesh.castShadow = true;
+      mergedMesh.receiveShadow = true;
+      scene.add(mergedMesh);
     }
+  }
+  const hudCanvas = document.createElement('canvas');
+  hudCanvas.width = 1280;
+  hudCanvas.height = 720;
+  const hud = hudCanvas.getContext('2d')!;
+  const hudTexture = new T.CanvasTexture(hudCanvas);
+  hudTexture.colorSpace = T.SRGBColorSpace;
+  textures.add(hudTexture);
+  const hudMaterial = new T.MeshBasicMaterial({
+    map: hudTexture,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const hudGeometry = new T.PlaneGeometry(2, 2);
+  const hudScene = new T.Scene(),
+    hudCamera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 10);
+  const hudPlane = new T.Mesh(hudGeometry, hudMaterial);
+  hudPlane.position.z = -1;
+  hudScene.add(hudPlane);
+  function hudText(
+    value: string,
+    x: number,
+    y: number,
+    size = 20,
+    color = '#fff7df',
+    align: CanvasTextAlign = 'left',
+  ) {
+    hud.font = `bold ${size}px Georgia, serif`;
+    hud.textAlign = align;
+    hud.textBaseline = 'middle';
+    hud.shadowColor = '#142820';
+    hud.shadowBlur = 3;
+    hud.shadowOffsetY = 2;
+    hud.fillStyle = color;
+    hud.fillText(value, x, y);
+    hud.shadowBlur = 0;
+    hud.shadowOffsetY = 0;
+  }
+  function heart(x: number, y: number, filled: boolean) {
+    hud.beginPath();
+    hud.moveTo(x, y + 7);
+    hud.bezierCurveTo(x - 23, y - 8, x - 18, y - 24, x, y - 12);
+    hud.bezierCurveTo(x + 18, y - 24, x + 23, y - 8, x, y + 7);
+    hud.closePath();
+    hud.fillStyle = filled ? '#d93c38' : '#493736';
+    hud.fill();
+    hud.lineWidth = 2;
+    hud.strokeStyle = filled ? '#f2a08a' : '#92725b';
+    hud.stroke();
+  }
+  const arrowText: Record<string, string> = {
+    up: '↑',
+    down: '↓',
+    left: '←',
+    right: '→',
+  };
+  function drawHud() {
+    hud.clearRect(0, 0, 1280, 720);
+    for (let i = 0; i < 5; i++) heart(48 + i * 35, 49, i < simulation.hearts);
+    hud.fillStyle = '#263b2b';
+    hud.fillRect(30, 76, 171, 15);
+    hud.fillStyle = '#65b96b';
+    hud.fillRect(33, 79, (165 * simulation.magic) / 100, 9);
+    if (simulation.player.charging > 0.2)
+      hudText(
+        simulation.player.charging >= 0.65
+          ? 'SPIN READY — RELEASE J'
+          : 'CHARGING…',
+        30,
+        111,
+        16,
+        '#b4edcf',
+      );
+    const action =
+      simulation.playingSong !== null
+        ? 'Stop'
+        : simulation.melodies < 3
+          ? 'Ocarina'
+          : 'Check';
+    for (const [x, y, r, color, key, label] of [
+      [975, 47, 27, '#399b50', 'J', 'Attack'],
+      [1050, 79, 30, '#3979c7', 'K', 'Roll'],
+      [1130, 40, 23, '#d6b247', 'E', action],
+      [1203, 80, 23, '#bda34e', 'L', 'Defend'],
+    ] as const) {
+      hud.beginPath();
+      hud.arc(x, y, r, 0, Math.PI * 2);
+      hud.fillStyle = color;
+      hud.fill();
+      hud.strokeStyle = '#eee6a7';
+      hud.lineWidth = 2;
+      hud.stroke();
+      hudText(key, x, y, 23, '#fffadf', 'center');
+      hudText(label, x, y + r + 18, 15, '#fff4cd', 'center');
+    }
+    hudText(
+      'Z  TARGET',
+      1162,
+      151,
+      17,
+      simulation.targetIndex === null ? '#e2dcba' : '#ffe55f',
+      'center',
+    );
+    hud.fillStyle = '#37b274';
+    hud.beginPath();
+    hud.moveTo(41, 631);
+    hud.lineTo(52, 650);
+    hud.lineTo(41, 673);
+    hud.lineTo(30, 650);
+    hud.closePath();
+    hud.fill();
+    hud.strokeStyle = '#b9eab0';
+    hud.stroke();
+    hudText(String(simulation.rupees).padStart(3, '0'), 65, 650, 30, '#e8f6d5');
+    hud.fillStyle = 'rgba(22,49,37,.56)';
+    hud.fillRect(1103, 536, 144, 155);
+    hud.strokeStyle = '#b8bf86';
+    hud.lineWidth = 2;
+    hud.strokeRect(1103, 536, 144, 155);
+    hud.strokeStyle = '#819f65';
+    hud.strokeRect(1114, 545, 123, 134);
+    const mapX = (x: number) =>
+      1114 + ((x - WORLD.left) / (WORLD.right - WORLD.left)) * 123;
+    const mapZ = (z: number) =>
+      545 + ((z - WORLD.far) / (WORLD.near - WORLD.far)) * 134;
+    hud.fillStyle = '#6992a1';
+    hud.fillRect(mapX(POND.x) - 9, mapZ(POND.z) - 5, 18, 10);
+    MELODY_STONES.forEach((stone, i) => {
+      hud.fillStyle =
+        i < simulation.melodies
+          ? '#8eca70'
+          : i === simulation.melodies
+            ? '#ffe35f'
+            : '#ada775';
+      hud.fillRect(mapX(stone.x) - 2, mapZ(stone.z) - 2, 5, 5);
+    });
+    hud.fillStyle = '#f8ee72';
+    hud.beginPath();
+    hud.arc(
+      mapX(simulation.player.x),
+      mapZ(simulation.player.z),
+      3.5,
+      0,
+      Math.PI * 2,
+    );
+    hud.fill();
+    hudText('KOKIRI / DEKU TREE', 1175, 707, 11, '#dfdfba', 'center');
+    if (simulation.playingSong !== null) {
+      const song = MELODY_STONES[simulation.playingSong];
+      hud.fillStyle = 'rgba(18,31,34,.91)';
+      hud.fillRect(247, 505, 786, 164);
+      hud.strokeStyle = '#ab9b6f';
+      hud.strokeRect(253, 511, 774, 152);
+      hudText(
+        melodyNames[simulation.playingSong],
+        640,
+        541,
+        27,
+        '#ede7cf',
+        'center',
+      );
+      song.notes.forEach((note, i) => {
+        hud.beginPath();
+        hud.arc(410 + i * 92, 590, 24, 0, Math.PI * 2);
+        hud.fillStyle =
+          i < simulation.songCursor
+            ? '#489265'
+            : i === simulation.songCursor
+              ? '#d4b951'
+              : '#686552';
+        hud.fill();
+        hudText(arrowText[note], 410 + i * 92, 590, 30, '#fff8d5', 'center');
+      });
+      hudText(
+        '방향키로 연주 · 틀리면 처음부터 · E 취소',
+        640,
+        639,
+        17,
+        '#d6d7c4',
+        'center',
+      );
+    } else if (simulation.messageTime > 0) {
+      hud.fillStyle = 'rgba(22,39,35,.81)';
+      hud.fillRect(252, 604, 776, 65);
+      hudText(simulation.message, 640, 637, 18, '#f0ebd5', 'center');
+    }
+    const boss = simulation.enemies.find((enemy) => enemy.boss && enemy.alive);
+    if (
+      boss &&
+      simulation.gateOpen &&
+      Math.hypot(boss.x - simulation.player.x, boss.z - simulation.player.z) <
+        13 &&
+      simulation.playingSong === null
+    ) {
+      hudText('PARASITIC ARMORED ARACHNID', 640, 33, 14, '#dedbb6', 'center');
+      hudText('QUEEN GOHMA', 640, 58, 25, '#f1dec2', 'center');
+      hud.fillStyle = '#382f2b';
+      hud.fillRect(455, 83, 370, 9);
+      hud.fillStyle = '#c66b44';
+      hud.fillRect(457, 85, (366 * boss.hp) / boss.maxHp, 5);
+    }
+    hudTexture.needsUpdate = true;
   }
   let lastWidth = 0;
   let lastHeight = 0;
@@ -981,12 +1518,21 @@ export function mountOcarina(
     const first = lastTime < 0;
     lastTime = time;
     const portrait = camera.aspect < 1;
-    const distanceFactor = portrait ? 0.84 : 1;
-    desiredFocus.set(p.x, 0.8, p.z - 3);
+    const yaw = simulation.cameraYaw;
+    const distanceFactor = portrait
+      ? 9.5
+      : simulation.targetIndex !== null
+        ? 7.3
+        : 7.9;
+    desiredFocus.set(
+      p.x + Math.sin(yaw) * 2.2,
+      p.height + 1.25,
+      p.z + Math.cos(yaw) * 2.2,
+    );
     desiredCamera.set(
-      p.x + 5 * distanceFactor,
-      10.5 * distanceFactor,
-      p.z + 12 * distanceFactor,
+      p.x - Math.sin(yaw) * distanceFactor - Math.cos(yaw) * 0.6,
+      p.height + 1.25 + Math.sin(simulation.cameraPitch) * distanceFactor,
+      p.z - Math.cos(yaw) * distanceFactor + Math.sin(yaw) * 0.6,
     );
     if (first) {
       focus.copy(desiredFocus);
@@ -1045,22 +1591,66 @@ export function mountOcarina(
     const gait = Math.sin(time * 11.5) * Math.min(p.speed / 5.6, 1);
     hero.legs[0].rotation.x = gait * 0.72;
     hero.legs[1].rotation.x = -gait * 0.72;
-    hero.arms[0].rotation.x = p.guard ? -1.05 : -gait * 0.5;
-    hero.arms[1].rotation.x =
-      p.attack > 0 ? -1.45 + (0.25 - p.attack) * 9 : gait * 0.5 - 0.12;
-    hero.arms[1].rotation.z = p.attack > 0 ? -0.85 + (0.25 - p.attack) * 5 : 0;
-    hero.shield.rotation.y = p.guard ? 0.2 : -0.23;
+    const swing = p.attack > 0 ? (0.25 - Math.min(p.attack, 0.25)) / 0.25 : 0;
+    hero.arms[0].rotation.x =
+      p.attack > 0 ? -1.4 + swing * 2.2 : p.charging > 0.2 ? -0.6 : -gait * 0.5;
+    hero.arms[0].rotation.z =
+      p.attack > 0
+        ? p.combo === 2
+          ? -0.2
+          : 0.95 - swing * 2.4
+        : p.charging > 0.2
+          ? 0.8
+          : 0;
+    hero.arms[1].rotation.x = p.guard ? -1.1 : gait * 0.5 - 0.12;
+    hero.arms[1].rotation.z = 0;
+    if (p.guard) {
+      hero.arms[1].add(hero.shield);
+      hero.shield.position.set(0.07, -0.29, 0.2);
+      // Cancel the raised arm pitch so the shield faces the guarded direction.
+      hero.shield.rotation.set(1.1, -0.2, 0);
+    } else {
+      hero.figure.add(hero.shield);
+      hero.shield.position.set(0, 1.04, -0.31);
+      hero.shield.rotation.set(0, Math.PI, 0.04);
+    }
     hero.figure.rotation.x =
       p.roll > 0 ? ((0.42 - p.roll) / 0.42) * Math.PI * 2 : 0;
+    hero.figure.rotation.y =
+      p.spin > 0 ? ((0.48 - p.spin) / 0.48) * Math.PI * 2 : 0;
     hero.figure.position.y = p.roll > 0 ? 0.6 : Math.abs(gait) * 0.035;
     hero.flute.visible = p.playing > 0;
+    hero.sword.visible = p.playing === 0;
     if (p.playing > 0) {
       hero.arms[0].rotation.x = -1.3;
       hero.arms[1].rotation.x = -1.3;
+      hero.arms[0].rotation.z = -0.25;
       hero.arms[1].rotation.z = 0.25;
     }
-    hero.slash.visible = p.attack > 0;
-    hero.slash.rotation.z = (0.25 - p.attack) * 12;
+    hero.slash.visible = p.attack > 0 || p.charging > 0.65;
+    hero.slash.scale.setScalar(p.spin > 0 ? 1.8 : p.charging > 0.65 ? 0.65 : 1);
+    hero.slash.rotation.z =
+      p.spin > 0 ? simulation.time * 22 : (0.25 - p.attack) * 12;
+    const locked =
+      simulation.targetIndex === null
+        ? null
+        : simulation.enemies[simulation.targetIndex];
+    navi.position.set(
+      locked ? locked.x + 0.7 : p.x + Math.sin(time * 1.9) * 0.4 + 0.85,
+      locked
+        ? locked.boss
+          ? 3.1
+          : 2.2
+        : p.height + 1.9 + Math.sin(time * 2.8) * 0.16,
+      locked ? locked.z : p.z + Math.cos(time * 1.4) * 0.35,
+    );
+    navi.rotation.y = -time * 0.5;
+    naviWings.forEach((wing, index) => {
+      wing.rotation.y = Math.sin(time * 25) * (index % 2 ? 0.75 : -0.75);
+    });
+    targetMarker.visible = !!locked;
+    if (locked)
+      targetMarker.position.set(locked.x, locked.boss ? 3.5 : 2.8, locked.z);
     const openTarget = simulation.gateOpen ? 1.65 : 0;
     gateAngle = first
       ? openTarget
@@ -1099,6 +1689,11 @@ export function mountOcarina(
         enemy.mode === 'chase' ? Math.abs(Math.sin(time * 8)) * 0.08 : 0;
       foe.model.rotation.x =
         enemy.mode === 'windup' ? -0.18 : enemy.hurt > 0 ? 0.14 : 0;
+      foe.legs.forEach((leg, legIndex) => {
+        leg.rotation.z =
+          Math.sin(time * 9 + legIndex * 1.6) *
+          (enemy.mode === 'chase' ? 0.18 : 0.025);
+      });
       foe.warning.visible = enemy.mode === 'windup';
       foe.warning.scale.setScalar(0.87 + Math.sin(time * 18) * 0.04);
     });
@@ -1137,7 +1732,12 @@ export function mountOcarina(
       );
       note.rotation.y = -angle;
     });
+    drawHud();
+    renderer.info.reset();
+    renderer.clear();
     renderer.render(scene, camera);
+    renderer.clearDepth();
+    renderer.render(hudScene, hudCamera);
   }
 
   return {
@@ -1166,6 +1766,12 @@ export function mountOcarina(
       geometries.forEach((value) => value.dispose());
       materialSet.forEach((value) => value.dispose());
       scene.clear();
+      textures.forEach((texture) => texture.dispose());
+      webGeometry.dispose();
+      webMaterial.dispose();
+      hudMaterial.dispose();
+      hudGeometry.dispose();
+      sun.shadow.dispose();
       renderer.dispose();
     },
   };

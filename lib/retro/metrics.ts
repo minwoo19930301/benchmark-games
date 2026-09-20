@@ -1,3 +1,4 @@
+export const BENCHMARK_VERSION = 'reference-rebuild-2026-09-21' as const;
 export class FrameSamples {
   private frames: number[] = [];
   private costs: number[] = [];
@@ -31,6 +32,7 @@ export class FrameSamples {
   }
 }
 export type BenchmarkRecord = ReturnType<FrameSamples['summary']> & {
+  benchmarkVersion: typeof BENCHMARK_VERSION;
   game: string;
   title: string;
   recordedAt: string;
@@ -43,7 +45,7 @@ export type BenchmarkRecord = ReturnType<FrameSamples['summary']> & {
   drawCalls: number;
   entities: number;
 };
-const recordKey = 'benchmark-games:retro-results:v1';
+const recordKey = 'benchmark-games:retro-results:v2';
 export function readRecords(): BenchmarkRecord[] {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(recordKey) || '[]');
@@ -53,6 +55,7 @@ export function readRecords(): BenchmarkRecord[] {
         (entry): entry is BenchmarkRecord =>
           !!entry &&
           typeof entry === 'object' &&
+          entry.benchmarkVersion === BENCHMARK_VERSION &&
           typeof entry.game === 'string' &&
           typeof entry.title === 'string' &&
           typeof entry.recordedAt === 'string' &&

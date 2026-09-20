@@ -25,16 +25,19 @@ import {
 } from './world.ts';
 
 const names = {
-  worker: '채굴 작업기',
-  marine: '궤도 해병',
-  raider: '습격자',
-  headquarters: '식민지 지휘부',
-  barracks: '해병 병영',
-  turret: '쌍열 방어 포탑',
-  core: '적 통신 핵',
+  worker: 'Terran SCV',
+  marine: 'Terran Marine',
+  raider: 'Enemy Marine',
+  headquarters: 'Command Center',
+  barracks: 'Barracks',
+  turret: 'Bunker',
+  depot: 'Supply Depot',
+  core: 'Enemy Command Center',
 };
 const orders = {
   idle: '대기',
+  hold: '위치 사수',
+  enter: '벙커 탑승',
   move: '이동',
   attackMove: '공격 이동',
   attack: '교전',
@@ -103,12 +106,12 @@ export function mountColony(
     ctx.fillText(label, Math.round(x), Math.round(y));
   };
   const panel = (x: number, y: number, w: number, h: number) => {
-    ctx.fillStyle = '#10232e';
+    ctx.fillStyle = '#363a37';
     ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = '#41616a';
+    ctx.strokeStyle = '#777b70';
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-    ctx.fillStyle = '#1e3540';
+    ctx.fillStyle = '#62665c';
     ctx.fillRect(x + 2, y + 2, w - 4, 3);
     ctx.fillStyle = '#7c9190';
     for (const cx of [x + 5, x + w - 7])
@@ -130,22 +133,129 @@ export function mountColony(
     ctx.fillRect(x, y, w, 1);
   };
 
+  const cache = new Map<string, HTMLCanvasElement>();
+  const makeCanvas = (w: number, h: number) => {
+    if (typeof document === 'undefined') return null;
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    return c;
+  };
+  const sprite = (
+    key: string,
+    x: number,
+    y: number,
+    scale: number,
+    draw: (context: CanvasRenderingContext2D) => void,
+    w = 240,
+    h = 180,
+    ax = 120,
+    ay = 150,
+  ) => {
+    let image = cache.get(key);
+    if (!image) {
+      const candidate = makeCanvas(w, h);
+      if (!candidate) return false;
+      const context = candidate.getContext('2d')!;
+      draw(context);
+      cache.set(key, candidate);
+      if (cache.size > 400) cache.delete(cache.keys().next().value!);
+      image = candidate;
+    }
+    ctx.drawImage(image, x - ax * scale, y - ay * scale, w * scale, h * scale);
+    return true;
+  };
+  const cachedUnit = (unit: Unit, x: number, y: number, scale: number) => {
+    const frame =
+      unit.moving || unit.mineTime > 0
+        ? Math.floor(simulation.time * 12 + unit.id) % 8
+        : 0;
+    const direction = Math.cos(unit.facing) - Math.sin(unit.facing) >= 0;
+    const key = `unit:${unit.kind}:${unit.enemy}:${direction}:${unit.flash > 0}:${unit.cooldown > (unit.kind === 'marine' ? 0.52 : 0.84)}:${unit.cargo > 0}:${unit.mineTime > 0}:${frame}`;
+    if (
+      !sprite(
+        key,
+        x,
+        y,
+        scale,
+        (c) =>
+          drawUnit(c, { ...unit, id: 0 }, 48, 76, 1, (frame * Math.PI) / 60),
+        96,
+        96,
+        48,
+        76,
+      )
+    )
+      drawUnit(ctx, unit, x, y, scale, simulation.time);
+  };
+  const cachedBuilding = (building: Building, x: number, y: number) => {
+    const frame = Math.floor(simulation.time * 2) % 8;
+    const key = `building:${building.kind}:${building.enemy}:${Math.floor(building.progress * 12)}:${building.flash > 0}:${!!building.queue.length}:${building.cooldown > 0.5}:${frame}`;
+    if (
+      !sprite(key, x, y, tile / 22, (c) =>
+        drawBuilding(c, building, 120, 150, 22, frame / 2),
+      )
+    )
+      drawBuilding(ctx, building, x, y, tile, simulation.time);
+  };
+  let ground: HTMLCanvasElement | null = null;
+  function createGround() {
+    ground = makeCanvas((MAP_W + MAP_H) * 24 + 48, (MAP_W + MAP_H) * 12 + 72);
+    if (!ground) return;
+    const c = ground.getContext('2d')!;
+    for (let y = 0; y < MAP_H; y++)
+      for (let x = 0; x < MAP_W; x++) {
+        const px = (x - y) * 24 + MAP_H * 24 + 24,
+          py = (x + y) * 12 + 24;
+        const seed = noise(x, y),
+          road = Math.abs(x + y - 26) < 2.5 && x > 6 && x < 24;
+        polygon(
+          c,
+          [
+            [px, py - 12],
+            [px + 24, py],
+            [px, py + 12],
+            [px - 24, py],
+          ],
+          road
+            ? ['#95886c', '#94866c', '#91856a'][seed % 3]
+            : ['#74694f', '#786c52', '#776a50', '#73664e'][seed % 4],
+        );
+        for (let fleck = 0; fleck < 5; fleck++) {
+          const fx = ((seed * 11 + fleck * 17) % 27) - 13,
+            fy = ((seed * 7 + fleck * 5) % 11) - 5;
+          c.fillStyle = fleck % 2 ? '#9d8e6c55' : '#302d2360';
+          c.fillRect(px + fx, py + fy, 1 + (fleck % 2), 1);
+        }
+        if (seed % 6 === 0 && !road) {
+          c.strokeStyle = '#4e4938';
+          c.lineWidth = 0.7;
+          c.beginPath();
+          c.moveTo(px - 9, py - 2);
+          c.lineTo(px - 2, py + 3);
+          c.lineTo(px + 7, py + 1);
+          c.lineTo(px + 11, py + 5);
+          c.stroke();
+        }
+      }
+  }
   function terrain() {
-    ctx.fillStyle = '#09151e';
+    ctx.fillStyle = '#302b23';
     ctx.fillRect(0, 0, width, height);
-    // Faint stars in the unmapped void make the battlefield read as an orbital frontier.
-    ctx.fillStyle = '#28434b';
-    for (let i = 0; i < 55; i += 1)
-      ctx.fillRect(
-        (i * 179 + 43) % width,
-        (i * 97 + 31) % (height * HUD_TOP),
-        1,
-        1,
+    if (!ground) createGround();
+    if (ground) {
+      const origin = screen({ x: 0.5, y: 0.5 }),
+        scale = tile / 24;
+      ctx.drawImage(
+        ground,
+        origin.x - (MAP_H * 24 + 24) * scale,
+        origin.y - 24 * scale,
+        ground.width * scale,
+        ground.height * scale,
       );
-    for (let sum = 0; sum < MAP_W + MAP_H; sum += 1)
-      for (let x = 0; x < MAP_W; x += 1) {
-        const y = sum - x;
-        if (y < 0 || y >= MAP_H) continue;
+    }
+    for (let y = 0; y < MAP_H; y++)
+      for (let x = 0; x < MAP_W; x++) {
         const at = screen({ x: x + 0.5, y: y + 0.5 });
         if (
           at.x < -tile ||
@@ -154,20 +264,9 @@ export function mountColony(
           at.y > height * HUD_TOP + tile
         )
           continue;
-        const visible = simulation.visible[y * MAP_W + x],
-          explored = simulation.explored[y * MAP_W + x];
-        const seed = noise(x, y),
-          road = Math.abs(x + y - 26) < 2.5 && x > 6 && x < 24;
-        const colors = road
-          ? ['#3d5356', '#3b4e52', '#42575a']
-          : ['#293c43', '#2d4247', '#30454a', '#273b43'];
-        const color = !explored
-          ? seed % 2
-            ? '#11232c'
-            : '#13262e'
-          : visible
-            ? colors[seed % colors.length]
-            : '#1c3039';
+        const explored = simulation.explored[y * MAP_W + x],
+          visible = simulation.visible[y * MAP_W + x];
+        if (visible && ground) continue;
         polygon(
           ctx,
           [
@@ -176,31 +275,8 @@ export function mountColony(
             [at.x, at.y + tile / 2],
             [at.x - tile, at.y],
           ],
-          color,
+          !explored ? '#11120fff' : visible ? '#776a50' : '#171913b8',
         );
-        if (!explored) continue;
-        if (visible && road && seed % 3 === 0) {
-          ctx.strokeStyle = '#8c8e6966';
-          ctx.lineWidth = 2;
-          ctx.beginPath();
-          ctx.moveTo(at.x - tile * 0.38, at.y + tile * 0.12);
-          ctx.lineTo(at.x + tile * 0.1, at.y - tile * 0.12);
-          ctx.stroke();
-        } else if (seed % 3 === 0) {
-          ctx.strokeStyle = visible ? '#4e626066' : '#30434b';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(at.x - tile * 0.4, at.y);
-          ctx.lineTo(at.x - tile * 0.05, at.y + tile * 0.13);
-          ctx.lineTo(at.x + tile * 0.2, at.y + tile * 0.03);
-          ctx.stroke();
-        }
-        if (visible && seed % 7 === 0 && !road && !rockKeys.has(`${x},${y}`)) {
-          ctx.fillStyle = '#688077';
-          ctx.fillRect(at.x + tile * 0.12, at.y - tile * 0.12, 2, 1);
-          ctx.fillStyle = '#142c35';
-          ctx.fillRect(at.x + tile * 0.15, at.y + tile * 0.15, 3, 2);
-        }
       }
     // Permanent navigational beacons point toward the enemy without revealing their army.
     const target = screen(ENEMY_BASE);
@@ -252,9 +328,9 @@ export function mountColony(
             0.93,
             h,
             tile * 2,
-            '#667371',
-            '#344950',
-            '#42585c',
+            '#aa9675',
+            '#514d3c',
+            '#7d7054',
           );
           polygon(
             ctx,
@@ -282,7 +358,20 @@ export function mountColony(
         depth: deposit.x + deposit.y,
         draw: () => {
           ctx.globalAlpha = simulation.isVisible(deposit) ? 1 : 0.4;
-          drawMineral(ctx, at.x, at.y, tile / 22, deposit.amount === 0);
+          if (
+            !sprite(
+              `mineral:${deposit.amount === 0}`,
+              at.x,
+              at.y,
+              tile / 22,
+              (c) => drawMineral(c, 48, 76, 1, deposit.amount === 0),
+              96,
+              96,
+              48,
+              76,
+            )
+          )
+            drawMineral(ctx, at.x, at.y, tile / 22, deposit.amount === 0);
           ctx.globalAlpha = 1;
         },
       });
@@ -318,7 +407,7 @@ export function mountColony(
           } else {
             if (simulation.selected.has(building.id))
               selectionEllipse(ctx, at.x, at.y, building.size * tile * 1.65);
-            drawBuilding(ctx, building, at.x, at.y, tile, simulation.time);
+            cachedBuilding(building, at.x, at.y);
             if (
               simulation.selected.has(building.id) ||
               building.hp < building.maxHp ||
@@ -348,7 +437,12 @@ export function mountColony(
       });
     }
     for (const unit of simulation.units) {
-      if (unit.hp <= 0 || (unit.enemy && !simulation.isVisible(unit))) continue;
+      if (
+        unit.hp <= 0 ||
+        unit.garrison ||
+        (unit.enemy && !simulation.isVisible(unit))
+      )
+        continue;
       const at = screen(unit);
       if (
         at.x < -50 ||
@@ -362,7 +456,7 @@ export function mountColony(
         draw: () => {
           if (simulation.selected.has(unit.id))
             selectionEllipse(ctx, at.x, at.y + 1, tile * 0.49);
-          drawUnit(ctx, unit, at.x, at.y, tile / 22, simulation.time);
+          cachedUnit(unit, at.x, at.y, tile / 22);
           if (simulation.selected.has(unit.id) || unit.hp < unit.maxHp)
             bar(
               at.x - tile * 0.45,
@@ -507,8 +601,8 @@ export function mountColony(
     const font = Math.max(9, Math.min(12, width / 88));
     ctx.fillStyle = '#081924de';
     ctx.fillRect(12, 11, Math.min(width - 24, 215), 29);
-    text('ORBITAL / SECTOR 07', 22, 26, '#a7c8c8', font);
-    const minerals = `◆ ${simulation.minerals}    ◉ ${simulation.friendlyUnits().length}/30`;
+    text('TERRAN / BADLANDS', 22, 26, '#a7c8c8', font);
+    const minerals = `◆ ${simulation.minerals}    ◉ ${simulation.supplyUsed()}/${simulation.supplyCap()}`;
     ctx.fillStyle = '#081924de';
     ctx.fillRect(width - 204, 11, 191, 29);
     text(minerals, width - 25, 26, '#9ee8da', font + 1, 'right');
@@ -522,6 +616,8 @@ export function mountColony(
     }
   }
 
+  let mini: HTMLCanvasElement | null = null,
+    miniStamp = -1;
   function minimap() {
     const box = {
       x: MINIMAP.x * width,
@@ -530,20 +626,43 @@ export function mountColony(
       h: MINIMAP.h * height,
     };
     panel(box.x - 4, box.y - 4, box.w + 8, box.h + 8);
-    const cw = box.w / MAP_W,
-      ch = box.h / MAP_H;
-    for (let y = 0; y < MAP_H; y += 1)
-      for (let x = 0; x < MAP_W; x += 1) {
-        const index = y * MAP_W + x;
-        ctx.fillStyle = simulation.visible[index]
-          ? rockKeys.has(`${x},${y}`)
-            ? '#647778'
-            : '#2d5051'
-          : simulation.explored[index]
-            ? '#20383f'
-            : '#0b1f2a';
-        ctx.fillRect(box.x + x * cw, box.y + y * ch, cw + 0.5, ch + 0.5);
+    if (!mini) mini = makeCanvas(MAP_W * 4, MAP_H * 4);
+    const stamp = Math.floor(simulation.time * 8);
+    if (mini) {
+      if (stamp !== miniStamp) {
+        const c = mini.getContext('2d')!;
+        for (let y = 0; y < MAP_H; y++)
+          for (let x = 0; x < MAP_W; x++) {
+            const index = y * MAP_W + x;
+            c.fillStyle = simulation.visible[index]
+              ? rockKeys.has(`${x},${y}`)
+                ? '#a09370'
+                : '#796c4f'
+              : simulation.explored[index]
+                ? '#3a392c'
+                : '#090e09';
+            c.fillRect(x * 4, y * 4, 4, 4);
+          }
+        miniStamp = stamp;
       }
+      ctx.drawImage(mini, box.x, box.y, box.w, box.h);
+    } else {
+      for (let y = 0; y < MAP_H; y++)
+        for (let x = 0; x < MAP_W; x++) {
+          const index = y * MAP_W + x;
+          ctx.fillStyle = simulation.visible[index]
+            ? '#796c4f'
+            : simulation.explored[index]
+              ? '#3a392c'
+              : '#090e09';
+          ctx.fillRect(
+            box.x + (x * box.w) / MAP_W,
+            box.y + (y * box.h) / MAP_H,
+            box.w / MAP_W + 0.5,
+            box.h / MAP_H + 0.5,
+          );
+        }
+    }
     for (const deposit of simulation.deposits)
       if (
         deposit.amount > 0 &&
@@ -556,7 +675,13 @@ export function mountColony(
         ctx.fillRect(at.x * width - 2, at.y * height - 2, 4, 4);
       }
     for (const building of simulation.buildings)
-      if (building.hp > 0) {
+      if (
+        building.hp > 0 &&
+        (!building.enemy ||
+          simulation.explored[
+            Math.floor(building.y) * MAP_W + Math.floor(building.x)
+          ])
+      ) {
         const at = minimapPoint(building);
         ctx.fillStyle = building.enemy ? '#ec827c' : '#91e6c3';
         ctx.fillRect(at.x * width - 3, at.y * height - 3, 6, 6);
@@ -590,17 +715,17 @@ export function mountColony(
   }
 
   function selectionPanel() {
-    const x = width * 0.214,
-      y = height * 0.805,
-      w = width * 0.24,
-      h = height * 0.172;
+    const x = width * 0.235,
+      y = height * 0.785,
+      w = width * 0.408,
+      h = height * 0.19;
     panel(x, y, w, h);
     const selected = [...simulation.selected]
       .map((id) => simulation.entity(id))
       .filter((entry): entry is Unit | Building => Boolean(entry));
     const font = Math.max(8, Math.min(12, width / 90));
     if (!selected.length) {
-      text('작전 명령', x + 10, y + h * 0.2, '#e4d7ad', font + 1);
+      text('TERRAN COMMAND', x + 10, y + h * 0.2, '#e4d7ad', font + 1);
       text('좌클릭 / 드래그: 선택', x + 10, y + h * 0.43, '#9fb9bf', font);
       text('우클릭: 이동·채굴·공격', x + 10, y + h * 0.64, '#9fb9bf', font);
       text('미니맵: 시점 이동', x + 10, y + h * 0.84, '#688c9b', font - 1);
@@ -617,8 +742,15 @@ export function mountColony(
       selected.slice(0, 12).forEach((unit, index) => {
         const px = x + 13 + ((index % 6) * (w - 22)) / 6,
           py = y + h * 0.45 + Math.floor(index / 6) * h * 0.3;
-        ctx.fillStyle = unit.kind === 'worker' ? '#bba16c' : '#71adba';
-        ctx.fillRect(px, py, (w - 30) / 6 - 3, h * 0.17);
+        ctx.fillStyle = '#182b1f';
+        ctx.fillRect(px, py - h * 0.05, (w - 30) / 6 - 3, h * 0.23);
+        if (!('size' in unit))
+          cachedUnit(
+            unit,
+            px + (w - 30) / 12 - 2,
+            py + h * 0.16,
+            (h * 0.2) / 36,
+          );
         bar(
           px,
           py + h * 0.17 + 2,
@@ -632,7 +764,7 @@ export function mountColony(
     }
     const unit = selected[0];
     const portraitW = Math.min(w * 0.32, h * 0.85);
-    ctx.fillStyle = '#183844';
+    ctx.fillStyle = '#172b20';
     ctx.fillRect(x + 7, y + 9, portraitW, h - 18);
     ctx.save();
     ctx.beginPath();
@@ -668,11 +800,15 @@ export function mountColony(
     );
     if ('size' in unit) {
       text(
-        unit.progress < 1
-          ? `건설 ${Math.floor(unit.progress * 100)}%`
-          : unit.queue.length
-            ? `생산 대기 ${unit.queue.length}`
-            : '우클릭: 집결지',
+        unit.kind === 'turret'
+          ? `탑승 ${simulation.occupants(unit).length} / 4 · 내리기 버튼`
+          : unit.kind === 'depot'
+            ? '+8 Supply'
+            : unit.progress < 1
+              ? `건설 ${Math.floor(unit.progress * 100)}%`
+              : unit.queue.length
+                ? `생산 대기 ${unit.queue.length}`
+                : '우클릭: 집결지',
         tx,
         y + h * 0.64,
         '#a0b6be',
@@ -706,12 +842,12 @@ export function mountColony(
         simulation.buildMode === button.command ||
         (simulation.assaultMode && button.command === 'assault');
       const afford = simulation.minerals >= button.cost;
-      ctx.fillStyle = active ? '#385c59' : hover ? '#2a4752' : '#1b3442';
+      ctx.fillStyle = active ? '#385c59' : hover ? '#2a4752' : '#3b4338';
       ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = active ? '#a9dca7' : '#486271';
       ctx.lineWidth = 1;
       ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-      ctx.fillStyle = '#0d2533';
+      ctx.fillStyle = '#202a20';
       ctx.fillRect(x + 3, y + 3, Math.min(21, w * 0.22), h - 6);
       text(
         button.key,
@@ -742,11 +878,11 @@ export function mountColony(
   }
 
   function hud() {
-    ctx.fillStyle = '#091a25';
+    ctx.fillStyle = '#262a28';
     ctx.fillRect(0, height * HUD_TOP, width, height * (1 - HUD_TOP));
     ctx.fillStyle = '#637a7b';
     ctx.fillRect(0, height * HUD_TOP, width, 2);
-    ctx.fillStyle = '#233e4a';
+    ctx.fillStyle = '#5d6459';
     ctx.fillRect(0, height * HUD_TOP + 3, width, 4);
     for (let x = 12; x < width; x += 52) {
       ctx.fillStyle = '#8c956c';
@@ -790,6 +926,9 @@ export function mountColony(
       if (disposed) return;
       disposed = true;
       bound.clear();
+      cache.clear();
+      ground = null;
+      mini = null;
       raw.setTransform(1, 0, 0, 1, 0, 0);
       raw.clearRect(0, 0, canvas.width, canvas.height);
     },

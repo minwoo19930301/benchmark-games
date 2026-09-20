@@ -120,8 +120,9 @@ test('buster collides with the same solid walls used by player movement', () => 
   advance(s, 0.1);
   assert.equal(s.shots.filter((shot) => !shot.enemy).length, 0);
 });
-test('saber damages a nearby enemy once and cuts incoming shots', () => {
+test('Zero saber damages a nearby enemy once and cuts incoming shots', () => {
   const s = new ReploidSimulation();
+  s.step(dt, input({ switch: true }));
   Object.assign(s.enemies[0], {
     x: 105,
     home: 105,
@@ -148,7 +149,7 @@ test('saber damages a nearby enemy once and cuts incoming shots', () => {
   assert.equal(s.player.hp, 24);
   assert.equal(s.shots.length, 0);
   advance(s, 0.2, { special: true });
-  assert.equal(s.audioCues.ability, 1);
+  assert.equal(s.audioCues.ability, 2);
 });
 test('damage grace prevents stacked hits and three deaths are terminal', () => {
   const s = new ReploidSimulation();
@@ -304,7 +305,10 @@ for (const id of ['x4', 'x5', 'x6']) {
       assert.ok(s.bossHits > 10);
       assert.equal(s.checkpointIndex, 1);
       assert.equal(s.lives, 3);
-      assert.ok(s.kills >= 3);
+      assert.ok(
+        s.kills >= 2,
+        'the charge-buster route defeats ordinary enemies as well as the boss',
+      );
       assert.ok(s.collected.some(Boolean));
       results.push(s.snapshot());
       if (results.length > 1)

@@ -27,9 +27,22 @@ import {
 } from './world.ts';
 
 export type UnitKind = 'worker' | 'marine' | 'raider';
-export type BuildingKind = 'headquarters' | 'barracks' | 'turret' | 'core';
+export type BuildingKind =
+  | 'headquarters'
+  | 'barracks'
+  | 'turret'
+  | 'depot'
+  | 'core';
 export type Order = {
-  kind: 'idle' | 'move' | 'attackMove' | 'attack' | 'harvest' | 'build';
+  kind:
+    | 'idle'
+    | 'hold'
+    | 'enter'
+    | 'move'
+    | 'attackMove'
+    | 'attack'
+    | 'harvest'
+    | 'build';
   x: number;
   y: number;
   target?: number;
@@ -51,6 +64,7 @@ export type Unit = {
   mineTime: number;
   returning: boolean;
   moving: boolean;
+  garrison: number | null;
   flash: number;
 };
 export type Building = {
@@ -89,8 +103,8 @@ export type Effect = {
   enemy?: boolean;
 };
 const dist = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
-const unitCost = { marine: 35, worker: 45 };
-const buildingCost = { barracks: 100, turret: 80 };
+const unitCost = { marine: 50, worker: 50 };
+const buildingCost = { barracks: 150, turret: 100, depot: 100 };
 const alive = <T extends { hp: number }>(item: T) => item.hp > 0;
 
 /** Deterministic miniature RTS: pointer and key commands use one shared path. */
@@ -98,7 +112,7 @@ export class ColonySimulation implements RetroSimulation {
   phase: 'playing' | 'won' | 'lost' = 'playing';
   time = 0;
   score = 0;
-  minerals = 220;
+  minerals = 400;
   gathered = 0;
   spent = 0;
   kills = 0;
@@ -117,7 +131,7 @@ export class ColonySimulation implements RetroSimulation {
   selected = new Set<number>();
   visible = new Uint8Array(MAP_W * MAP_H);
   explored = new Uint8Array(MAP_W * MAP_H);
-  buildMode: 'barracks' | 'turret' | null = null;
+  buildMode: 'barracks' | 'turret' | 'depot' | null = null;
   assaultMode = false;
   drag: { start: Point; end: Point } | null = null;
   pointer: Point = { x: 0.5, y: 0.5 };
@@ -170,7 +184,7 @@ export class ColonySimulation implements RetroSimulation {
     });
   }
   private addUnit(kind: UnitKind, x: number, y: number, enemy = false) {
-    const hp = kind === 'worker' ? 45 : kind === 'marine' ? 65 : 48;
+    const hp = kind === 'worker' ? 60 : 40;
     const unit: Unit = {
       id: this.nextId++,
       kind,
@@ -188,6 +202,7 @@ export class ColonySimulation implements RetroSimulation {
       mineTime: 0,
       returning: false,
       moving: false,
+      garrison: null,
       flash: 0,
     };
     this.units.push(unit);
@@ -202,18 +217,22 @@ export class ColonySimulation implements RetroSimulation {
   ) {
     const hp =
       kind === 'headquarters'
-        ? 1100
+        ? 1500
         : kind === 'core'
-          ? 720
+          ? 1500
           : kind === 'barracks'
-            ? 420
-            : 300;
+            ? 1000
+            : kind === 'depot'
+              ? 500
+              : 350;
     const size =
       kind === 'headquarters' || kind === 'core'
         ? 1.35
         : kind === 'barracks'
           ? 1.05
-          : 0.62;
+          : kind === 'depot'
+            ? 0.8
+            : 0.72;
     const building: Building = {
       id: this.nextId++,
       kind,
@@ -236,12 +255,51 @@ export class ColonySimulation implements RetroSimulation {
   }
   entity(id: number) {
     return (
-      this.units.find((unit) => unit.id === id && alive(unit)) ??
+      this.units.find(
+        (unit) => unit.id === id && alive(unit) && !unit.garrison,
+      ) ??
       this.buildings.find((building) => building.id === id && alive(building))
     );
   }
   friendlyUnits() {
     return this.units.filter((unit) => !unit.enemy && alive(unit));
+  }
+  supplyUsed() {
+    return this.friendlyUnits().length;
+  }
+  supplyCap() {
+    return Math.min(
+      200,
+      this.buildings
+        .filter((b) => !b.enemy && b.hp > 0 && b.progress >= 1)
+        .reduce(
+          (sum, b) =>
+            sum + (b.kind === 'headquarters' ? 10 : b.kind === 'depot' ? 8 : 0),
+          0,
+        ),
+    );
+  }
+  occupants(building: Building) {
+    return this.units.filter((u) => u.hp > 0 && u.garrison === building.id);
+  }
+  private unload(building: Building) {
+    for (const unit of this.occupants(building)) {
+      let destination: Point | undefined;
+      for (let r = 1.5; r <= 4 && !destination; r += 0.5)
+        for (let n = 0; n < 12 && !destination; n++) {
+          const point = {
+            x: building.x + Math.cos((n * Math.PI) / 6) * r,
+            y: building.y + Math.sin((n * Math.PI) / 6) * r,
+          };
+          if (this.walkable(point.x, point.y)) destination = point;
+        }
+      if (destination) {
+        unit.garrison = null;
+        unit.x = destination.x;
+        unit.y = destination.y;
+        this.setOrder(unit, { kind: 'idle', ...destination });
+      }
+    }
   }
   isVisible(point: Point) {
     const x = Math.floor(point.x),
@@ -439,7 +497,9 @@ export class ColonySimulation implements RetroSimulation {
     unit.returning = unit.cargo > 0;
   }
   private selectedUnits() {
-    return this.friendlyUnits().filter((unit) => this.selected.has(unit.id));
+    return this.friendlyUnits().filter(
+      (unit) => !unit.garrison && this.selected.has(unit.id),
+    );
   }
 
   command(command: Command) {
@@ -448,7 +508,7 @@ export class ColonySimulation implements RetroSimulation {
         this.friendlyUnits()
           .filter((unit) =>
             command === 'army'
-              ? unit.kind === 'marine'
+              ? unit.kind === 'marine' && !unit.garrison
               : unit.kind === 'worker',
           )
           .map((unit) => unit.id),
@@ -457,9 +517,28 @@ export class ColonySimulation implements RetroSimulation {
       this.buildMode = null;
       return;
     }
-    if (command === 'barracks' || command === 'turret') {
+    if (command === 'barracks' || command === 'turret' || command === 'depot') {
       if (!this.selectedUnits().some((unit) => unit.kind === 'worker')) {
         this.say('일꾼을 먼저 선택하세요. Q: 모든 일꾼');
+        return;
+      }
+      if (
+        command === 'barracks' &&
+        !this.buildings.some(
+          (b) => b.kind === 'depot' && b.progress >= 1 && b.hp > 0 && !b.enemy,
+        )
+      ) {
+        this.say('서플라이 디포를 먼저 완성하세요. V: 보급고');
+        return;
+      }
+      if (
+        command === 'turret' &&
+        !this.buildings.some(
+          (b) =>
+            b.kind === 'barracks' && b.progress >= 1 && b.hp > 0 && !b.enemy,
+        )
+      ) {
+        this.say('벙커를 지으려면 배럭이 필요합니다.');
         return;
       }
       if (this.minerals < buildingCost[command]) {
@@ -469,7 +548,7 @@ export class ColonySimulation implements RetroSimulation {
       this.buildMode = command;
       this.assaultMode = false;
       this.say(
-        `${command === 'barracks' ? '병영' : '포탑'} 위치를 좌클릭하세요. 우클릭 취소`,
+        `${command === 'barracks' ? '배럭' : command === 'depot' ? '서플라이 디포' : '벙커'} 위치를 좌클릭하세요. 우클릭 취소`,
       );
       return;
     }
@@ -510,9 +589,9 @@ export class ColonySimulation implements RetroSimulation {
               sum + (building.enemy ? 0 : building.queue.length),
             0,
           ) >=
-        30
+        this.supplyCap()
       ) {
-        this.say('최대 병력은 30명입니다.');
+        this.say('보급이 부족합니다. 서플라이 디포를 건설하세요.');
         return;
       }
       if (this.minerals < unitCost[command]) {
@@ -526,6 +605,16 @@ export class ColonySimulation implements RetroSimulation {
       this.say(`${command === 'marine' ? '해병' : '일꾼'} 생산 예약`);
       return;
     }
+    if (command === 'unload') {
+      for (const building of this.buildings)
+        if (
+          this.selected.has(building.id) &&
+          building.kind === 'turret' &&
+          !building.enemy
+        )
+          this.unload(building);
+      return;
+    }
     if (command === 'assault') {
       this.assaultMode = true;
       this.buildMode = null;
@@ -533,18 +622,23 @@ export class ColonySimulation implements RetroSimulation {
       return;
     }
     for (const unit of this.selectedUnits())
-      this.setOrder(unit, { kind: 'idle', x: unit.x, y: unit.y });
+      this.setOrder(unit, {
+        kind: command === 'hold' ? 'hold' : 'idle',
+        x: unit.x,
+        y: unit.y,
+      });
     this.buildMode = null;
     this.assaultMode = false;
   }
 
-  canBuild(kind: 'barracks' | 'turret', point: Point) {
-    const size = kind === 'barracks' ? 1.05 : 0.62;
+  canBuild(kind: 'barracks' | 'turret' | 'depot', point: Point) {
+    const size = kind === 'barracks' ? 1.05 : kind === 'depot' ? 0.8 : 0.72;
     if (!this.isVisible(point)) return false;
     if (
       this.units.some(
         (unit) =>
           alive(unit) &&
+          !unit.garrison &&
           Math.abs(unit.x - point.x) < size + 0.3 &&
           Math.abs(unit.y - point.y) < size + 0.3,
       )
@@ -598,6 +692,7 @@ export class ColonySimulation implements RetroSimulation {
         if (
           unit.enemy !== enemy ||
           !alive(unit) ||
+          unit.garrison ||
           (enemy && !this.isVisible(unit))
         )
           return false;
@@ -677,7 +772,20 @@ export class ColonySimulation implements RetroSimulation {
               dist(building, targetPoint) < building.size + 0.6,
           );
     workers.forEach((unit, index) => {
-      if (unit.kind === 'worker' && deposit) {
+      if (
+        unit.kind === 'marine' &&
+        hit &&
+        'size' in hit &&
+        hit.kind === 'turret' &&
+        hit.progress >= 1
+      ) {
+        this.setOrder(unit, {
+          kind: 'enter',
+          x: hit.x,
+          y: hit.y,
+          target: hit.id,
+        });
+      } else if (unit.kind === 'worker' && deposit) {
         this.harvest(unit, deposit);
         this.commands.harvest += 1;
       } else if (unit.kind === 'worker' && construction)
@@ -790,6 +898,7 @@ export class ColonySimulation implements RetroSimulation {
       (entity) =>
         entity.enemy !== source.enemy &&
         alive(entity) &&
+        !('garrison' in entity && entity.garrison) &&
         (source.enemy || this.isVisible(entity)) &&
         dist(source, entity) <= range + ('size' in entity ? entity.size : 0),
     );
@@ -825,15 +934,16 @@ export class ColonySimulation implements RetroSimulation {
         this.kills += 1;
         this.score += 'size' in target ? 800 : 80;
       }
+      if ('size' in target && target.kind === 'turret') this.unload(target);
       if ('kind' in target && target.kind === 'core') {
         this.phase = 'won';
         this.score += 1800 + this.friendlyUnits().length * 40;
-        this.say('적 통신 핵 파괴. 식민지의 야근이 끝났습니다.');
+        this.say('적 커맨드 센터 파괴. 테란 작전 성공.');
       }
       if ('kind' in target && target.kind === 'headquarters') {
         this.phase = 'lost';
         this.say(
-          '지휘 기지를 잃었습니다. 포탑과 병력으로 다음 공격을 막으세요.',
+          '지휘 기지를 잃었습니다. 벙커과 병력으로 다음 공격을 막으세요.',
         );
       }
     }
@@ -851,7 +961,7 @@ export class ColonySimulation implements RetroSimulation {
         if (deposit) this.harvest(unit, deposit);
         return;
       }
-      if (dist(unit, building) <= building.size + 1.15) {
+      if (dist(unit, building) <= Math.max(2.2, building.size + 1.15)) {
         building.progress = Math.min(
           1,
           building.progress + dt / building.buildTime,
@@ -863,7 +973,9 @@ export class ColonySimulation implements RetroSimulation {
         if (building.progress >= 1) {
           this.score += 80;
           this.audioCues.ability += 1;
-          this.say(`${building.kind === 'barracks' ? '병영' : '포탑'} 완성`);
+          this.say(
+            `${building.kind === 'barracks' ? '배럭' : building.kind === 'depot' ? '서플라이 디포' : '벙커'} 완성`,
+          );
         }
       } else this.travel(unit, building, dt);
       return;
@@ -893,7 +1005,7 @@ export class ColonySimulation implements RetroSimulation {
     } else if (dist(unit, deposit) <= 1.35) {
       unit.mineTime += dt;
       if (unit.mineTime >= 1.25) {
-        unit.cargo = Math.min(12, deposit.amount);
+        unit.cargo = Math.min(8, deposit.amount);
         deposit.amount -= unit.cargo;
         unit.mineTime = 0;
         unit.returning = true;
@@ -908,8 +1020,11 @@ export class ColonySimulation implements RetroSimulation {
     const delta = Math.min(dt, 1 / 30);
     this.time += delta;
     this.messageTime = Math.max(0, this.messageTime - delta);
+    if (input.right2 && !this.lastInput.right2) this.command('hold');
+    if (input.jump2 && !this.lastInput.jump2) this.command('stop');
     if (input.switch && !this.lastInput.switch) this.command('army');
     if (input.ultimate && !this.lastInput.ultimate) this.command('workers');
+    if (input.left2 && !this.lastInput.left2) this.command('depot');
     if (input.special && !this.lastInput.special) this.command('barracks');
     if (input.guard && !this.lastInput.guard) this.command('turret');
     if (input.interact && !this.lastInput.interact) this.command('marine');
@@ -945,7 +1060,7 @@ export class ColonySimulation implements RetroSimulation {
       building.cooldown = Math.max(0, building.cooldown - delta);
       building.flash = Math.max(0, building.flash - delta);
       if (building.progress < 1) continue;
-      if (building.queue.length) {
+      if (building.queue.length && this.supplyUsed() < this.supplyCap()) {
         building.trainTime += delta;
         const duration = building.queue[0] === 'marine' ? 2.4 : 3;
         if (building.trainTime >= duration) {
@@ -985,23 +1100,35 @@ export class ColonySimulation implements RetroSimulation {
           } else this.setOrder(unit, { kind: 'attackMove', ...building.rally });
         }
       }
-      if (building.kind === 'turret' || building.kind === 'core') {
-        const target = this.acquire(
-          building,
-          building.kind === 'core' ? 6 : 6.7,
-        );
+      if (building.kind === 'turret' && this.occupants(building).length > 0) {
+        const target = this.acquire(building, 5);
         if (target && building.cooldown === 0) {
-          this.shoot(building, target, building.kind === 'core' ? 11 : 13);
-          building.cooldown = building.kind === 'core' ? 1.15 : 0.7;
+          this.shoot(building, target, 6 * this.occupants(building).length);
+          building.cooldown = 0.62;
         }
       }
     }
     for (const unit of this.units) {
-      if (!alive(unit)) continue;
+      if (!alive(unit) || unit.garrison) continue;
       unit.moving = false;
       unit.repath -= delta;
       unit.cooldown = Math.max(0, unit.cooldown - delta);
       unit.flash = Math.max(0, unit.flash - delta);
+      if (unit.order.kind === 'enter') {
+        const bunker = this.buildings.find(
+          (b) => b.id === unit.order.target && b.hp > 0 && b.progress >= 1,
+        );
+        if (!bunker || this.occupants(bunker).length >= 4)
+          this.setOrder(unit, { kind: 'idle', x: unit.x, y: unit.y });
+        else if (dist(unit, bunker) < Math.max(2.15, bunker.size + 0.85)) {
+          unit.garrison = bunker.id;
+          unit.x = bunker.x;
+          unit.y = bunker.y;
+          this.selected.delete(unit.id);
+          unit.path = [];
+        } else this.travel(unit, bunker, delta);
+        continue;
+      }
       if (
         unit.kind === 'worker' &&
         (unit.order.kind === 'harvest' || unit.order.kind === 'build')
@@ -1009,8 +1136,7 @@ export class ColonySimulation implements RetroSimulation {
         this.worker(unit, delta);
         continue;
       }
-      const range =
-        unit.kind === 'worker' ? 0.9 : unit.kind === 'marine' ? 5.6 : 4.2;
+      const range = unit.kind === 'worker' ? 0.9 : 4;
       let target =
         unit.order.kind === 'attack' && unit.order.target
           ? this.entity(unit.order.target)
@@ -1022,14 +1148,10 @@ export class ColonySimulation implements RetroSimulation {
         if (dist(unit, target) <= range + targetSize) {
           unit.facing = Math.atan2(target.y - unit.y, target.x - unit.x);
           if (unit.cooldown === 0) {
-            this.shoot(
-              unit,
-              target,
-              unit.kind === 'marine' ? 10 : unit.kind === 'worker' ? 3 : 6,
-            );
+            this.shoot(unit, target, unit.kind === 'worker' ? 5 : 6);
             unit.cooldown = unit.kind === 'marine' ? 0.62 : 0.95;
           }
-        } else this.travel(unit, target, delta);
+        } else if (unit.order.kind !== 'hold') this.travel(unit, target, delta);
       } else if (
         unit.order.kind === 'move' ||
         unit.order.kind === 'attackMove' ||
@@ -1043,10 +1165,10 @@ export class ColonySimulation implements RetroSimulation {
     // Mild local separation avoids unreadable stacks without changing path goals.
     for (let index = 0; index < this.units.length; index += 1) {
       const a = this.units[index];
-      if (!alive(a)) continue;
+      if (!alive(a) || a.garrison) continue;
       for (let other = index + 1; other < this.units.length; other += 1) {
         const b = this.units[other];
-        if (!alive(b)) continue;
+        if (!alive(b) || b.garrison) continue;
         const length = dist(a, b);
         if (length >= 0.47 || length < 0.001) continue;
         const push = Math.min(0.025, (0.47 - length) * delta * 6);
@@ -1105,13 +1227,13 @@ export class ColonySimulation implements RetroSimulation {
     ).length;
     const objective =
       this.phase === 'won'
-        ? '적 통신 핵 파괴! 식민지 작전 성공.'
+        ? '적 커맨드 센터 파괴! 테란 작전 성공.'
         : this.phase === 'lost'
           ? '지휘 기지를 지키지 못했습니다. 다시 도전하세요.'
           : !barracks
             ? 'Q 일꾼 선택 → B 병영 건설 · 광물 확보와 기지 방어'
             : marines < 6
-              ? 'M 해병 생산 · T 포탑 건설 · 병력 6명 이상을 모으세요'
+              ? 'M 해병 생산 · T 벙커 건설 · 병력 6명 이상을 모으세요'
               : 'F 전투병 선택 → A 공격 이동 → 적 기지 우클릭';
     return {
       phase: this.phase,
@@ -1129,7 +1251,7 @@ export class ColonySimulation implements RetroSimulation {
       objective,
       stats: [
         { label: '광물', value: this.minerals },
-        { label: '병력', value: `${this.friendlyUnits().length} / 30` },
+        { label: '병력', value: `${this.supplyUsed()} / ${this.supplyCap()}` },
         {
           label: '적 핵',
           value: `${Math.ceil((core.hp / core.maxHp) * 100)}%`,
@@ -1156,38 +1278,60 @@ function click(point: Point, secondary = false): PointerInput {
 export function benchmarkColony(simulation: ColonySimulation): Input {
   const input = idleInput();
   if (simulation.phase !== 'playing') return input;
+  const depot = simulation.buildings.find(
+    (b) => b.kind === 'depot' && alive(b),
+  );
   const barracks = simulation.buildings.find(
-    (building) => building.kind === 'barracks' && alive(building),
+    (b) => b.kind === 'barracks' && alive(b),
   );
   const turret = simulation.buildings.find(
-    (building) => building.kind === 'turret' && alive(building),
+    (b) => b.kind === 'turret' && alive(b),
   );
-  if (!barracks) {
-    if (simulation.buildMode !== 'barracks') {
+  const construct = (kind: 'depot' | 'barracks' | 'turret', point: Point) => {
+    if (simulation.buildMode !== kind) {
       input.ultimate = true;
-      input.special = true;
-    } else
-      input.pointer = click(
-        project({ x: 10.5, y: 17.5 }, simulation.camera, 1.8),
-      );
+      if (kind === 'depot') input.left2 = true;
+      else if (kind === 'barracks') input.special = true;
+      else input.guard = true;
+    } else input.pointer = click(project(point, simulation.camera, 1.8));
+  };
+  if (!depot) {
+    construct('depot', { x: 9.5, y: 20.5 });
     return input;
   }
-  if (barracks.progress >= 1 && !turret && simulation.minerals >= 80) {
-    if (simulation.buildMode !== 'turret') {
-      input.ultimate = true;
-      input.guard = true;
-    } else
-      input.pointer = click(
-        project({ x: 10.5, y: 12.5 }, simulation.camera, 1.8),
-      );
+  if (depot.progress < 1) return input;
+  if (!barracks) {
+    if (simulation.minerals >= 150) construct('barracks', { x: 10.5, y: 17.5 });
     return input;
+  }
+  if (barracks.progress >= 1 && !turret) {
+    if (simulation.minerals >= 100) construct('turret', { x: 11.5, y: 14.5 });
+    return input;
+  }
+  if (
+    turret &&
+    turret.progress >= 1 &&
+    simulation.occupants(turret).length < 2 &&
+    simulation.commands.attackMove === 0
+  ) {
+    const defenders = simulation
+      .friendlyUnits()
+      .filter(
+        (u) => u.kind === 'marine' && !u.garrison && u.order.kind !== 'enter',
+      );
+    if (defenders.length) {
+      if (!defenders.every((u) => simulation.selected.has(u.id)))
+        input.switch = true;
+      else input.pointer = click(project(turret, simulation.camera, 1.8), true);
+      return input;
+    }
   }
   const army = simulation
     .friendlyUnits()
-    .filter((unit) => unit.kind === 'marine');
+    .filter((unit) => unit.kind === 'marine' && !unit.garrison);
   if (
     barracks.progress >= 1 &&
-    simulation.minerals >= 35 &&
+    simulation.minerals >= 50 &&
     army.length + barracks.queue.length < 12
   )
     input.interact = Math.floor(simulation.time * 8) % 2 === 0;
@@ -1198,12 +1342,12 @@ export function benchmarkColony(simulation: ColonySimulation): Input {
     else if (
       army.some(
         (unit) =>
-          !['attackMove', 'attack'].includes(unit.order.kind) ||
-          dist(unit.order, ENEMY_BASE) > 3,
+          !['attackMove', 'attack', 'idle'].includes(unit.order.kind) ||
+          dist(unit.order, ENEMY_BASE) > 8,
       )
     ) {
-      input.attack = true;
-      input.pointer = click(minimapPoint(ENEMY_BASE), true);
+      if (!simulation.assaultMode) input.attack = true;
+      else input.pointer = click(minimapPoint({ x: 23, y: 9.5 }), true);
     } else if (army.length > 0) {
       const center = {
         x: army.reduce((sum, unit) => sum + unit.x, 0) / army.length,

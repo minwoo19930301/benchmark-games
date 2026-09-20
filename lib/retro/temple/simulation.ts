@@ -24,8 +24,8 @@ export const W = 960,
   FLOOR = 458;
 export const rooms = [
   {
-    name: 'THE FORGOTTEN RESERVOIR',
-    korean: '잊힌 저수지',
+    name: 'THE FOREST TEMPLE · 01',
+    korean: '숲의 사원 1',
     plate: 120,
     gate: 737,
     lever: 817,
@@ -42,8 +42,8 @@ export const rooms = [
     color: '#354e50',
   },
   {
-    name: 'THE CLOCKWORK VAULT',
-    korean: '태엽 금고',
+    name: 'THE FOREST TEMPLE · 02',
+    korean: '숲의 사원 2',
     plate: 102,
     gate: 753,
     lever: 815,
@@ -60,8 +60,8 @@ export const rooms = [
     color: '#555049',
   },
   {
-    name: 'HEART OF THE MONSOON',
-    korean: '장마의 심장',
+    name: 'THE FOREST TEMPLE · 03',
+    korean: '숲의 사원 3',
     plate: 111,
     gate: 751,
     lever: 814,
@@ -186,7 +186,8 @@ export class TempleSimulation implements RetroSimulation {
     });
   }
   step(dt: number, input: Input) {
-    if (this.phase !== 'playing') return;
+    if (this.phase !== 'playing' || !Number.isFinite(dt) || dt <= 0) return;
+    dt = Math.min(dt, 0.05);
     this.time += dt;
     this.roomTime += dt;
     this.flash = Math.max(0, this.flash - dt);
@@ -296,7 +297,8 @@ export class TempleSimulation implements RetroSimulation {
       ) {
         if (!this.latched) this.audioCues.ability++;
         this.latched = true;
-        this.message = '문 고정 완료! 원소 수정을 모으고 두 출구로 이동하세요.';
+        this.message =
+          '문 고정 완료! 다이아몬드를 모으고 두 출구로 이동하세요.';
       }
     }
     if (
@@ -330,9 +332,9 @@ export class TempleSimulation implements RetroSimulation {
             3,
       objective: `${this.room + 1}/3 · ${this.level.korean} · ${this.message}`,
       stats: [
-        { label: '수정', value: `${this.collected.size}/4` },
+        { label: '다이아몬드', value: `${this.collected.size}/4` },
         { label: '재도전', value: this.deaths },
-        { label: '조작', value: this.active === 0 ? '불꽃' : '물방울' },
+        { label: '조작', value: this.active === 0 ? '파이어보이' : '워터걸' },
       ],
     };
   }

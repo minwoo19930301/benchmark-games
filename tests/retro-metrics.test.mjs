@@ -55,7 +55,8 @@ test('Malformed optional local records cannot crash the library, history caps at
     assert.deepEqual(readRecords(), []);
     const record = {
       game: 'smash',
-      title: 'Rooftop',
+      title: 'Super Smash Bros.',
+      benchmarkVersion: 'reference-rebuild-2026-09-21',
       recordedAt: 'now',
       outcome: 'won',
       simulationSeconds: 40,
@@ -87,6 +88,37 @@ test('Malformed optional local records cannot crash the library, history caps at
     });
     assert.deepEqual(readRecords(), []);
     assert.equal(saveRecord(record).length, 1);
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'localStorage', previous);
+    else delete globalThis.localStorage;
+  }
+});
+
+test('Previous parody records are preserved outside the current benchmark store', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  const storage = new Map([
+    ['benchmark-games:retro-results:v1', '[{"game":"smash","score":999}]'],
+  ]);
+  const keys = [];
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    value: {
+      getItem(key) {
+        keys.push(key);
+        return storage.get(key) ?? null;
+      },
+      setItem(key, value) {
+        storage.set(key, value);
+      },
+    },
+  });
+  try {
+    assert.deepEqual(readRecords(), []);
+    assert.deepEqual(keys, ['benchmark-games:retro-results:v2']);
+    assert.equal(
+      storage.get('benchmark-games:retro-results:v1'),
+      '[{"game":"smash","score":999}]',
+    );
   } finally {
     if (previous) Object.defineProperty(globalThis, 'localStorage', previous);
     else delete globalThis.localStorage;

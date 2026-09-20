@@ -2,7 +2,12 @@ import * as T from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { RetroView } from '../types.ts';
 import { covers, OBJECTIVE } from './world.ts';
-import { WatchpointSimulation, type Bot, type Ally } from './simulation.ts';
+import {
+  WatchpointSimulation,
+  BIOTIC_RADIUS,
+  type Bot,
+  type Ally,
+} from './simulation.ts';
 
 const palette = {
   white: '#eff4ef',
@@ -14,7 +19,7 @@ const palette = {
   gold: '#f0c35b',
 };
 
-/** Original Sunward Harbor geometry and hero equipment; no downloaded art assets. */
+/** Self-made Gibraltar-inspired training harbor and Soldier: 76 equipment. */
 export function mountWatchpoint(
   canvas: HTMLCanvasElement,
   game: WatchpointSimulation,
@@ -263,10 +268,10 @@ export function mountWatchpoint(
       const height = 7 + ((z + 21) % 3) * 2.5,
         x = side * 25;
       const facade =
-        (z + 21) % 20 === 0 ? '#d6d9c9' : side < 0 ? '#c88b6d' : '#739ba4';
+        (z + 21) % 20 === 0 ? '#d6d9c9' : side < 0 ? '#c2c3b6' : '#81929c';
       box(facade, x, height / 2, z, 10, height, 9.4);
       box(
-        side < 0 ? '#e9aa77' : '#92bbc4',
+        side < 0 ? '#bdc4c3' : '#748993',
         x - side * 0.1,
         height + 0.35,
         z,
@@ -308,17 +313,7 @@ export function mountWatchpoint(
             2.2,
           );
         }
-      box('#df7355', side * 19.2, 2.9, z, 1.6, 0.2, 6.6);
-      for (let i = -3; i <= 3; i += 1)
-        box(
-          i % 2 ? '#f7edd1' : '#db7153',
-          side * 19.2,
-          2.8,
-          z + i,
-          1.7,
-          0.16,
-          0.45,
-        );
+      box('#f0b63b', side * 19.78, 2.9, z, 0.18, 0.22, 8.8);
       box('#385866', side * 19.92, 1.1, z, 0.03, 2.2, 2.2);
       for (const gap of [-3, 3]) {
         box('#243f50', side * 19.65, 1.23, z + gap, 0.2, 1.3, 1.5);
@@ -338,7 +333,7 @@ export function mountWatchpoint(
   // Harbor pennants and painted route markings make the avenue feel inhabited.
   for (const side of [-1, 1]) {
     const banner = sign(
-      side < 0 ? 'SUN / 24' : 'HARBOR A',
+      side < 0 ? 'WATCHPOINT' : 'HANGAR A',
       2.2,
       4.2,
       '#fff2cf',
@@ -350,7 +345,7 @@ export function mountWatchpoint(
     banner.rotation.y = -side * 0.28;
     box('#344f62', side * 18.2, 7.35, 6, 2.4, 0.15, 0.15);
     const route = sign(
-      side < 0 ? 'NECTAR' : 'TRANSIT 03',
+      side < 0 ? 'FUEL / 04' : 'LOADING BAY',
       4.3,
       0.85,
       '#fff0c9',
@@ -374,8 +369,8 @@ export function mountWatchpoint(
   box('#cd8d59', -18, 3.2, -26.5, 3.2, 6.4, 3.3);
   box('#cd8d59', 18, 3.2, -26.5, 3.2, 6.4, 3.3);
   box('#e9b56a', 0, 7.45, -26.5, 42, 0.3, 4);
-  sign('SUNWARD HARBOR', 14, 2.9, '#fff5d5', '#315c70', 0, 6.6, -24.8);
-  sign('03  /  SKYLINE TRANSIT', 8, 1.1, '#27586d', '#f2dfab', 0, 3.7, -26.4);
+  sign('WATCHPOINT: GIBRALTAR', 14, 2.9, '#fff5d5', '#315c70', 0, 6.6, -24.8);
+  sign('DRONE TRAINING / A', 8, 1.1, '#27586d', '#f2dfab', 0, 3.7, -26.4);
   for (const z of [-25.8, 23.8]) {
     box('#e8ebda', 0, 0.55, z, 39.6, 0.1, 0.18);
     box('#6f9ba6', 0, 1.05, z, 39.6, 0.12, 0.16);
@@ -400,32 +395,31 @@ export function mountWatchpoint(
     for (let floor = 4; floor < height; floor += 3.4)
       mesh(cylinder, '#7aa4b0', x, floor, -48 - (i % 2) * 10, 5.05, 0.5, 5.05);
   }
-  for (const [x, z] of [
-    [-16, 16],
-    [16, 16],
-    [-16, -17],
-    [16, -20],
-    [-16, -4],
-  ]) {
-    mesh(cylinder, '#f1e4c7', x, 0.35, z, 1.4, 0.7, 1.4);
-    mesh(cylinder, '#8a7760', x, 3.3, z, 0.22, 6, 0.22);
-    for (let i = 0; i < 7; i++) {
-      const leaf = mesh(
-        sphere,
-        i % 2 ? '#61a689' : '#438f79',
-        x,
-        6.3,
-        z,
-        0.45,
-        0.14,
-        2.7,
-      );
-      leaf.rotation.y = (i * Math.PI * 2) / 7;
-      leaf.rotation.x = 0.22;
-      leaf.position.x += Math.sin(leaf.rotation.y) * 1.1;
-      leaf.position.z += Math.cos(leaf.rotation.y) * 1.1;
-    }
+  for (const side of [-1, 1]) {
+    // Cliffside hangars, communications dishes and cargo cranes.
+    mesh(cone, '#a8a58f', side * 37, 11, -9, 15, 30, 32).rotation.z =
+      side * 0.16;
+    box('#e4b23b', side * 29, 10, -32, 0.9, 20, 0.9);
+    box('#e4b23b', side * 22, 20, -32, 16, 0.8, 0.8);
+    box('#5b6060', side * 17, 16, -32, 0.14, 8, 0.14);
+    box('#315b73', side * 17, 11, -32, 5, 2.5, 3);
+    for (let vent = 0; vent < 5; vent++)
+      box('#d4d8d1', side * 17 + (vent - 2) * 0.85, 11, -30.47, 0.1, 2.2, 0.05);
   }
+  box('#d4d7d0', -11, 7.5, -33, 9, 15, 7);
+  mesh(cylinder, '#495c69', -11, 17, -33, 0.55, 5, 0.55);
+  const dish = mesh(sphere, '#e3e7df', -11, 19.6, -33, 6.5, 0.6, 6.5);
+  dish.rotation.x = 0.5;
+  link(
+    world,
+    new T.Vector3(-11, 19.5, -33),
+    new T.Vector3(-11, 22, -31),
+    0.14,
+    '#5f7681',
+  );
+  mesh(cylinder, '#d9ded7', 12, 6.5, -33, 2.7, 10, 2.7);
+  mesh(cone, '#e3e7e3', 12, 13.2, -33, 2.7, 3.5, 2.7);
+  box('#da593e', 12, 6.1, -30.3, 2.2, 3.2, 0.05);
   for (const [x, z] of [
     [-14, 5],
     [14, 11],
@@ -442,46 +436,32 @@ export function mountWatchpoint(
     box(palette.white, x, h / 2, z, w, h, d);
     box('#77939a', x, 0.13, z, w + 0.15, 0.26, d + 0.15);
     if (cover.kind === 'planter') {
-      box('#af8872', x, h - 0.04, z, w - 0.2, 0.1, d - 0.2);
-      box(
-        palette.blue,
-        x,
-        h * 0.42,
-        z + d / 2 + 0.008,
-        w * 0.6,
-        0.08,
-        0.018,
-        world,
-        true,
-      );
-      for (let i = 0; i < 5; i++) {
-        const bush = mesh(
-          sphere,
-          i % 2 ? '#356d62' : '#508f70',
-          x - w * 0.4 + i * w * 0.2,
-          h + 0.22,
-          z,
-          w * 0.13,
-          0.35,
-          d * 0.34,
+      box('#8299a4', x, h - 0.1, z, w - 0.12, 0.2, d - 0.12);
+      for (let brace = -1; brace <= 1; brace++) {
+        box(
+          '#e4b23b',
+          x + brace * w * 0.3,
+          h / 2,
+          z + d / 2 + 0.01,
+          0.22,
+          h - 0.15,
+          0.03,
         );
-        bush.rotation.y = i;
-        mesh(
-          octa,
-          '#f3b38e',
-          x - w * 0.4 + i * w * 0.2,
-          h + 0.48,
-          z + 0.2,
+        box(
+          '#294c61',
+          x + brace * w * 0.3,
+          h / 2,
+          z - d / 2 - 0.01,
           0.12,
-          0.14,
-          0.12,
+          h - 0.15,
+          0.03,
         );
       }
     } else if (cover.kind === 'kiosk') {
       box('#285b70', x, h * 0.58, z + d / 2 + 0.016, w * 0.86, h * 0.58, 0.03);
       box(palette.coral, x, h + 0.14, z, w + 0.6, 0.28, d + 0.6);
       sign(
-        x < 0 ? 'NECTAR / 24' : 'METRO / A',
+        x < 0 ? 'MAINTENANCE' : 'CARGO / A',
         w * 0.86,
         0.6,
         '#f9f2dc',
@@ -574,10 +554,10 @@ export function mountWatchpoint(
   const beacon = new T.Group();
   scene.add(beacon);
   mesh(cylinder, '#d4efe1', 0, 0.16, 0, 0.34, 0.3, 0.34, beacon);
-  mesh(sphere, '#81f5b0', 0, 0.37, 0, 0.25, 0.17, 0.25, beacon, true);
+  mesh(sphere, '#fce363', 0, 0.37, 0, 0.25, 0.17, 0.25, beacon, true);
   const healRing = mesh(
     torus,
-    '#89ffb1',
+    '#f9d348',
     0,
     0.055,
     0,
@@ -760,9 +740,10 @@ export function mountWatchpoint(
   }
   const allyActors = game.allies.map(() => humanoid(true, false));
 
-  // First-person arms and a bespoke bullpup solar rifle with an offset holographic sight.
+  // Soldier: 76 silhouette: blue sleeves, black gloves, white/red pulse rifle and three rocket tubes.
   const gun = new T.Group();
   camera.add(gun);
+  gun.scale.setScalar(1.22);
   const weaponPart = (
     shape: T.BufferGeometry,
     color: string,
@@ -775,10 +756,10 @@ export function mountWatchpoint(
     glow = false,
   ) => mesh(shape, color, x, y, z, sx, sy, sz, gun, glow, true);
   // Chamfered receiver, tapered barrel shroud, stock and a compact ring optic.
-  weaponPart(bevel, '#254153', 0, 0, -0.22, 0.115, 0.135, 0.56);
-  weaponPart(bevel, '#d3d9ca', 0, 0.047, -0.24, 0.126, 0.074, 0.42);
-  weaponPart(bevel, '#b6603e', 0.065, 0.006, -0.18, 0.022, 0.09, 0.29);
-  weaponPart(bevel, '#688791', 0, 0.017, -0.51, 0.096, 0.112, 0.16);
+  weaponPart(bevel, '#1d3555', 0, 0, -0.22, 0.115, 0.135, 0.56);
+  weaponPart(bevel, '#e9e9e2', 0, 0.047, -0.24, 0.126, 0.074, 0.42);
+  weaponPart(bevel, '#cb3d31', 0.065, 0.006, -0.18, 0.022, 0.09, 0.29);
+  weaponPart(bevel, '#ecebe5', 0, 0.017, -0.51, 0.096, 0.112, 0.16);
   weaponPart(
     cylinder,
     '#243e4c',
@@ -844,26 +825,50 @@ export function mountWatchpoint(
       0.04,
       0.015,
     );
-  weaponPart(bevel, '#244354', 0, 0.093, -0.24, 0.052, 0.042, 0.115);
-  weaponPart(sightRing, '#1c3546', 0, 0.15, -0.24, 0.039, 0.039, 0.042);
-  weaponPart(sightRing, '#547e8b', 0, 0.15, -0.26, 0.039, 0.039, 0.015);
-  weaponPart(octa, '#79edf0', 0, 0.15, -0.267, 0.0026, 0.0026, 0.0026, true);
+  weaponPart(bevel, '#f3f0e6', -0.04, 0.11, -0.23, 0.035, 0.08, 0.22);
+  weaponPart(bevel, '#f3f0e6', 0.04, 0.11, -0.23, 0.035, 0.08, 0.22);
+  weaponPart(bevel, '#e34f3e', 0, 0.165, -0.3, 0.12, 0.035, 0.25);
+  weaponPart(bevel, '#d34533', 0, 0.075, -0.47, 0.13, 0.045, 0.2);
+  for (let tube = 0; tube < 3; tube++) {
+    const angle = (tube * Math.PI * 2) / 3;
+    weaponPart(
+      cylinder,
+      '#263a51',
+      Math.cos(angle) * 0.038,
+      -0.09 + Math.sin(angle) * 0.038,
+      -0.55,
+      0.025,
+      0.28,
+      0.025,
+    ).rotation.x = Math.PI / 2;
+    weaponPart(
+      cylinder,
+      '#79cdeb',
+      Math.cos(angle) * 0.038,
+      -0.09 + Math.sin(angle) * 0.038,
+      -0.702,
+      0.016,
+      0.012,
+      0.016,
+      true,
+    ).rotation.x = Math.PI / 2;
+  }
   // A right trigger hand and a left support hand: fingers wrap around the grips.
   link(
     gun,
     new T.Vector3(0.06, -0.15, 0.026),
     new T.Vector3(0.2, -0.3, 0.2),
     0.045,
-    '#247f91',
+    '#294a85',
     true,
   );
-  weaponPart(bevel, '#c4d9d1', 0.135, -0.21, 0.11, 0.1, 0.15, 0.12).rotation.z =
+  weaponPart(bevel, '#31559a', 0.135, -0.21, 0.11, 0.1, 0.15, 0.12).rotation.z =
     -0.45;
-  weaponPart(bevel, '#1d424f', 0.028, -0.091, 0.005, 0.073, 0.083, 0.093);
+  weaponPart(bevel, '#202633', 0.028, -0.091, 0.005, 0.073, 0.083, 0.093);
   for (let finger = 0; finger < 3; finger++)
     weaponPart(
       bevel,
-      '#315563',
+      '#252c39',
       -0.012,
       -0.061 - finger * 0.018,
       -0.044,
@@ -876,12 +881,12 @@ export function mountWatchpoint(
     new T.Vector3(-0.027, -0.089, -0.35),
     new T.Vector3(-0.19, -0.25, 0.1),
     0.044,
-    '#247f91',
+    '#294a85',
     true,
   );
   weaponPart(
     bevel,
-    '#c4d9d1',
+    '#31559a',
     -0.133,
     -0.19,
     -0.035,
@@ -889,11 +894,11 @@ export function mountWatchpoint(
     0.12,
     0.19,
   ).rotation.z = 0.22;
-  weaponPart(bevel, '#244552', -0.026, -0.067, -0.365, 0.09, 0.052, 0.11);
+  weaponPart(bevel, '#202835', -0.026, -0.067, -0.365, 0.09, 0.052, 0.11);
   for (let finger = 0; finger < 3; finger++)
     weaponPart(
       bevel,
-      '#436874',
+      '#343a43',
       -0.07,
       -0.033 + finger * 0.011,
       -0.394 + finger * 0.023,
@@ -901,7 +906,7 @@ export function mountWatchpoint(
       0.026,
       0.018,
     );
-  weaponPart(bevel, '#39c7d5', 0.15, -0.21, 0.125, 0.067, 0.034, 0.085);
+  weaponPart(bevel, '#d9483c', 0.15, -0.21, 0.125, 0.067, 0.034, 0.085);
   const muzzle = weaponPart(
     octa,
     '#ffe4a4',
@@ -917,7 +922,9 @@ export function mountWatchpoint(
   const fx = new T.Group();
   scene.add(fx);
   const tracePool: T.Mesh[] = [],
-    boltPool: T.Mesh[] = [];
+    boltPool: T.Mesh[] = [],
+    rocketPool: T.Mesh[] = [],
+    blastPool: T.Mesh[] = [];
   const bright = new T.MeshBasicMaterial({ color: '#ffe1a0' }),
     red = new T.MeshBasicMaterial({ color: '#ff6e57' });
   extras.add(bright);
@@ -994,7 +1001,7 @@ export function mountWatchpoint(
     }
     panel(456, 18, 368, 72);
     hudText('A', 486, 44, 26, '#70e5f2');
-    hudText('SUNWARD UPLINK', 640, 40, 17, '#f6f3df', 'center');
+    hudText('WATCHPOINT: GIBRALTAR', 640, 40, 17, '#f6f3df', 'center');
     hudText(`${Math.floor(game.capture)}%`, 519, 68, 20, '#75e9f4');
     hudText(
       `${Math.floor(game.enemyCapture)}%`,
@@ -1020,7 +1027,7 @@ export function mountWatchpoint(
       game.contested ? '#ffe197' : '#f7f9e8',
       'center',
     );
-    const gap = p.ads ? 4 : 7 + p.recoil * 45;
+    const gap = 6 + p.recoil * 35;
     ctx.strokeStyle = '#25424f';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -1056,13 +1063,30 @@ export function mountWatchpoint(
     ctx.lineTo(40, 683);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#df8c58';
-    ctx.fillRect(48, 635, 41, 23);
-    ctx.fillStyle = '#244a5f';
-    ctx.fillRect(43, 628, 54, 13);
-    ctx.fillStyle = '#6ce5e7';
-    ctx.fillRect(47, 643, 43, 8);
-    hudText('HANA / SUNWARD', 120, 629, 13, '#b8dbe1');
+    ctx.fillStyle = '#23447a';
+    ctx.fillRect(44, 659, 55, 24);
+    ctx.fillStyle = '#c59b84';
+    ctx.fillRect(51, 632, 38, 34);
+    ctx.fillStyle = '#dce0dc';
+    ctx.beginPath();
+    ctx.moveTo(47, 639);
+    ctx.lineTo(49, 626);
+    ctx.lineTo(62, 622);
+    ctx.lineTo(88, 627);
+    ctx.lineTo(94, 638);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#232a35';
+    ctx.fillRect(47, 639, 48, 11);
+    ctx.fillStyle = '#ef4936';
+    ctx.fillRect(48, 641, 45, 5);
+    ctx.fillStyle = '#343d49';
+    ctx.fillRect(54, 653, 33, 16);
+    ctx.fillStyle = '#bdc2c2';
+    ctx.fillRect(59, 659, 22, 3);
+    ctx.fillStyle = '#dd503e';
+    ctx.fillRect(69, 675, 7, 8);
+    hudText('SOLDIER: 76', 120, 629, 13, '#b8dbe1');
     hudText(String(Math.ceil(p.hp)), 120, 657, 32);
     hudText('/ 200', 182, 663, 15, '#bcdae0');
     for (let i = 0; i < 10; i++) {
@@ -1071,7 +1095,13 @@ export function mountWatchpoint(
       ctx.fillRect(122 + i * 17, 680, 14, 5);
     }
     panel(996, 617, 260, 79);
-    hudText(p.reload ? 'RELOADING' : 'SOLAR RIFLE', 1020, 636, 13, '#bedde0');
+    hudText(
+      p.reload ? 'RELOADING' : 'HEAVY PULSE RIFLE',
+      1020,
+      636,
+      13,
+      '#bedde0',
+    );
     hudText(
       p.reload
         ? `${Math.ceil(p.reload * 10) / 10}s`
@@ -1083,13 +1113,14 @@ export function mountWatchpoint(
     hudText(`/ ${p.reserve}`, 1090, 675, 18, '#bad7de');
     hudText('[R]', 1223, 674, 16, '#ffce80', 'right');
     const skills = [
-      { x: 413, key: 'K', label: 'DASH', value: p.dashCooldown },
-      { x: 535, key: 'E', label: 'HEAL FIELD', value: p.healCooldown },
+      { x: 351, key: 'SHIFT', label: 'SPRINT', value: 0 },
+      { x: 468, key: 'RMB', label: 'HELIX ROCKETS', value: p.helixCooldown },
+      { x: 585, key: 'E', label: 'BIOTIC FIELD', value: p.healCooldown },
       {
-        x: 681,
+        x: 727,
         key: 'Q',
-        label: 'OVERDRIVE',
-        value: p.ultimate >= 100 || p.overdrive > 0 ? 0 : 100 - p.ultimate,
+        label: 'TACTICAL VISOR',
+        value: p.ultimate >= 100 || p.visor > 0 ? 0 : 100 - p.ultimate,
       },
     ];
     for (const skill of skills) {
@@ -1101,24 +1132,58 @@ export function mountWatchpoint(
         54,
         ready ? 'rgba(29,79,90,.93)' : 'rgba(31,49,61,.85)',
       );
-      hudText(skill.key, skill.x + 16, 657, 18, ready ? '#f6d38c' : '#9caeb5');
+      hudText(
+        skill.key,
+        skill.x + 10,
+        657,
+        skill.key.length > 1 ? 11 : 18,
+        ready ? '#f6d38c' : '#9caeb5',
+      );
       hudText(
         skill.key === 'Q'
-          ? p.overdrive > 0
+          ? p.visor > 0
             ? 'ACTIVE'
             : `${Math.floor(p.ultimate)}%`
           : ready
             ? 'READY'
             : `${Math.ceil(skill.value)}s`,
-        skill.x + 42,
+        skill.x + (skill.key === 'Q' ? 141 : 102),
         657,
         15,
         ready ? '#e0fff4' : '#b4c9d2',
+        'right',
       );
       hudText(skill.label, skill.x + 12, 682, 10, '#c4dfe1');
     }
-    if (p.overdrive > 0) {
-      hudText('SOLAR OVERDRIVE', 640, 156, 27, '#ffe5a2', 'center');
+    if (p.visor > 0) {
+      hudText(
+        `TACTICAL VISOR · ${p.visor.toFixed(1)}s`,
+        640,
+        156,
+        25,
+        '#ffe5a2',
+        'center',
+      );
+      ctx.strokeStyle = '#f5b842';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(640, 360, 168, -0.2, Math.PI * 0.6);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(640, 360, 168, Math.PI * 0.8, Math.PI * 1.6);
+      ctx.stroke();
+      const target = game.bots.find(
+        (bot) => bot.id === p.visorTarget && bot.hp > 0,
+      );
+      if (target) {
+        const projected = new T.Vector3(target.x, 1.15, target.z).project(
+          camera,
+        );
+        const tx = (projected.x + 1) * 640,
+          ty = (1 - projected.y) * 360;
+        ctx.strokeRect(tx - 23, ty - 34, 46, 68);
+        hudText('LOCK', tx, ty - 45, 12, '#ffca58', 'center');
+      }
     }
     if (game.messageTime > 0) {
       panel(327, 548, 626, 37, 'rgba(28,57,72,.75)');
@@ -1138,7 +1203,7 @@ export function mountWatchpoint(
     }
     if (game.time < 7)
       hudText(
-        '마우스 클릭: 조준 고정  ·  좌클릭 사격  ·  우클릭 정밀 조준',
+        '마우스 클릭: 조준 고정  ·  좌클릭 사격  ·  우클릭 나선 로켓',
         640,
         596,
         14,
@@ -1185,26 +1250,32 @@ export function mountWatchpoint(
       if (disposed || width <= 0 || height <= 0) return;
       renderer.setSize(width, height, false);
       camera.aspect = width / height;
-      const desiredFov = game.player.ads ? 56 : 79;
+      const desiredFov = game.player.sprinting ? 85 : 79;
       camera.fov += (desiredFov - camera.fov) * 0.25;
       camera.updateProjectionMatrix();
       const p = game.player,
         bob = p.moving && !p.respawn ? Math.sin(p.walk * 2.9) * 0.026 : 0;
       camera.position.set(p.x, p.y + 1.62 + bob, p.z);
-      camera.rotation.set(p.pitch, -p.yaw, p.dash > 0 ? -0.035 : 0, 'YXZ');
+      camera.rotation.set(
+        p.pitch,
+        -p.yaw,
+        p.sprinting ? Math.sin(p.walk * 2) * 0.02 : 0,
+        'YXZ',
+      );
       gun.position.set(
-        p.ads ? 0 : 0.24,
-        (p.ads ? -0.15 : -0.25) + (p.ads ? 0 : bob * 0.4),
-        -0.67 + p.recoil * 0.26,
+        0.27,
+        -0.26 + bob * 0.4 - (p.sprinting ? 0.07 : 0),
+        -0.64 + p.recoil * 0.26,
       );
       gun.rotation.set(
         -p.recoil * 0.3 + (p.reload ? -0.35 : 0),
         p.reload ? -0.4 : 0,
-        p.reload ? -0.65 : 0,
+        p.reload ? -0.65 : p.sprinting ? -0.38 : 0,
       );
       magazine.position.y =
         -0.13 - (p.reload > 0.5 && p.reload < 1.35 ? 0.15 : 0);
-      muzzle.visible = p.recoil > 0.072 && !p.reload;
+      muzzle.visible =
+        (p.recoil > 0.072 || p.helixFlash > 0.12) && !p.reload && !p.sprinting;
       muzzle.rotation.z = game.shots;
       gun.visible = p.respawn <= 0;
       ring.material = mat(
@@ -1216,7 +1287,9 @@ export function mountWatchpoint(
       beacon.visible = !!game.beacon;
       if (game.beacon) {
         beacon.position.set(game.beacon.x, 0, game.beacon.z);
-        healRing.scale.setScalar(4.2 + Math.sin(game.time * 4) * 0.06);
+        healRing.scale.setScalar(
+          BIOTIC_RADIUS + Math.sin(game.time * 4) * 0.06,
+        );
       }
       for (const bot of game.bots) {
         if (!actors.has(bot.id)) actors.set(bot.id, humanoid(false, bot.elite));
@@ -1227,6 +1300,12 @@ export function mountWatchpoint(
         object.visible = false;
       });
       boltPool.forEach((object) => {
+        object.visible = false;
+      });
+      rocketPool.forEach((object) => {
+        object.visible = false;
+      });
+      blastPool.forEach((object) => {
         object.visible = false;
       });
       let traceIndex = 0;
@@ -1265,6 +1344,23 @@ export function mountWatchpoint(
         const object = effect(boltPool, i, red, sphere);
         object.position.set(bolt.x, bolt.y, bolt.z);
         object.scale.setScalar(0.09);
+      });
+      game.rockets.forEach((rocket, index) => {
+        for (let tube = 0; tube < 3; tube++) {
+          const object = effect(rocketPool, index * 3 + tube, bright, sphere);
+          const angle = game.time * 42 + (tube * Math.PI * 2) / 3;
+          object.position.set(
+            rocket.x + Math.cos(angle) * 0.11,
+            rocket.y + Math.sin(angle) * 0.11,
+            rocket.z,
+          );
+          object.scale.set(0.045, 0.045, 0.15);
+        }
+      });
+      game.blasts.forEach((blast, index) => {
+        const object = effect(blastPool, index, bright, sphere);
+        object.position.set(blast.x, blast.y, blast.z);
+        object.scale.setScalar((1 - blast.life / 0.35) * 1.3 + 0.1);
       });
       drawHud();
       renderer.info.reset();

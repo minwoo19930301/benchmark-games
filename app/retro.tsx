@@ -76,7 +76,7 @@ export default function Retro({
     runtime.current?.input(action, held);
   return (
     <main
-      className={`retro-shell retro-${entry.id}${cartridge?.inputHint ? ' has-input-hint' : ''}`}
+      className={`retro-shell reference-shell retro-${entry.id}${cartridge?.inputHint ? ' has-input-hint' : ''}`}
       style={{ '--game-accent': entry.accent } as React.CSSProperties}
     >
       <canvas
@@ -101,7 +101,7 @@ export default function Retro({
           ))}
         </dl>
         <div className="retro-tools">
-          {Number(entry.number) >= 8 && (
+          {cartridge && (
             <button
               aria-label="효과음"
               onPointerDown={(event) => event.preventDefault()}
@@ -154,7 +154,9 @@ export default function Retro({
         </div>
       </header>
       {state && (
-        <div className="retro-mission">
+        <div
+          className={`retro-mission${phase === 'playing' ? ' mission-playing' : ''}`}
+        >
           <span>{state.objective}</span>
           <i
             style={{
@@ -268,7 +270,7 @@ export default function Retro({
               )}
             </div>
             <small className="retro-reference">
-              {entry.reference}에서 착안한 독자 제작 패러디
+              {entry.reference} · 비공식 브라우저 재구현
             </small>
           </div>
         </section>
@@ -276,7 +278,13 @@ export default function Retro({
       <footer className="retro-controls" title={cartridge?.inputHint}>
         <span>
           <kbd>{cartridge?.pointerMode === 'lock' ? 'W A S D' : '← ↑ ↓ →'}</kbd>{' '}
-          {cartridge?.pointerMode === 'cursor' ? '카메라' : '이동'}
+          {entry.id === 'colony'
+            ? '카메라'
+            : entry.id === 'iron'
+              ? '뒤로 가드 · ↓ 웅크리기 · ↑ 횡이동'
+              : entry.id === 'smash'
+                ? '좌우 이동 · 상하 공격 방향'
+                : '이동'}
         </span>
         {cartridge?.controls
           .filter(

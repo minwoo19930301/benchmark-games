@@ -87,6 +87,25 @@ export function selectionEllipse(
   ctx.ellipse(x, y, radius, radius * 0.44, 0, 0, Math.PI * 2);
   ctx.stroke();
 }
+function oval(
+  ctx: Ctx,
+  x: number,
+  y: number,
+  rx: number,
+  ry: number,
+  color: string,
+  stroke?: string,
+) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (stroke) {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+}
 export function drawUnit(
   ctx: Ctx,
   unit: Unit,
@@ -98,238 +117,300 @@ export function drawUnit(
   ctx.save();
   ctx.translate(Math.round(x), Math.round(y));
   ctx.scale(scale, scale);
-  ctx.fillStyle = '#07121b80';
-  ctx.beginPath();
-  ctx.ellipse(0, 1, unit.kind === 'worker' ? 12 : 9, 4, 0, 0, Math.PI * 2);
-  ctx.fill();
-  const direction = Math.cos(unit.facing) - Math.sin(unit.facing) >= 0 ? 1 : -1;
-  ctx.scale(direction, 1);
-  const stride = unit.moving ? Math.sin(time * 15 + unit.id) * 2 : 0;
-  const flashing = unit.flash > 0;
+  oval(ctx, 2, 2, unit.kind === 'worker' ? 15 : 11, 5, '#160f0d88');
+  const facing = Math.cos(unit.facing) - Math.sin(unit.facing) >= 0 ? 1 : -1;
+  ctx.scale(facing, 1);
+  const stride = unit.moving ? Math.sin(time * 15 + unit.id) * 2.7 : 0;
+  const blue = unit.flash > 0 ? '#fff0bd' : unit.enemy ? '#a72f31' : '#294cb0';
+  const light = unit.enemy ? '#ee7163' : '#7294de';
+  const dark = unit.enemy ? '#501e24' : '#152456';
   if (unit.kind === 'worker') {
-    // Four articulated feet, brass tool pods, armored cab, and a cargo rack.
+    // SCV: two hydraulic legs, a rounded cockpit and asymmetric welding/claw arms.
     for (const side of [-1, 1]) {
       const shift = side * stride;
       polygon(
         ctx,
         [
-          [side * 5, -5],
-          [side * 11, -2 + shift],
-          [side * 14, 1 + shift],
-          [side * 9, 3 + shift],
-          [side * 7, -1],
+          [side * 6, -8],
+          [side * 11, -6 + shift],
+          [side * 13, 1 + shift],
+          [side * 5, 2 + shift],
+          [side * 3, -5],
         ],
-        '#597077',
-        '#0b1c25',
+        '#59616b',
+        '#17191e',
       );
-      ctx.fillStyle = '#aac4c4';
-      ctx.fillRect(side < 0 ? -14 : 8, shift, 7, 2);
+      oval(ctx, side * 8, -5 + shift, 4, 4, '#a9adb1', '#34393e');
+      polygon(
+        ctx,
+        [
+          [side * 5, shift],
+          [side * 15, shift],
+          [side * 17, 4 + shift],
+          [side * 6, 5 + shift],
+        ],
+        '#86888b',
+        '#292a2e',
+      );
     }
     polygon(
       ctx,
       [
-        [-10, -7],
-        [-10, -18],
-        [-3, -23],
-        [8, -19],
-        [10, -7],
-        [3, -3],
+        [-13, -12],
+        [-12, -27],
+        [-4, -31],
+        [6, -25],
+        [9, -10],
+        [0, -5],
       ],
-      flashing ? '#faf3c8' : '#9d7146',
-      '#102732',
+      '#a9a8a0',
+      '#2b2c31',
     );
     polygon(
       ctx,
       [
-        [-10, -18],
-        [-3, -23],
-        [8, -19],
-        [1, -14],
+        [-13, -23],
+        [-20, -21],
+        [-21, -10],
+        [-13, -7],
       ],
-      '#ddbb79',
-      '#102732',
+      blue,
+      '#242732',
     );
-    ctx.fillStyle = '#28516a';
-    ctx.fillRect(0, -17, 7, 6);
-    ctx.fillStyle = '#80e9ec';
-    ctx.fillRect(1, -16, 5, 2);
-    ctx.fillStyle = '#3c454c';
-    ctx.fillRect(-8, -13, 4, 7);
-    ctx.fillStyle = '#ead4a0';
-    ctx.fillRect(-9, -12, 2, 3);
+    for (let vent = 0; vent < 3; vent++) {
+      ctx.fillStyle = '#303741';
+      ctx.fillRect(-19, -19 + vent * 3, 5, 1);
+    }
+    oval(ctx, -1, -20, 11, 13, '#ceccc0', '#393b40');
+    oval(ctx, 2, -22, 8, 9, blue, '#252c40');
+    oval(ctx, 4, -24, 5.5, 6, '#344b52');
     polygon(
       ctx,
       [
-        [8, -11],
-        [13, -14],
+        [0, -28],
+        [7, -28],
+        [8, -23],
+        [2, -22],
+      ],
+      '#b5d5bb',
+    );
+    ctx.fillStyle = '#edf0cb';
+    ctx.fillRect(2, -27, 4, 1);
+    polygon(
+      ctx,
+      [
+        [7, -18],
+        [16, -20],
+        [20, -15],
         [17, -10],
-        [14, -6],
-        [9, -6],
+        [8, -10],
       ],
-      '#82969a',
-      '#102732',
+      '#7f8790',
+      '#252c34',
     );
-    ctx.fillStyle = '#4c6572';
-    ctx.fillRect(13, -12, 8, 4);
-    ctx.fillStyle = '#c7e3db';
-    ctx.fillRect(19, -11, 3, 2);
-    ctx.fillStyle = '#1d313d';
-    ctx.fillRect(-6, -23, 2, -6);
-    ctx.fillStyle = '#f6c966';
-    ctx.fillRect(-7, -30, 4, 2);
+    oval(ctx, 14, -15, 4, 4, '#d2d1bf', '#40454c');
+    polygon(
+      ctx,
+      [
+        [17, -14],
+        [26, -13],
+        [28, -10],
+        [23, -8],
+        [19, -10],
+      ],
+      '#a9b1b9',
+      '#242c36',
+    );
+    ctx.fillStyle = '#4f5661';
+    ctx.fillRect(23, -13, 8, 3);
+    polygon(
+      ctx,
+      [
+        [30, -14],
+        [34, -14],
+        [33, -10],
+        [28, -9],
+      ],
+      '#d0d3c8',
+      '#41484e',
+    );
+    polygon(
+      ctx,
+      [
+        [-12, -15],
+        [-21, -13],
+        [-25, -7],
+        [-21, -2],
+        [-16, -3],
+        [-15, -8],
+      ],
+      '#878e93',
+      '#292d35',
+    );
+    polygon(
+      ctx,
+      [
+        [-23, -6],
+        [-28, -1],
+        [-24, 2],
+        [-21, -1],
+        [-16, 0],
+        [-14, -4],
+      ],
+      '#bcc1be',
+      '#333b42',
+    );
+    ctx.fillStyle = '#f2c640';
+    ctx.fillRect(-13, -17, 4, 2);
+    ctx.fillRect(7, -17, 4, 2);
+    ctx.fillStyle = '#333c47';
+    ctx.fillRect(-9, -37, 2, 10);
+    ctx.fillStyle = '#e9b34e';
+    ctx.fillRect(-10, -39, 4, 2);
     if (unit.cargo > 0) {
       polygon(
         ctx,
         [
-          [-9, -22],
-          [-8, -31],
-          [-2, -35],
-          [2, -28],
-          [-1, -21],
+          [-14, -28],
+          [-14, -38],
+          [-8, -44],
+          [-3, -35],
+          [-6, -28],
         ],
-        '#62e8e1',
-        '#163b4b',
+        '#3b83dc',
+        '#1c395c',
       );
       polygon(
         ctx,
         [
-          [-8, -31],
-          [-2, -35],
-          [-3, -26],
-          [-9, -22],
+          [-14, -38],
+          [-8, -44],
+          [-9, -33],
         ],
-        '#b4fff0',
+        '#b1dcff',
       );
     }
     if (unit.mineTime > 0) {
-      ctx.strokeStyle = '#93fff2';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#ffe997';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(21, -10);
-      ctx.lineTo(27 + Math.sin(time * 40) * 2, -12);
+      ctx.moveTo(31, -12);
+      ctx.lineTo(37, -15 + Math.sin(time * 40) * 3);
       ctx.stroke();
+      oval(ctx, 35, -12, 2, 2, '#fffbc9');
     }
   } else {
-    const base = flashing ? '#fbe8b7' : unit.enemy ? '#ab525d' : '#3e8da2';
-    const light = unit.enemy ? '#e9968c' : '#9fc7c9';
-    const dark = unit.enemy ? '#5b3043' : '#21485f';
-    // Oversized shoulder shells, separate boots/legs, backpack and a pulse rifle.
-    ctx.fillStyle = '#142734';
-    ctx.fillRect(-8, -8 + stride, 6, 8);
-    ctx.fillRect(3, -8 - stride, 6, 8);
-    ctx.fillStyle = light;
-    ctx.fillRect(-8, -2 + stride, 8, 3);
-    ctx.fillRect(3, -2 - stride, 8, 3);
-    polygon(
-      ctx,
-      [
-        [-8, -23],
-        [-11, -17],
-        [-9, -9],
-        [6, -8],
-        [9, -18],
-        [5, -24],
-      ],
-      base,
-      '#0d202d',
-    );
-    ctx.fillStyle = dark;
-    ctx.fillRect(-10, -21, 4, 12);
-    polygon(
-      ctx,
-      [
-        [-5, -21],
-        [4, -22],
-        [7, -15],
-        [-4, -13],
-      ],
-      light,
-      '#193547',
-    );
-    ctx.fillStyle = '#1b3948';
-    ctx.fillRect(-1, -18, 4, 3);
+    // Marine CMC armor: round pauldron shells, integrated helmet, heavy boots and C-14 rifle.
+    for (const side of [-1, 1]) {
+      polygon(
+        ctx,
+        [
+          [side * 2, -10],
+          [side * 8, -10],
+          [side * 9, -2 + side * stride],
+          [side * 3, side * stride],
+        ],
+        dark,
+        '#141725',
+      );
+      oval(ctx, side * 6, -7 + side * stride, 4, 5, blue, '#1b2336');
+      polygon(
+        ctx,
+        [
+          [side * 3, -2 + side * stride],
+          [side * 11, -2 + side * stride],
+          [side * 13, 2 + side * stride],
+          [side * 3, 3 + side * stride],
+        ],
+        '#566581',
+        '#1c2437',
+      );
+    }
     polygon(
       ctx,
       [
         [-9, -25],
-        [-13, -22],
-        [-13, -16],
-        [-6, -14],
-        [-3, -18],
-        [-4, -24],
+        [-14, -23],
+        [-14, -12],
+        [-8, -9],
+        [-4, -14],
       ],
-      base,
-      '#0b202c',
+      '#434c65',
+      '#151a28',
     );
+    ctx.fillStyle = '#8b8b7c';
+    ctx.fillRect(-14, -22, 3, 8);
+    oval(ctx, 0, -19, 10, 11, blue, '#1c243b');
+    oval(ctx, 0, -20, 7, 8, light);
+    oval(ctx, 0, -18, 6, 6, blue);
     polygon(
       ctx,
       [
-        [3, -25],
-        [10, -23],
-        [12, -16],
-        [5, -14],
-        [1, -18],
+        [-6, -16],
+        [4, -15],
+        [5, -10],
+        [-5, -10],
       ],
-      base,
-      '#0b202c',
+      dark,
     );
-    ctx.fillStyle = light;
-    ctx.fillRect(-11, -23, 5, 2);
-    ctx.fillRect(5, -23, 5, 2);
+    for (const side of [-1, 1]) {
+      oval(ctx, side * 10, -23, 7, 8, dark, '#121c32');
+      oval(ctx, side * 10, -25, 6, 5, blue);
+      oval(ctx, side * 11 - 1, -27, 3.5, 2, light);
+      oval(ctx, side * 11, -17, 4, 5, blue, '#1a2134');
+    }
+    oval(ctx, 0, -29, 7.2, 7.5, dark, '#172134');
+    oval(ctx, 0, -31, 6, 5, blue);
+    oval(ctx, -1, -33, 3.5, 1.6, light);
     polygon(
       ctx,
       [
-        [-5, -25],
-        [-5, -31],
-        [-1, -35],
-        [5, -32],
-        [7, -26],
-        [3, -22],
+        [0, -32],
+        [6, -30],
+        [6, -27],
+        [0, -26],
+        [-3, -28],
       ],
-      base,
-      '#10212d',
+      '#a78948',
+      '#292b2f',
     );
-    ctx.fillStyle = '#13232c';
-    ctx.fillRect(0, -29, 7, 4);
-    ctx.fillStyle = unit.enemy ? '#ffb46d' : '#8bf0e8';
-    ctx.fillRect(1, -29, 5, 2);
-    ctx.fillStyle = '#bfd2cd';
-    ctx.fillRect(-4, -32, 5, 2);
-    ctx.fillStyle = '#172a37';
-    ctx.fillRect(4, -18, 15, 5);
-    ctx.fillRect(14, -19, 6, 3);
-    ctx.fillStyle = '#89a4af';
-    ctx.fillRect(6, -18, 10, 2);
-    ctx.fillRect(9, -13, 4, 4);
-    if (unit.enemy) {
+    ctx.fillStyle = '#f3c96f';
+    ctx.fillRect(1, -30, 4, 1);
+    ctx.fillStyle = '#26323d';
+    ctx.fillRect(-1, -25, 7, 2);
+    polygon(
+      ctx,
+      [
+        [2, -19],
+        [17, -20],
+        [23, -18],
+        [23, -14],
+        [12, -13],
+        [4, -15],
+      ],
+      '#5f6875',
+      '#1b222c',
+    );
+    ctx.fillStyle = '#9ba3a8';
+    ctx.fillRect(7, -19, 11, 2);
+    ctx.fillStyle = '#262d37';
+    ctx.fillRect(18, -19, 11, 3);
+    ctx.fillRect(11, -14, 4, 6);
+    ctx.fillStyle = '#b7bebd';
+    ctx.fillRect(27, -19, 3, 3);
+    oval(ctx, 9, -16, 3, 3, blue, '#202b42');
+    if (unit.cooldown > (unit.kind === 'marine' ? 0.52 : 0.84))
       polygon(
         ctx,
         [
-          [-5, -32],
-          [-8, -39],
-          [-1, -34],
+          [30, -19],
+          [36, -22],
+          [34, -18],
+          [40, -16],
+          [32, -14],
         ],
-        '#e3ac99',
-        '#482636',
+        '#fff2a8',
       );
-      ctx.fillStyle = '#ed7b78';
-      ctx.fillRect(-11, -19, 4, 2);
-    }
-    if (unit.cooldown > (unit.kind === 'marine' ? 0.52 : 0.84)) {
-      polygon(
-        ctx,
-        [
-          [21, -20],
-          [30, -18],
-          [24, -15],
-          [31, -12],
-          [20, -13],
-        ],
-        '#fff1a0',
-      );
-      ctx.fillStyle = '#fbaf58';
-      ctx.fillRect(20, -17, 5, 3);
-    }
   }
   ctx.restore();
 }
@@ -350,7 +431,7 @@ export function drawMineral(
   ctx.fill();
   const facets = depleted
     ? ['#3b535c', '#576b70', '#263d47']
-    : ['#57ccdc', '#bbfff2', '#2884b6'];
+    : ['#488ae1', '#b5deff', '#2558a1'];
   for (const [cx, cy, size] of [
     [-11, 1, 0.75],
     [7, 1, 1],
@@ -402,314 +483,582 @@ export function drawBuilding(
   time: number,
 ) {
   const s = tile / 22;
-  const progress = building.progress;
   ctx.save();
-  ctx.fillStyle = '#09151e80';
-  ctx.beginPath();
-  ctx.ellipse(
-    x,
-    y + tile * 0.15,
-    building.size * tile * 1.65,
-    building.size * tile * 0.7,
-    0,
-    0,
-    Math.PI * 2,
-  );
-  ctx.fill();
-  const roof =
-    building.flash > 0 ? '#efddad' : building.enemy ? '#996571' : '#a3b3b1';
-  isoBox(
+  ctx.translate(Math.round(x), Math.round(y));
+  ctx.scale(s, s);
+  const team = building.enemy ? '#ad3c3e' : '#345eae',
+    shine = building.flash > 0 ? '#fff2ce' : '#c3c2af';
+  oval(
     ctx,
-    x,
-    y,
-    building.size * 2.25,
-    building.size * 2.25,
-    7 * s,
-    tile,
-    '#667a80',
-    '#283c4a',
-    '#3b5260',
+    4,
+    8,
+    building.kind === 'turret' ? 35 : building.kind === 'depot' ? 43 : 68,
+    building.kind === 'turret' ? 15 : 25,
+    '#160f0da0',
   );
-  if (progress < 1) {
-    ctx.globalAlpha = 0.42 + progress * 0.58;
-    isoBox(
+  if (building.progress < 1) {
+    const radius = building.size * 42;
+    polygon(
       ctx,
-      x,
-      y - 7 * s,
-      building.size * 1.9,
-      building.size * 1.9,
-      (8 + 20 * progress) * s,
-      tile,
-      '#6f9299',
-      '#294d60',
-      '#3d6a76',
+      [
+        [-radius, 0],
+        [0, -radius * 0.45],
+        [radius, 0],
+        [0, radius * 0.45],
+      ],
+      '#68645b',
+      '#292923',
     );
-    ctx.globalAlpha = 1;
     for (const side of [-1, 1]) {
-      ctx.fillStyle = '#d8b86e';
-      ctx.fillRect(
-        x + side * building.size * tile - 2 * s,
-        y - 42 * s,
-        3 * s,
-        40 * s,
+      polygon(
+        ctx,
+        [
+          [side * radius * 0.75, 3],
+          [side * radius * 0.75, -42],
+          [side * radius * 0.65, -43],
+          [side * radius * 0.65, 0],
+        ],
+        '#d1a945',
+        '#4b4130',
       );
-      ctx.fillStyle = '#586e78';
-      ctx.fillRect(
-        x + side * building.size * tile - 5 * s,
-        y - 44 * s,
-        9 * s,
-        4 * s,
-      );
+      ctx.strokeStyle = '#948a69';
+      ctx.beginPath();
+      ctx.moveTo(side * radius * 0.7, -39);
+      ctx.lineTo(-side * radius * 0.7, -11);
+      ctx.stroke();
     }
-    ctx.strokeStyle = '#d6aa66';
-    ctx.lineWidth = 2 * s;
-    ctx.beginPath();
-    ctx.moveTo(x - building.size * tile, y - 37 * s);
-    ctx.lineTo(x + building.size * tile, y - 37 * s);
-    ctx.stroke();
+    polygon(
+      ctx,
+      [
+        [-radius * 0.65, -12],
+        [0, -radius * 0.38 - 12],
+        [radius * 0.65, -12],
+        [0, radius * 0.35 - 12],
+      ],
+      '#a4a493',
+      '#383e3e',
+    );
+    for (let i = 0; i < Math.floor(building.progress * 8); i++) {
+      ctx.fillStyle = team;
+      ctx.fillRect(-20 + i * 5, -24, 4, 10);
+    }
+    oval(ctx, Math.sin(time * 7) * 25, -16, 3, 3, '#ffe9a0');
     ctx.restore();
     return;
   }
-  if (building.kind === 'headquarters') {
-    isoBox(
-      ctx,
-      x,
-      y - 6 * s,
-      2.3,
-      2.25,
-      25 * s,
-      tile,
-      roof,
-      '#3d6577',
-      '#4c8490',
-    );
-    isoBox(
-      ctx,
-      x - 4 * s,
-      y - 32 * s,
-      1.2,
-      1.45,
-      13 * s,
-      tile,
-      '#c9d2bf',
-      '#688a93',
-      '#89aaab',
-    );
-    isoBox(
-      ctx,
-      x + 30 * s,
-      y + 4 * s,
-      0.65,
-      0.7,
-      22 * s,
-      tile,
-      '#92adaf',
-      '#254b5e',
-      '#3a7081',
-    );
-    ctx.fillStyle = '#172f40';
-    ctx.fillRect(x - 14 * s, y - 26 * s, 21 * s, 13 * s);
-    ctx.fillStyle = '#74d1dc';
-    ctx.fillRect(x - 12 * s, y - 24 * s, 17 * s, 3 * s);
-    ctx.fillStyle = '#d5e4d2';
-    ctx.fillRect(x - 10 * s, y - 10 * s, 16 * s, 3 * s);
-    for (let index = 0; index < 3; index += 1) {
-      ctx.fillStyle = '#7bf1d2';
-      ctx.fillRect(x - 37 * s + index * 5 * s, y - 25 * s, 3 * s, 4 * s);
-    }
-    ctx.fillStyle = '#324c5a';
-    ctx.fillRect(x + 9 * s, y - 67 * s, 3 * s, 23 * s);
-    ctx.save();
-    ctx.translate(x + 10 * s, y - 64 * s);
-    ctx.rotate(Math.sin(time * 0.65) * 0.3);
+  if (building.kind === 'headquarters' || building.kind === 'core') {
+    // Octagonal Command Center, plated circular roof, control module, radar and loading ramp.
     polygon(
       ctx,
       [
-        [-13 * s, -7 * s],
-        [14 * s, -4 * s],
-        [7 * s, 4 * s],
-        [-7 * s, 2 * s],
+        [-63, -9],
+        [-33, -29],
+        [30, -28],
+        [62, -7],
+        [62, 16],
+        [33, 35],
+        [-33, 35],
+        [-63, 14],
       ],
-      '#c3d6ce',
-      '#334d5a',
+      '#77766d',
+      '#282c2b',
     );
-    ctx.strokeStyle = '#698994';
-    ctx.beginPath();
-    ctx.moveTo(-11 * s, -5 * s);
-    ctx.lineTo(10 * s, -2 * s);
-    ctx.stroke();
-    ctx.restore();
-    ctx.fillStyle = '#eac971';
-    ctx.fillRect(x + 9 * s, y - 73 * s, 4 * s, 3 * s);
-  } else if (building.kind === 'barracks') {
-    isoBox(
-      ctx,
-      x,
-      y - 7 * s,
-      1.9,
-      1.85,
-      25 * s,
-      tile,
-      roof,
-      '#4b6171',
-      '#3c7486',
-    );
-    isoBox(
-      ctx,
-      x - 16 * s,
-      y - 32 * s,
-      0.53,
-      1.1,
-      8 * s,
-      tile,
-      '#d0d5c1',
-      '#667881',
-      '#92a5a6',
-    );
-    isoBox(
-      ctx,
-      x + 9 * s,
-      y - 34 * s,
-      0.75,
-      0.65,
-      12 * s,
-      tile,
-      '#789399',
-      '#335b6f',
-      '#467287',
-    );
-    for (let index = 0; index < 4; index += 1) {
-      ctx.fillStyle = '#293f4e';
-      ctx.fillRect(x - 23 * s + index * 4 * s, y - 40 * s, 2 * s, 7 * s);
-    }
     polygon(
       ctx,
       [
-        [x, y - 14 * s],
-        [x + 20 * s, y - 24 * s],
-        [x + 20 * s, y - 3 * s],
-        [x, y + 7 * s],
+        [-58, -12],
+        [-30, -34],
+        [29, -33],
+        [58, -12],
+        [54, 10],
+        [29, 25],
+        [-32, 26],
+        [-57, 9],
       ],
-      '#152b3b',
-      '#8ba5a2',
+      '#b0afa0',
+      '#454940',
     );
-    for (let index = 0; index < 4; index += 1) {
-      ctx.strokeStyle = '#3c5967';
-      ctx.lineWidth = 1 * s;
+    polygon(
+      ctx,
+      [
+        [-58, -12],
+        [-57, 9],
+        [-32, 26],
+        [-30, 2],
+      ],
+      '#646962',
+    );
+    polygon(
+      ctx,
+      [
+        [29, 3],
+        [58, -12],
+        [54, 10],
+        [29, 25],
+      ],
+      '#555c57',
+    );
+    oval(ctx, 0, -23, 48, 25, '#494f4e', '#292f31');
+    oval(ctx, 0, -29, 47, 24, shine, '#4b514e');
+    oval(ctx, 0, -32, 37, 18, '#989c90', '#555b54');
+    for (let i = 0; i < 12; i++) {
+      const a = (i * Math.PI) / 6;
+      ctx.strokeStyle = '#697168';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(x + 2 * s, y - 10 * s + index * 4 * s);
-      ctx.lineTo(x + 18 * s, y - 18 * s + index * 4 * s);
+      ctx.moveTo(Math.cos(a) * 15, -32 + Math.sin(a) * 7);
+      ctx.lineTo(Math.cos(a) * 43, -29 + Math.sin(a) * 21);
       ctx.stroke();
     }
-    ctx.fillStyle = building.queue.length ? '#c7ef90' : '#69c7d1';
-    ctx.fillRect(x - 28 * s, y - 23 * s, 10 * s, 3 * s);
-    ctx.fillStyle = '#e0b966';
-    ctx.fillRect(x + 10 * s, y - 48 * s, 6 * s, 3 * s);
-  } else if (building.kind === 'turret') {
-    isoBox(
+    polygon(
       ctx,
-      x,
-      y - 7 * s,
-      0.95,
-      0.95,
-      14 * s,
-      tile,
-      roof,
-      '#3a5a6a',
-      '#548094',
+      [
+        [-20, -43],
+        [-3, -52],
+        [21, -45],
+        [22, -31],
+        [4, -20],
+        [-21, -31],
+      ],
+      '#a8ada1',
+      '#424b47',
     );
-    isoBox(
+    polygon(
       ctx,
-      x,
-      y - 25 * s,
-      1.05,
-      0.75,
-      12 * s,
-      tile,
-      '#b7c9c3',
-      '#477181',
-      '#66949e',
+      [
+        [-20, -43],
+        [-3, -52],
+        [21, -45],
+        [4, -35],
+      ],
+      '#dbd8bc',
+      '#687167',
     );
-    ctx.save();
-    ctx.translate(x + 4 * s, y - 35 * s);
-    ctx.rotate(-0.5 + Math.sin(time * 0.5) * 0.3);
-    ctx.fillStyle = '#1b3545';
-    ctx.fillRect(0, -5 * s, 28 * s, 5 * s);
-    ctx.fillRect(0, 2 * s, 28 * s, 5 * s);
-    ctx.fillStyle = '#a0bbc0';
-    ctx.fillRect(5 * s, -5 * s, 20 * s, 2 * s);
-    ctx.fillRect(5 * s, 2 * s, 20 * s, 2 * s);
-    if (building.cooldown > 0.61) {
-      ctx.fillStyle = '#ffe299';
-      ctx.fillRect(28 * s, -5 * s, 6 * s, 11 * s);
+    polygon(
+      ctx,
+      [
+        [4, -35],
+        [21, -45],
+        [22, -31],
+        [4, -20],
+      ],
+      team,
+      '#324756',
+    );
+    polygon(
+      ctx,
+      [
+        [-17, -39],
+        [0, -32],
+        [0, -26],
+        [-17, -33],
+      ],
+      '#2a3638',
+    );
+    for (let i = 0; i < 4; i++) {
+      ctx.fillStyle = '#9fc7b1';
+      ctx.fillRect(-15 + i * 4, -36 + i * 1.3, 2, 3);
     }
-    ctx.restore();
-    ctx.fillStyle = '#83ecce';
-    ctx.fillRect(x - 8 * s, y - 35 * s, 7 * s, 3 * s);
-  } else {
-    isoBox(
+    polygon(
       ctx,
-      x,
-      y - 7 * s,
-      2.4,
-      2.4,
-      25 * s,
-      tile,
-      roof,
-      '#593b4f',
-      '#825063',
+      [
+        [-54, -4],
+        [-34, 7],
+        [-35, 16],
+        [-55, 5],
+      ],
+      team,
     );
+    polygon(
+      ctx,
+      [
+        [8, 11],
+        [28, 2],
+        [29, 22],
+        [9, 30],
+      ],
+      '#252c2c',
+      '#c0bda5',
+    );
+    for (let i = 0; i < 4; i++) {
+      ctx.strokeStyle = '#4d5855';
+      ctx.beginPath();
+      ctx.moveTo(10, 14 + i * 4);
+      ctx.lineTo(26, 7 + i * 4);
+      ctx.stroke();
+    }
+    polygon(
+      ctx,
+      [
+        [8, 27],
+        [28, 19],
+        [37, 29],
+        [14, 40],
+      ],
+      '#929787',
+      '#414d43',
+    );
+    for (let i = 0; i < 4; i++) {
+      ctx.strokeStyle = '#3f4944';
+      ctx.beginPath();
+      ctx.moveTo(13 + i * 4, 28 - i * 1.6);
+      ctx.lineTo(20 + i * 4, 36 - i * 1.6);
+      ctx.stroke();
+    }
     for (const side of [-1, 1]) {
-      isoBox(
+      polygon(
         ctx,
-        x + side * 31 * s,
-        y - 18 * s,
-        0.5,
-        0.55,
-        27 * s,
-        tile,
-        '#bf8e8c',
-        '#613946',
-        '#96515d',
+        [
+          [side * 43, -10],
+          [side * 60, -5],
+          [side * 66, 6],
+          [side * 53, 13],
+          [side * 40, 4],
+        ],
+        '#96998c',
+        '#424b45',
       );
-      ctx.fillStyle = '#ff9a72';
-      ctx.fillRect(x + side * 31 * s - 3 * s, y - 55 * s, 5 * s, 11 * s);
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = '#373f3c';
+        ctx.fillRect(side * 51 - 6, -3 + i * 3, 10, 1);
+      }
     }
-    const pulse = 1 + Math.sin(time * 2.5) * 0.03;
+    ctx.fillStyle = '#676f6a';
+    ctx.fillRect(-27, -65, 4, 22);
+    ctx.save();
+    ctx.translate(-25, -65);
+    ctx.rotate(-0.27 + Math.sin(time * 0.5) * 0.12);
+    oval(ctx, 0, 0, 16, 8, '#d2d0b7', '#4a574f');
+    oval(ctx, 0, -2, 13, 5, '#89978e');
+    ctx.strokeStyle = '#e6dfbd';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(-9, 1);
+    ctx.lineTo(7, -10);
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = '#f0bd56';
+    ctx.fillRect(-27, -76, 3, 3);
+    ctx.fillStyle = '#a8b6a3';
+    ctx.fillRect(34, -64, 2, 31);
+    ctx.fillStyle = team;
+    ctx.fillRect(36, -62, 11, 8);
+  } else if (building.kind === 'barracks') {
+    // Offset industrial production blocks, ribbed landing legs and a recessed hangar bay.
     polygon(
       ctx,
       [
-        [x, y - 84 * s * pulse],
-        [x + 18 * s, y - 55 * s],
-        [x + 10 * s, y - 29 * s],
-        [x - 12 * s, y - 28 * s],
-        [x - 18 * s, y - 57 * s],
+        [-56, -10],
+        [-13, -34],
+        [54, -7],
+        [55, 16],
+        [14, 37],
+        [-55, 10],
       ],
-      '#d46a79',
-      '#4d263e',
+      '#626b65',
+      '#303b37',
     );
     polygon(
       ctx,
       [
-        [x, y - 84 * s * pulse],
-        [x + 3 * s, y - 50 * s],
-        [x - 12 * s, y - 28 * s],
-        [x - 18 * s, y - 57 * s],
+        [-50, -39],
+        [-7, -61],
+        [48, -35],
+        [49, -4],
+        [8, 20],
+        [-50, -8],
       ],
-      '#ffbd9c',
+      '#9b9e8e',
+      '#37463e',
     );
     polygon(
       ctx,
       [
-        [x + 3 * s, y - 50 * s],
-        [x + 18 * s, y - 55 * s],
-        [x + 10 * s, y - 29 * s],
-        [x - 12 * s, y - 28 * s],
+        [-50, -39],
+        [-7, -61],
+        [48, -35],
+        [8, -13],
       ],
-      '#9f435c',
+      shine,
+      '#586458',
     );
-    ctx.fillStyle = '#ffd6a0';
-    ctx.fillRect(x - 3 * s, y - 61 * s, 6 * s, 20 * s);
+    polygon(
+      ctx,
+      [
+        [8, -13],
+        [48, -35],
+        [49, -4],
+        [8, 20],
+      ],
+      '#676e66',
+    );
+    polygon(
+      ctx,
+      [
+        [-50, -28],
+        [8, -3],
+        [8, 5],
+        [-50, -20],
+      ],
+      team,
+    );
+    polygon(
+      ctx,
+      [
+        [-41, -10],
+        [-10, 3],
+        [-10, -18],
+        [-41, -32],
+      ],
+      '#283730',
+      '#bac5a3',
+    );
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = '#5c6b59';
+      ctx.beginPath();
+      ctx.moveTo(-38, -27 + i * 4);
+      ctx.lineTo(-13, -16 + i * 4);
+      ctx.stroke();
+    }
+    polygon(
+      ctx,
+      [
+        [12, -12],
+        [38, -26],
+        [39, -5],
+        [13, 10],
+      ],
+      '#202c28',
+      '#acb4a2',
+    );
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = '#55604f';
+      ctx.beginPath();
+      ctx.moveTo(15, -8 + i * 3);
+      ctx.lineTo(35, -19 + i * 3);
+      ctx.stroke();
+    }
+    polygon(
+      ctx,
+      [
+        [-35, -44],
+        [-15, -54],
+        [-1, -47],
+        [-22, -37],
+      ],
+      '#788478',
+      '#3b4d40',
+    );
+    for (let i = 0; i < 5; i++) {
+      ctx.strokeStyle = '#3a4a3e';
+      ctx.beginPath();
+      ctx.moveTo(-32 + i * 4, -44 - i * 2);
+      ctx.lineTo(-21 + i * 4, -39 - i * 2);
+      ctx.stroke();
+    }
+    polygon(
+      ctx,
+      [
+        [14, -41],
+        [29, -48],
+        [45, -40],
+        [45, -53],
+        [30, -62],
+        [14, -54],
+      ],
+      '#8a9888',
+      '#425343',
+    );
+    oval(ctx, 29, -55, 12, 6, '#c4c9b1', '#4b5c49');
+    for (let n = 0; n < 6; n++) {
+      const a = (n * Math.PI) / 3;
+      ctx.strokeStyle = '#617661';
+      ctx.beginPath();
+      ctx.moveTo(29, -55);
+      ctx.lineTo(29 + Math.cos(a) * 10, -55 + Math.sin(a) * 4);
+      ctx.stroke();
+    }
+    for (const side of [-1, 1]) {
+      polygon(
+        ctx,
+        [
+          [side * 39, 2],
+          [side * 52, 5],
+          [side * 53, 21],
+          [side * 41, 25],
+        ],
+        '#b4b79c',
+        '#4c5b48',
+      );
+      ctx.fillStyle = '#4c5548';
+      ctx.fillRect(side * 44 - 2, 6, 4, 12);
+    }
+    ctx.fillStyle = building.queue.length ? '#9edc70' : '#cdb968';
+    ctx.fillRect(-47, -29, 6, 3);
+  } else if (building.kind === 'depot') {
+    polygon(
+      ctx,
+      [
+        [-42, -9],
+        [0, -31],
+        [42, -10],
+        [42, 9],
+        [0, 32],
+        [-42, 12],
+      ],
+      '#777f6c',
+      '#334337',
+    );
+    polygon(
+      ctx,
+      [
+        [-42, -20],
+        [0, -42],
+        [42, -21],
+        [0, 1],
+      ],
+      shine,
+      '#576650',
+    );
+    polygon(
+      ctx,
+      [
+        [-42, -20],
+        [0, 1],
+        [0, 23],
+        [-42, 2],
+      ],
+      '#7c856f',
+    );
+    polygon(
+      ctx,
+      [
+        [0, 1],
+        [42, -21],
+        [42, 2],
+        [0, 23],
+      ],
+      '#616d58',
+    );
+    for (const [px, py] of [
+      [-22, -22],
+      [0, -32],
+      [20, -22],
+      [0, -11],
+    ]) {
+      oval(ctx, px, py, 12, 6, '#687b69', '#3d513e');
+      oval(ctx, px, py - 3, 11, 5, '#a4b3a0');
+      ctx.fillStyle = '#526b53';
+      ctx.fillRect(px - 3, py - 5, 6, 3);
+    }
+    polygon(
+      ctx,
+      [
+        [-37, -10],
+        [-6, 5],
+        [-6, 14],
+        [-37, -1],
+      ],
+      team,
+    );
+    for (let i = 0; i < 6; i++)
+      polygon(
+        ctx,
+        [
+          [7 + i * 5, 3 - i * 2.5],
+          [10 + i * 5, 1.5 - i * 2.5],
+          [10 + i * 5, 9 - i * 2.5],
+          [7 + i * 5, 10.5 - i * 2.5],
+        ],
+        i % 2 ? '#252e28' : '#d8bb59',
+      );
+  } else {
+    // A Bunker is a low concrete pillbox: only its actual embarked Marines can fire.
+    polygon(
+      ctx,
+      [
+        [-38, -1],
+        [-20, -19],
+        [18, -19],
+        [38, -1],
+        [32, 16],
+        [0, 29],
+        [-33, 15],
+      ],
+      '#858a76',
+      '#3b4a3b',
+    );
+    oval(ctx, 0, -9, 33, 20, '#9da58d', '#425341');
+    oval(ctx, -1, -16, 29, 15, shine);
+    polygon(
+      ctx,
+      [
+        [-28, -9],
+        [-12, -2],
+        [-12, 5],
+        [-28, -2],
+      ],
+      '#182b22',
+      '#657f62',
+    );
+    polygon(
+      ctx,
+      [
+        [13, -2],
+        [29, -10],
+        [29, -2],
+        [13, 6],
+      ],
+      '#182b22',
+      '#657f62',
+    );
+    polygon(
+      ctx,
+      [
+        [-5, 1],
+        [5, 1],
+        [5, 16],
+        [-5, 16],
+      ],
+      '#25392a',
+      '#8a9b79',
+    );
+    polygon(
+      ctx,
+      [
+        [-32, -4],
+        [-24, -0.5],
+        [-24, 8],
+        [-32, 4],
+      ],
+      team,
+    );
+    polygon(
+      ctx,
+      [
+        [24, 0],
+        [33, -4],
+        [33, 3],
+        [24, 7],
+      ],
+      team,
+    );
+    oval(ctx, -3, -21, 10, 5, '#7d8f74', '#4a5f44');
+    ctx.fillStyle = '#4b6047';
+    ctx.fillRect(-6, -24, 7, 2);
+    if (building.cooldown > 0.5)
+      for (const side of [-1, 1])
+        polygon(
+          ctx,
+          [
+            [side * 24, -6],
+            [side * 35, -10],
+            [side * 32, -3],
+            [side * 40, 0],
+            [side * 25, 1],
+          ],
+          '#fff0a2',
+        );
   }
   ctx.restore();
 }

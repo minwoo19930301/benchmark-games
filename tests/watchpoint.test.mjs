@@ -49,7 +49,7 @@ function aimed(game, target, y = 1.7, values = {}) {
   return buttons(values, {
     dx: angleDifference(yaw, p.yaw) / LOOK_SENSITIVITY,
     dy: (p.pitch - pitch) / LOOK_SENSITIVITY,
-    secondary: true,
+    secondary: false,
   });
 }
 
@@ -72,7 +72,7 @@ test('mouse deltas rotate actual aim and WASD movement follows camera orientatio
   assert.equal(game.player.pitch, 1.25);
 });
 
-test('hitscan uses actual ray direction, a finite magazine, recoil and an ADS headshot hitbox', () => {
+test('hitscan uses actual ray direction, a finite magazine, recoil and distinct headshot hitboxes', () => {
   const game = isolated();
   const target = game.bots[0];
   game.step(
@@ -83,12 +83,12 @@ test('hitscan uses actual ray direction, a finite magazine, recoil and an ADS he
   assert.equal(game.player.ammo, MAGAZINE - 1);
   advance(game, 0.2);
   game.step(1 / 120, aimed(game, target, 1.05, { attack: true }));
-  assert.equal(target.hp, 78);
+  assert.equal(target.hp, 90);
   assert.equal(game.headshots, 0);
   assert.ok(game.player.recoil > 0);
   advance(game, 0.2);
   game.step(1 / 120, aimed(game, target, 1.7, { attack: true }));
-  assert.equal(target.hp, 24);
+  assert.equal(target.hp, 50);
   assert.equal(game.headshots, 1);
   assert.equal(game.audioCues.shot, 3);
   assert.equal(game.audioCues.hit, 2);
@@ -122,16 +122,28 @@ test('cover occludes bullets and line of sight, while an exposed route is hittab
   );
 });
 
-test('wall collision blocks movement and dash, with independent cooldown and edge-triggered jump', () => {
+test('wall collision blocks sustained sprint, while jump remains edge-triggered', () => {
   const game = isolated();
   game.bots = [];
   game.player.x = -6;
   game.player.z = 13;
   advance(game, 1, buttons({ up: true, special: true }));
-  assert.ok(game.player.z > 10.85, 'dash cannot pass through the planter');
+  assert.ok(
+    game.player.z > 10.85,
+    'sprint cannot pass through the cargo barrier',
+  );
   assert.ok(canStand(game.player.x, game.player.z));
   assert.equal(game.audioCues.dash, 1);
-  assert.ok(game.player.dashCooldown > 3);
+  assert.equal(game.player.sprinting, true);
+  assert.equal('dashCooldown' in game.player, false, 'Sprint has no cooldown');
+  const ammo = game.player.ammo;
+  advance(game, 0.4, buttons({ up: true, special: true, attack: true }));
+  assert.equal(game.player.ammo, ammo, 'cannot fire while sprinting');
+  advance(game, 0.25, buttons({ attack: true }));
+  assert.ok(
+    game.player.ammo < ammo,
+    'releasing Sprint permits the rifle after recovery',
+  );
   game.player.x = 0;
   advance(game, 1.5, buttons({ jump: true }));
   assert.equal(game.player.y, 0);
@@ -197,13 +209,13 @@ test('deployed healing is spatial, limited by cooldown and also restores nearby 
     hp,
     'outside the beacon radius there is no healing',
   );
-  assert.ok(game.player.healCooldown > 11);
+  assert.ok(game.player.healCooldown > 13);
 });
 
-test('ultimate requires earned charge, consumes it once, and buffs aimed damage without aim assistance', () => {
+test('Tactical Visor requires earned charge and assists only targets inside view and line of sight', () => {
   const game = isolated();
   game.step(1 / 120, buttons({ ultimate: true }));
-  assert.equal(game.player.overdrive, 0);
+  assert.equal(game.player.visor, 0);
   advance(game, 0.1);
   const target = game.bots[0];
   for (let i = 0; i < 8; i++) {
@@ -211,28 +223,77 @@ test('ultimate requires earned charge, consumes it once, and buffs aimed damage 
     game.step(1 / 120, aimed(game, target, 1.7, { attack: true }));
     advance(game, 0.16);
   }
-  assert.ok(game.player.ultimate > 50);
+  assert.ok(game.player.ultimate > 50, 'actual damage earns charge');
   game.player.ultimate = 100;
   game.step(1 / 120, buttons({ ultimate: true }));
   assert.equal(game.player.ultimate, 0);
-  assert.ok(game.player.overdrive > 6.9);
+  assert.equal(game.player.visor, 6);
   assert.equal(game.player.ammo, MAGAZINE);
   target.hp = 110;
-  game.step(
-    1 / 120,
-    buttons({ attack: true }, { dx: Math.PI / 2 / LOOK_SENSITIVITY }),
-  );
+  game.player.yaw = 0.22;
+  game.player.pitch = 0;
+  game.step(1 / 120, buttons({ attack: true }));
   assert.equal(
     target.hp,
-    110,
-    'overdrive cannot aim or shoot through geometry',
+    90,
+    'visor connects a normal 20-damage body shot off the crosshair',
   );
+  assert.equal(game.visorHits, 1);
   advance(game, 0.2);
-  game.step(1 / 120, aimed(game, target, 1.05, { attack: true }));
-  assert.ok(
-    target.hp < 60,
-    'boosted body shot causes more damage than the normal 32',
-  );
+  game.player.yaw = Math.PI / 2;
+  game.step(1 / 120, buttons({ attack: true }));
+  assert.equal(target.hp, 90, 'an enemy outside the view cone is not acquired');
+  advance(game, 0.2);
+  Object.assign(game.player, { x: -11, z: 8, yaw: 0, pitch: 0 });
+  Object.assign(target, { x: -11, z: -8 });
+  game.step(1 / 120, buttons({ attack: true }));
+  assert.equal(target.hp, 90, 'visor does not lock or shoot through cover');
+  assert.equal(game.player.visorTarget, -1);
+  advance(game, 6);
+  assert.equal(game.player.visor, 0);
+});
+
+test('Helix Rockets use secondary fire, travel through space, splash nearby bots and respect cover', () => {
+  const game = isolated(),
+    target = game.bots[0];
+  const nearby = { ...target, id: 20, x: 1.2, z: 2, hp: 110 };
+  game.bots.push(nearby);
+  const ammo = game.player.ammo;
+  game.step(1 / 120, buttons({}, { secondaryPressed: true }));
+  assert.equal(game.rockets.length, 1);
+  assert.equal(game.helixShots, 1);
+  assert.equal(target.hp, 110, 'rockets must travel before impact');
+  assert.equal(game.player.ammo, ammo, 'Helix does not spend rifle rounds');
+  assert.equal('ads' in game.player, false, 'secondary fire never enters ADS');
+  advance(game, 0.45);
+  assert.equal(target.hp, 0);
+  assert.ok(nearby.hp < 110, 'nearby bot takes splash');
+  assert.ok(game.player.helixCooldown > 7);
+  game.step(1 / 120, buttons({ guard: true }));
+  assert.equal(game.helixShots, 1);
+  const covered = isolated();
+  Object.assign(covered.player, { x: -11, z: 8, yaw: 0 });
+  Object.assign(covered.bots[0], { x: -11, z: -8 });
+  covered.step(1 / 120, buttons({ guard: true }));
+  advance(covered, 0.5);
+  assert.equal(covered.bots[0].hp, 110);
+  assert.equal(covered.rockets.length, 0);
+});
+
+test('forward Sprint remains active without a cooldown and stops when released or moving backward', () => {
+  const game = isolated();
+  game.bots = [];
+  game.player.z = 20;
+  advance(game, 1, buttons({ up: true, special: true }));
+  assert.ok(game.player.z < 11);
+  assert.equal(game.player.sprinting, true);
+  assert.equal(game.audioCues.dash, 1);
+  advance(game, 0.1);
+  assert.equal(game.player.sprinting, false);
+  advance(game, 0.1, buttons({ up: true, special: true }));
+  assert.equal(game.player.sprinting, true);
+  advance(game, 0.1, buttons({ down: true, special: true }));
+  assert.equal(game.player.sprinting, false);
 });
 
 test('enemy fire has a visible windup then an avoidable projectile that respects cover', () => {
@@ -337,9 +398,10 @@ for (const hz of [30, 60, 120]) {
     assert.ok(game.time < 120);
     assert.ok(game.shots >= 18 && game.shots < 100);
     assert.ok(game.headshots > 0);
+    assert.ok(game.helixShots > 0 && game.visorHits > 0);
     assert.ok(
       game.audioCues.ability > 0,
-      'charged ultimate was used through the ordinary button',
+      'Helix and charged Visor were used through ordinary buttons',
     );
     const frozen = structuredClone(game);
     advance(game, 1, buttons({ attack: true, up: true }));

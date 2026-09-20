@@ -5,44 +5,58 @@ import {
   type RetroSimulation,
 } from '../types.ts';
 
-export type Element = 'ember' | 'leaf' | 'water';
-export type SpeciesId = 'tangerex' | 'dokkaebud' | 'puddleot';
+export type Element = 'ember' | 'leaf' | 'water' | 'normal' | 'flying';
+export type SpeciesId =
+  | 'charmander'
+  | 'bulbasaur'
+  | 'squirtle'
+  | 'pidgey'
+  | 'rattata';
 export const species: Record<
   SpeciesId,
   { name: string; element: Element; maxHp: number; move: string }
 > = {
-  tangerex: {
-    name: 'TANGEREX',
+  charmander: {
+    name: 'CHARMANDER',
     element: 'ember',
     maxHp: 36,
-    move: 'CITRUS FLARE',
+    move: 'EMBER',
   },
-  dokkaebud: {
-    name: 'DOKKAEBUD',
+  bulbasaur: {
+    name: 'BULBASAUR',
     element: 'leaf',
     maxHp: 30,
-    move: 'LEAF WHIRL',
+    move: 'VINE WHIP',
   },
-  puddleot: {
-    name: 'PUDDLEOT',
+  pidgey: { name: 'PIDGEY', element: 'flying', maxHp: 28, move: 'GUST' },
+  rattata: {
+    name: 'RATTATA',
+    element: 'normal',
+    maxHp: 26,
+    move: 'QUICK ATTACK',
+  },
+  squirtle: {
+    name: 'SQUIRTLE',
     element: 'water',
     maxHp: 34,
-    move: 'BUBBLE POP',
+    move: 'WATER GUN',
   },
 };
 export function typeMultiplier(attack: Element, defense: Element): number {
+  if (attack === 'flying' && defense === 'leaf') return 2;
+  if (attack === 'leaf' && defense === 'flying') return 0.5;
   if (
     (attack === 'ember' && defense === 'leaf') ||
     (attack === 'leaf' && defense === 'water') ||
     (attack === 'water' && defense === 'ember')
   )
-    return 1.75;
+    return 2;
   if (
     (defense === 'ember' && attack === 'leaf') ||
     (defense === 'leaf' && attack === 'water') ||
     (defense === 'water' && attack === 'ember')
   )
-    return 0.65;
+    return 0.5;
   return 1;
 }
 export const MAP_WIDTH = 20;
@@ -80,10 +94,14 @@ export interface Battle {
   turn: number;
   flash: number;
   outcome: 'caught' | 'fled' | null;
+  menu: 'main' | 'moves' | 'items' | 'party';
+  cursor: number;
+  transition: number;
 }
 
 /** A deterministic walking/turn-battle game. All gameplay enters through step(). */
 export class PocketSimulation implements RetroSimulation {
+  audioCues = { hit: 0, pickup: 0, ability: 0 };
   phase: RetroSnapshot['phase'] = 'playing';
   time = 0;
   score = 0;
@@ -95,17 +113,24 @@ export class PocketSimulation implements RetroSimulation {
     walk: 0,
     moving: false,
   };
-  party: Pal[] = [{ id: 'tangerex', hp: species.tangerex.maxHp }];
+  party: Pal[] = [{ id: 'charmander', hp: species.charmander.maxHp }];
   active = 0;
   caught: SpeciesId[] = [];
   balls = 6;
   cakes = 3;
   encounters = 0;
   battle: Battle | null = null;
-  message =
-    'Catch 2 different pals in the grass. Then find rival Miso on Route 1!';
+  message = 'OAK: Catch two kinds of POKEMON on ROUTE 1. Then challenge BLUE!';
   messageTime = 8;
   rivalDefeated = false;
+  private menuHeld = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+    jump: false,
+    switch: false,
+  };
   private grassDistance = 0;
   private encounterGrace = 0;
   private talkCooldown = 0;
@@ -122,21 +147,28 @@ export class PocketSimulation implements RetroSimulation {
       progress: this.rivalDefeated ? 1 : Math.min(0.66, this.caught.length / 3),
       objective:
         this.phase === 'won'
-          ? '첫 번째 길 완주! 두 친구와 라이벌전에서 승리했습니다.'
+          ? '첫 번째 길 완주! 두 종류의 포켓몬을 모으고 라이벌전에서 승리했습니다.'
           : this.phase === 'lost'
-            ? '친구들이 모두 지쳤습니다. 귤빛 마을에서 다시 시작하세요.'
+            ? '포켓몬들이 모두 지쳤습니다. 태초마을에서 다시 시작하세요.'
             : this.caught.length < 2
-              ? `서로 다른 친구 포획 (${this.caught.length}/2) · HP 45% 이하에서 L · 진료소 E: 회복`
+              ? `서로 다른 포켓몬 포획 (${this.caught.length}/2) · HP 45% 이하에서 L · 포켓몬센터 E: 회복`
               : this.mode === 'battle' && this.battle?.kind === 'rival'
-                ? '라이벌 미소를 이기세요! ← → 친구 교체 · K 속성 기술 · E 회복 떡'
-                : '북쪽 길의 미소에게 E로 도전하세요! 전투 중 ← →로 친구를 교체할 수 있습니다.',
+                ? '라이벌 그린을 이기세요! POKEMON 메뉴 → Space 교체 · K 속성 기술 · E 상처약'
+                : '북쪽 길의 그린에게 E로 도전하세요! 전투 중 POKEMON 메뉴에서 Space로 교체하세요.',
       stats: [
-        { label: 'PALS', value: `${this.caught.length}/2` },
+        { label: 'DEX', value: `${this.caught.length}/2` },
         { label: 'HP', value: `${this.pal.hp}/${species[this.pal.id].maxHp}` },
-        { label: 'ORB', value: this.balls },
-        { label: 'CAKES', value: this.cakes },
+        { label: 'BALL', value: this.balls },
+        { label: 'POTION', value: this.cakes },
       ],
     };
+  }
+
+  clearInput(): void {
+    for (const key of Object.keys(
+      this.menuHeld,
+    ) as (keyof typeof this.menuHeld)[])
+      this.menuHeld[key] = false;
   }
 
   step(dt: number, input: Input): void {
@@ -196,19 +228,19 @@ export class PocketSimulation implements RetroSimulation {
         this.balls = 6;
         this.cakes = 3;
         this.say(
-          'Nurse Hana: all healed! Fresh orbs and rice cakes. Good luck!',
+          'JOY: Your POKEMON are fully healed. We hope to see you again!',
         );
       } else if (
         Math.hypot(this.player.x - RIVAL.x, this.player.y - RIVAL.y) < 1.35
       ) {
-        if (this.caught.length >= 2) this.beginBattle('rival', 'puddleot');
+        if (this.caught.length >= 2) this.beginBattle('rival', 'squirtle');
         else
           this.say(
-            'Miso: make two different friends in the tall grass. Then let us battle!',
+            'BLUE: make two different friends in the tall grass. Then let us battle!',
           );
       } else
         this.say(
-          'Citrus Clinic: southwest. Tall grass: center. Miso: north road.',
+          'POKEMON CENTER: southwest. Tall grass: center. BLUE: north road.',
         );
     }
     if (this.mode !== 'world') return;
@@ -219,8 +251,7 @@ export class PocketSimulation implements RetroSimulation {
       this.grassDistance += distance;
       if (this.grassDistance >= 2.7) {
         this.grassDistance = 0;
-        const id: SpeciesId =
-          this.encounters % 2 === 0 ? 'dokkaebud' : 'puddleot';
+        const id: SpeciesId = this.encounters % 2 === 0 ? 'pidgey' : 'rattata';
         this.encounters++;
         this.beginBattle('wild', id);
       }
@@ -231,7 +262,7 @@ export class PocketSimulation implements RetroSimulation {
   private beginBattle(kind: Battle['kind'], id: SpeciesId): void {
     this.mode = 'battle';
     this.player.moving = false;
-    const maxHp = kind === 'rival' ? 58 : id === 'dokkaebud' ? 24 : 28;
+    const maxHp = kind === 'rival' ? 58 : id === 'pidgey' ? 24 : 28;
     this.battle = {
       kind,
       id,
@@ -241,11 +272,14 @@ export class PocketSimulation implements RetroSimulation {
       turn: 0,
       flash: 0,
       outcome: null,
+      menu: 'main',
+      cursor: 0,
+      transition: 0.55,
     };
     this.say(
       kind === 'rival'
-        ? 'Miso: show me what your new friends can do!'
-        : `A wild ${species[id].name} appeared! Weaken it before throwing an orb.`,
+        ? 'BLUE: show me what your new friends can do!'
+        : `A wild ${species[id].name} appeared! Weaken it before throwing an POKE BALL.`,
       20,
     );
   }
@@ -255,6 +289,19 @@ export class PocketSimulation implements RetroSimulation {
     if (!battle) return;
     battle.cooldown = Math.max(0, battle.cooldown - dt);
     battle.flash = Math.max(0, battle.flash - dt);
+    battle.transition = Math.max(0, battle.transition - dt);
+    const pressed = (key: keyof typeof this.menuHeld) =>
+      input[key] && !this.menuHeld[key];
+    const up = pressed('up'),
+      down = pressed('down'),
+      left = pressed('left'),
+      right = pressed('right'),
+      confirm = pressed('jump'),
+      back = pressed('switch');
+    for (const key of Object.keys(
+      this.menuHeld,
+    ) as (keyof typeof this.menuHeld)[])
+      this.menuHeld[key] = input[key];
     if (battle.cooldown > 0) return;
     if (battle.outcome) {
       this.mode = 'world';
@@ -262,32 +309,92 @@ export class PocketSimulation implements RetroSimulation {
       this.encounterGrace = 0.35;
       return;
     }
-    if ((input.left || input.right) && this.party.length > 1) {
-      const direction = input.left ? -1 : 1;
-      for (let index = 1; index <= this.party.length; index++) {
-        const next =
-          (this.active + direction * index + this.party.length * 2) %
-          this.party.length;
-        if (this.party[next].hp > 0) {
-          this.active = next;
-          break;
-        }
-      }
-      battle.cooldown = 0.25;
-      this.say(`Go, ${species[this.pal.id].name}!`, 20);
+    if (back) {
+      battle.menu = 'main';
+      battle.cursor = 0;
       return;
+    }
+    const choices =
+      battle.menu === 'main'
+        ? 4
+        : battle.menu === 'party'
+          ? this.party.length
+          : 2;
+    if (up || down || left || right) {
+      const delta =
+        battle.menu === 'main'
+          ? up
+            ? -2
+            : down
+              ? 2
+              : left
+                ? -1
+                : 1
+          : up || left
+            ? -1
+            : 1;
+      battle.cursor = (battle.cursor + delta + choices) % choices;
+      return;
+    }
+    if (confirm) {
+      if (battle.menu === 'main') {
+        if (battle.cursor === 3) {
+          if (battle.kind === 'rival')
+            this.say('No! There is no running from a TRAINER battle!', 20);
+          else {
+            battle.outcome = 'fled';
+            battle.cooldown = 0.5;
+            this.say('Got away safely!', 4);
+          }
+          return;
+        }
+        battle.menu =
+          battle.cursor === 0
+            ? 'moves'
+            : battle.cursor === 1
+              ? 'party'
+              : 'items';
+        battle.cursor = 0;
+        return;
+      }
+      if (battle.menu === 'party') {
+        if (
+          this.party[battle.cursor]?.hp > 0 &&
+          this.active !== battle.cursor
+        ) {
+          this.active = battle.cursor;
+          this.say(`Go! ${species[this.pal.id].name}!`, 20);
+          battle.cooldown = 1.0;
+          this.enemyTurn(battle);
+        }
+        battle.menu = 'main';
+        battle.cursor = 0;
+        return;
+      }
+      input = {
+        ...input,
+        attack: battle.menu === 'moves' && battle.cursor !== 1,
+        special: battle.menu === 'moves' && battle.cursor === 1,
+        guard: battle.menu === 'items' && battle.cursor === 0,
+        interact: battle.menu === 'items' && battle.cursor === 1,
+      };
+      battle.menu = 'main';
+      battle.cursor = 0;
     }
     if (!input.attack && !input.special && !input.guard && !input.interact)
       return;
-    battle.cooldown = 0.7;
+    battle.cooldown = 1.0;
     battle.flash = 0.18;
     if (input.guard) {
       if (battle.kind === 'rival') {
-        this.say('Miso is a trainer. You can only catch wild pals!', 20);
+        this.say('BLUE is a trainer. You can only catch wild POKEMON!', 20);
         return;
       }
       if (this.balls === 0) {
-        this.say('No orbs! Finish this battle, then visit the clinic.', 20);
+        this.say(
+          'No POKE BALLS! Finish this battle, then visit the clinic.',
+          20,
+        );
         return;
       }
       this.balls--;
@@ -297,23 +404,28 @@ export class PocketSimulation implements RetroSimulation {
           this.party.push({ id: battle.id, hp: species[battle.id].maxHp });
           this.score += 300;
         } else this.score += 50;
+        this.audioCues.pickup++;
         battle.outcome = 'caught';
         battle.cooldown = 0.9;
         this.say(
-          `Click! ${species[battle.id].name} joined you! ${this.caught.length}/2 different pals.`,
+          `Click! ${species[battle.id].name} joined you! ${this.caught.length}/2 different POKEMON.`,
           5,
         );
         return;
       }
-      this.say('The orb opened! Get the wild HP bar below half (45%).', 20);
+      this.say(
+        'The POKE BALL opened! Get the wild HP bar below half (45%).',
+        20,
+      );
     } else if (input.interact) {
       if (!this.cakes) {
-        this.say('No rice cakes left. The town clinic can refill them.', 20);
+        this.say('No POTIONS left. The town clinic can refill them.', 20);
         return;
       }
       this.cakes--;
+      this.audioCues.pickup++;
       this.pal.hp = Math.min(species[this.pal.id].maxHp, this.pal.hp + 22);
-      this.say(`${species[this.pal.id].name} ate a rice cake. +22 HP!`, 20);
+      this.say(`${species[this.pal.id].name} used a POTION. +22 HP!`, 20);
     } else {
       const multiplier = typeMultiplier(
         species[this.pal.id].element,
@@ -323,8 +435,9 @@ export class PocketSimulation implements RetroSimulation {
         ? Math.max(2, Math.round(10 * multiplier))
         : 7;
       battle.hp = Math.max(0, battle.hp - damage);
+      this.audioCues.hit++;
       this.say(
-        `${species[this.pal.id].name}: ${input.special ? species[this.pal.id].move : 'QUICK BUMP'}! -${damage} HP${input.special && multiplier > 1 ? ' Super effective!' : input.special && multiplier < 1 ? ' Not very effective.' : ''}`,
+        `${species[this.pal.id].name}: ${input.special ? species[this.pal.id].move : this.pal.id === 'charmander' ? 'SCRATCH' : 'TACKLE'}! -${damage} HP${input.special && multiplier > 1 ? ' Super effective!' : input.special && multiplier < 1 ? ' Not very effective.' : ''}`,
         20,
       );
       if (battle.hp === 0) {
@@ -332,22 +445,28 @@ export class PocketSimulation implements RetroSimulation {
         if (battle.kind === 'rival') {
           this.rivalDefeated = true;
           this.phase = 'won';
+          this.audioCues.ability++;
           this.say(
-            'Miso: what a team! Your first route adventure is complete.',
+            'BLUE: what a team! Your first route adventure is complete.',
             60,
           );
         } else {
           battle.outcome = 'fled';
           battle.cooldown = 0.85;
           this.say(
-            'The wild pal scampered away. To catch one, stop attacking when HP is low.',
+            'The wild POKEMON scampered away. To catch one, stop attacking when HP is low.',
             5,
           );
         }
         return;
       }
     }
+    this.enemyTurn(battle);
+  }
+
+  private enemyTurn(battle: Battle): void {
     battle.turn++;
+    this.audioCues.hit++;
     const response = Math.max(
       1,
       Math.round(
@@ -368,7 +487,7 @@ export class PocketSimulation implements RetroSimulation {
       } else {
         this.phase = 'lost';
         this.say(
-          'Your team needs a rest. Start a fresh journey from Citrus Town.',
+          'Your team needs a rest. Start a fresh journey from PALLET TOWN.',
           60,
         );
       }
@@ -396,7 +515,15 @@ export function benchmarkInput(game: PocketSimulation): Input {
       game.active,
     );
     if (desired !== game.active) {
-      input.right = true;
+      if (battle.menu === 'main') {
+        if (battle.cursor !== 1) input.right = true;
+        else input.jump = true;
+      } else if (battle.menu === 'party') {
+        if (battle.cursor !== desired) input.down = true;
+        else input.jump = true;
+      } else input.switch = true;
+      // One input edge followed by a release tick, as for a key tap.
+      if (Math.floor(game.time * 10 + 1e-5) % 2) return idleInput();
       return input;
     }
     if (game.pal.hp < 10 && game.cakes > 0) input.interact = true;

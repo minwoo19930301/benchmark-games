@@ -6,7 +6,11 @@ import {
   type RetroSnapshot,
 } from './types.ts';
 import { ArcadeAudio } from './audio.ts';
-import { FrameSamples, type BenchmarkRecord } from './metrics.ts';
+import {
+  BENCHMARK_VERSION,
+  FrameSamples,
+  type BenchmarkRecord,
+} from './metrics.ts';
 
 export type RunPhase = 'ready' | 'playing' | 'paused' | 'won' | 'lost';
 export type RuntimeState = Omit<RetroSnapshot, 'phase'> & {
@@ -175,6 +179,7 @@ export function createRuntime(
         if (automated) {
           const { width, height } = size();
           onComplete({
+            benchmarkVersion: BENCHMARK_VERSION,
             ...samples.summary(),
             game: cartridge.id,
             title: cartridge.title,
