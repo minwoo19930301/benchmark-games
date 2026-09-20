@@ -358,46 +358,6 @@
   background: var(--game-accent);
   color: #fff;
 }
-.classic-shelf {
-  max-width: 1180px;
-  margin: 35px auto 55px;
-  display: flex;
-  border: 1px solid #212d39;
-  align-items: stretch;
-}
-.classic-shelf > span {
-  padding: 20px;
-  font:
-    10px/1.7 'Courier New',
-    monospace;
-  width: 180px;
-  display: flex;
-  align-items: center;
-}
-.classic-shelf > a {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  gap: 7px;
-  padding: 22px;
-  border-left: 1px solid #212d39;
-  color: #212d39;
-  text-decoration: none;
-}
-.classic-shelf > a:hover {
-  background: #f2d744;
-}
-.classic-shelf b {
-  font:
-    900 21px 'Arial Black',
-    sans-serif;
-}
-.classic-shelf a span {
-  font:
-    9px 'Courier New',
-    monospace;
-}
 .benchmark-ledger {
   max-width: 1180px;
   margin: auto;
@@ -609,20 +569,6 @@
   .cartridge-play {
     display: none;
   }
-  .classic-shelf > span {
-    width: 110px;
-    padding: 12px;
-    font-size: 8px;
-  }
-  .classic-shelf > a {
-    padding: 14px;
-  }
-  .classic-shelf b {
-    font-size: 16px;
-  }
-  .classic-shelf a span {
-    font-size: 7px;
-  }
   .library-footer {
     flex-wrap: wrap;
     gap: 15px;
@@ -705,18 +651,6 @@
   }
   .cartridge-copy h3 {
     font-size: 9px;
-  }
-  .classic-shelf {
-    flex-wrap: wrap;
-    margin-bottom: 40px;
-  }
-  .classic-shelf > span {
-    width: 100%;
-    padding: 10px;
-    border-bottom: 1px solid #212d39;
-  }
-  .classic-shelf > a:first-of-type {
-    border-left: 0;
   }
   .library-footer a {
     margin-left: 0;

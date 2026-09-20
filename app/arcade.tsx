@@ -7,6 +7,41 @@ import {
   type BenchmarkRecord,
 } from '../lib/retro/metrics';
 import './arcade.css';
+import marioPreview from '../docs/preview.jpg';
+import sonicPreview from '../docs/sonic-preview.png';
+
+const libraryGames = [
+  {
+    id: 'mario',
+    number: '01',
+    title: 'MARIO 2.5D — GREEN HILLS',
+    korean: '마리오 2.5D',
+    reference: 'Super Mario Bros.',
+    year: '1985',
+    genre: '달리기·점프 · 2.5D',
+    description:
+      '코인을 모으고 적을 밟으며 깃발까지. 걷기와 달리기, 짧고 긴 점프.',
+    accent: '#d94334',
+    preview: marioPreview,
+  },
+  {
+    id: 'sonic',
+    number: '02',
+    title: 'SONIC — SEASIDE SPRINT',
+    korean: '소닉: 시사이드 스프린트',
+    reference: 'Sonic the Hedgehog',
+    year: '1991',
+    genre: '관성·스핀 대시 · 2.5D',
+    description:
+      '해안을 질주하며 링을 모으고 360도 루프를 통과한다. 직접 플레이와 자동 벤치마크.',
+    accent: '#245ce7',
+    preview: sonicPreview,
+  },
+  ...catalog.map((game) => ({
+    ...game,
+    preview: `${import.meta.env.BASE_URL}previews/${game.id}.png?v=${BENCHMARK_VERSION}`,
+  })),
+];
 const Mario = lazy(() => import('./page')),
   Sonic = lazy(() => import('./sonic')),
   Retro = lazy(() => import('./retro'));
@@ -94,21 +129,21 @@ export default function Arcade() {
             ALL GAMES{' '}
             <small>{String(catalog.length + 2).padStart(2, '0')}</small>
           </a>
-          {inGame && (
-            <>
-              <a
-                href="#mario"
-                aria-current={selected === 'mario' ? 'page' : undefined}
-              >
-                MARIO
-              </a>
-              <a
-                href="#sonic"
-                aria-current={selected === 'sonic' ? 'page' : undefined}
-              >
-                SONIC
-              </a>
-              {catalog.map((game) => (
+          <>
+            <a
+              href="#mario"
+              aria-current={selected === 'mario' ? 'page' : undefined}
+            >
+              MARIO
+            </a>
+            <a
+              href="#sonic"
+              aria-current={selected === 'sonic' ? 'page' : undefined}
+            >
+              SONIC
+            </a>
+            {inGame &&
+              catalog.map((game) => (
                 <a
                   key={game.id}
                   href={`#${game.id}`}
@@ -131,8 +166,7 @@ export default function Arcade() {
                                 : game.id.toUpperCase()}
                 </a>
               ))}
-            </>
-          )}
+          </>
         </div>
         <a
           className="arcade-source"
@@ -239,7 +273,7 @@ export default function Arcade() {
               ))}
           </section>
           <section className="cartridge-list" aria-label="게임 목록">
-            {[...catalog].map((game) => (
+            {libraryGames.map((game) => (
               <article
                 className={`cartridge-row cartridge-${game.id}`}
                 key={game.id}
@@ -251,11 +285,7 @@ export default function Arcade() {
                   tabIndex={-1}
                   aria-hidden="true"
                 >
-                  <img
-                    src={`${import.meta.env.BASE_URL}previews/${game.id}.png?v=${BENCHMARK_VERSION}`}
-                    alt=""
-                    loading="lazy"
-                  />
+                  <img src={game.preview} alt="" loading="lazy" />
                   <span>{game.genre}</span>
                 </a>
                 <div className="cartridge-copy">
@@ -279,17 +309,6 @@ export default function Arcade() {
                 </a>
               </article>
             ))}
-          </section>
-          <section className="classic-shelf" aria-label="기존 게임">
-            <span>ALREADY IN YOUR COLLECTION</span>
-            <a href="#mario">
-              <b>01 / MARIO</b>
-              <span>GREEN HILLS · 2.5D ↗</span>
-            </a>
-            <a href="#sonic">
-              <b>02 / SONIC</b>
-              <span>SEASIDE SPRINT · 2.5D ↗</span>
-            </a>
           </section>
           <section className="benchmark-ledger">
             <header>
