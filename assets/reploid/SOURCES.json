@@ -1,0 +1,839 @@
+{
+  "name": "Mega Man X4 X and Zero animation artwork",
+  "originalCreator": "CAPCOM CO., LTD.",
+  "mirrors": [
+    "https://github.com/wabtytsai/Fakeman-X4",
+    "https://github.com/surcae/MegaMan-X4"
+  ],
+  "xSourceCommit": "fe46a1beacece057b2b953612ad6872374af2077",
+  "retrieved": "2026-09-21",
+  "usage": "Unmodified source PNG and GIF files served locally. X4 artwork is reused for X and Zero in the compact X4/X5/X6 recreations. Procedural fallback is used for unsupported poses or failed image loads. This is original Capcom game artwork, not original project artwork.",
+  "license": "Original game artwork remains attributable to Capcom; the mirrors do not establish a separate art license.",
+  "files": [
+    {
+      "file": "x/rest-0.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%200.png",
+      "sha256": "a2f663be7b676df9795dbd5cbaed28c76aa81807d3e74e70e202236250f1df1f",
+      "bytes": 1381,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 0,
+      "alphaBounds": [
+        0,
+        0,
+        35,
+        46
+      ]
+    },
+    {
+      "file": "x/rest-1.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%201.png",
+      "sha256": "f74a6ce4fcc17a202c0da506b69e5e04c81bceac4510d8f1e12ddc667459b3e2",
+      "bytes": 1395,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 1,
+      "alphaBounds": [
+        0,
+        1,
+        35,
+        45
+      ]
+    },
+    {
+      "file": "x/rest-2.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%202.png",
+      "sha256": "82c7567a37d7dac328667543b9c535dc81854e5df4ac323f080d234586beddb7",
+      "bytes": 1398,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 2,
+      "alphaBounds": [
+        0,
+        2,
+        35,
+        44
+      ]
+    },
+    {
+      "file": "x/rest-3.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%203.png",
+      "sha256": "c3368176c25f9bc177d8ea4ee24291780c4170b9a5685791ad3c0b544fb00f92",
+      "bytes": 1402,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 3,
+      "alphaBounds": [
+        0,
+        2,
+        35,
+        44
+      ]
+    },
+    {
+      "file": "x/rest-4.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%204.png",
+      "sha256": "6670ec15c6b2d8054e061a1fa3a55f8ba2e8e9165c41c9849e441c524552eb06",
+      "bytes": 1389,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 4,
+      "alphaBounds": [
+        0,
+        2,
+        35,
+        44
+      ]
+    },
+    {
+      "file": "x/rest-5.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%205.png",
+      "sha256": "c3368176c25f9bc177d8ea4ee24291780c4170b9a5685791ad3c0b544fb00f92",
+      "bytes": 1402,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 5,
+      "alphaBounds": [
+        0,
+        2,
+        35,
+        44
+      ]
+    },
+    {
+      "file": "x/rest-6.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%206.png",
+      "sha256": "82c7567a37d7dac328667543b9c535dc81854e5df4ac323f080d234586beddb7",
+      "bytes": 1398,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 6,
+      "alphaBounds": [
+        0,
+        2,
+        35,
+        44
+      ]
+    },
+    {
+      "file": "x/rest-7.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_rest/x_rest%207.png",
+      "sha256": "f74a6ce4fcc17a202c0da506b69e5e04c81bceac4510d8f1e12ddc667459b3e2",
+      "bytes": 1395,
+      "width": 36,
+      "height": 47,
+      "animation": "rest",
+      "frame": 7,
+      "alphaBounds": [
+        0,
+        1,
+        35,
+        45
+      ]
+    },
+    {
+      "file": "x/walk-0.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%200.png",
+      "sha256": "9f29278fc269cf93310aa9a2d6e0cdf77faf522909786de2b93897667da36504",
+      "bytes": 1225,
+      "width": 41,
+      "height": 49,
+      "animation": "walk",
+      "frame": 0,
+      "alphaBounds": [
+        8,
+        1,
+        32,
+        46
+      ]
+    },
+    {
+      "file": "x/walk-1.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%201.png",
+      "sha256": "074d10d2aa7f1053e99cc80a2bde67340ca64d86c2adbe673aa85f164459f91e",
+      "bytes": 1394,
+      "width": 45,
+      "height": 48,
+      "animation": "walk",
+      "frame": 1,
+      "alphaBounds": [
+        4,
+        1,
+        40,
+        44
+      ]
+    },
+    {
+      "file": "x/walk-2.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%202.png",
+      "sha256": "e78c3e633a8c71a85a9ff378f76644bb605f7a8a75eaad5977dde2fdeaf49317",
+      "bytes": 1436,
+      "width": 49,
+      "height": 48,
+      "animation": "walk",
+      "frame": 2,
+      "alphaBounds": [
+        0,
+        2,
+        48,
+        43
+      ]
+    },
+    {
+      "file": "x/walk-3.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%203.png",
+      "sha256": "fb421db57ca729f63791639517b1d8a5a06bf8f3949a18d09cb20cb023f6f25e",
+      "bytes": 1375,
+      "width": 50,
+      "height": 48,
+      "animation": "walk",
+      "frame": 3,
+      "alphaBounds": [
+        1,
+        3,
+        48,
+        43
+      ]
+    },
+    {
+      "file": "x/walk-4.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%204.png",
+      "sha256": "fc510aed0a6b505e405ea8f5c5748b199abc1bdb5b5b8520ee48ba1b03e71fb6",
+      "bytes": 1281,
+      "width": 44,
+      "height": 48,
+      "animation": "walk",
+      "frame": 4,
+      "alphaBounds": [
+        4,
+        2,
+        39,
+        44
+      ]
+    },
+    {
+      "file": "x/walk-5.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%205.png",
+      "sha256": "2af0532135f22b8bf637f27794a74383f9b1ffb7bfd099f169e3834b5c842b54",
+      "bytes": 1166,
+      "width": 41,
+      "height": 48,
+      "animation": "walk",
+      "frame": 5,
+      "alphaBounds": [
+        10,
+        1,
+        30,
+        45
+      ]
+    },
+    {
+      "file": "x/walk-6.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%206.png",
+      "sha256": "2bc05435fef8b5f96fda888f7ec6cf8dadd8255f29483e566f9eb42111730906",
+      "bytes": 1152,
+      "width": 42,
+      "height": 49,
+      "animation": "walk",
+      "frame": 6,
+      "alphaBounds": [
+        14,
+        1,
+        27,
+        46
+      ]
+    },
+    {
+      "file": "x/walk-7.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%207.png",
+      "sha256": "fe0f7648a60c7ae62337e8427176e2f080e2383d3573569beed7686410e74b47",
+      "bytes": 1447,
+      "width": 45,
+      "height": 49,
+      "animation": "walk",
+      "frame": 7,
+      "alphaBounds": [
+        9,
+        1,
+        35,
+        45
+      ]
+    },
+    {
+      "file": "x/walk-8.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%208.png",
+      "sha256": "f4bf7511c0adc44a8f6d8f432592b8f5ceac7ac1b43e8c43c4bde54f1030a75f",
+      "bytes": 1548,
+      "width": 46,
+      "height": 48,
+      "animation": "walk",
+      "frame": 8,
+      "alphaBounds": [
+        5,
+        1,
+        40,
+        45
+      ]
+    },
+    {
+      "file": "x/walk-9.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%209.png",
+      "sha256": "796dc7671fb07f7859d0d1b9b7437b6361961babc6da4562e7bfc4d2bd3a1ce2",
+      "bytes": 1452,
+      "width": 47,
+      "height": 48,
+      "animation": "walk",
+      "frame": 9,
+      "alphaBounds": [
+        4,
+        2,
+        42,
+        44
+      ]
+    },
+    {
+      "file": "x/walk-10.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%2010.png",
+      "sha256": "d018fab16b40d4df652e0c0d49b57a889bfe8747f12c16933719145da35a83b8",
+      "bytes": 1437,
+      "width": 47,
+      "height": 48,
+      "animation": "walk",
+      "frame": 10,
+      "alphaBounds": [
+        4,
+        3,
+        42,
+        44
+      ]
+    },
+    {
+      "file": "x/walk-11.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%2011.png",
+      "sha256": "8584ca62b310b827eceaa47f8be4dc14b65951e83ad770d5780272563bbafb93",
+      "bytes": 1388,
+      "width": 45,
+      "height": 48,
+      "animation": "walk",
+      "frame": 11,
+      "alphaBounds": [
+        6,
+        2,
+        38,
+        45
+      ]
+    },
+    {
+      "file": "x/walk-12.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%2012.png",
+      "sha256": "ae1fd7ed50d35b751cae1c1968e8b3856c649223573027cec3f8315815553434",
+      "bytes": 1295,
+      "width": 44,
+      "height": 48,
+      "animation": "walk",
+      "frame": 12,
+      "alphaBounds": [
+        11,
+        1,
+        32,
+        46
+      ]
+    },
+    {
+      "file": "x/walk-13.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_walk/x_walk%2013.png",
+      "sha256": "348b17070d6baaa642379057ab99d6119c1c0451e7e18cd69107c6383bfbe33e",
+      "bytes": 1082,
+      "width": 44,
+      "height": 48,
+      "animation": "walk",
+      "frame": 13,
+      "alphaBounds": [
+        16,
+        0,
+        27,
+        47
+      ]
+    },
+    {
+      "file": "x/jump-0.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%200.png",
+      "sha256": "3f340dcb47273adeb1a9d200e905346bd35d2fa5d85d1bc1899bc6267c91030d",
+      "bytes": 1294,
+      "width": 34,
+      "height": 62,
+      "animation": "jump",
+      "frame": 0,
+      "alphaBounds": [
+        8,
+        5,
+        25,
+        48
+      ]
+    },
+    {
+      "file": "x/jump-1.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%201.png",
+      "sha256": "045d6f33148fe33212e15c63ec34941ada31d02982bfaf96a46112e20696c83f",
+      "bytes": 1215,
+      "width": 33,
+      "height": 63,
+      "animation": "jump",
+      "frame": 1,
+      "alphaBounds": [
+        9,
+        5,
+        23,
+        51
+      ]
+    },
+    {
+      "file": "x/jump-2.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%202.png",
+      "sha256": "3f4e9d3cb88083fdbdee39a6c88a2bb5c800a1e26e6eafb04f81409a14ed255b",
+      "bytes": 1218,
+      "width": 29,
+      "height": 64,
+      "animation": "jump",
+      "frame": 2,
+      "alphaBounds": [
+        5,
+        8,
+        23,
+        53
+      ]
+    },
+    {
+      "file": "x/jump-3.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%203.png",
+      "sha256": "23e7290be80f7d2c625cb559e659989a54a4a0f01da7af95d39f9dc2f2eb0c29",
+      "bytes": 1262,
+      "width": 28,
+      "height": 63,
+      "animation": "jump",
+      "frame": 3,
+      "alphaBounds": [
+        4,
+        5,
+        23,
+        57
+      ]
+    },
+    {
+      "file": "x/jump-4.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%204.png",
+      "sha256": "5cdc5c8c4a0b20f5ad742f3315cfc5417d0f9fe324c9c1db3b099b13cd80da82",
+      "bytes": 1345,
+      "width": 30,
+      "height": 63,
+      "animation": "jump",
+      "frame": 4,
+      "alphaBounds": [
+        2,
+        8,
+        27,
+        53
+      ]
+    },
+    {
+      "file": "x/jump-5.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%205.png",
+      "sha256": "8707eefff0573767437ff4d7f3f7b3042582f10c8c666a4f58cb1b84d0957873",
+      "bytes": 1368,
+      "width": 36,
+      "height": 61,
+      "animation": "jump",
+      "frame": 5,
+      "alphaBounds": [
+        1,
+        7,
+        34,
+        50
+      ]
+    },
+    {
+      "file": "x/jump-6.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%206.png",
+      "sha256": "baba812ab94ff02c502979f9c5deb6667a9afd25ac37eb558e38e260168ef725",
+      "bytes": 1334,
+      "width": 34,
+      "height": 62,
+      "animation": "jump",
+      "frame": 6,
+      "alphaBounds": [
+        1,
+        7,
+        32,
+        52
+      ]
+    },
+    {
+      "file": "x/jump-7.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%207.png",
+      "sha256": "9dba00dd5162d3d962b655b1740afaa734ad861db08ef5b954b8067ddfd5032e",
+      "bytes": 1383,
+      "width": 30,
+      "height": 60,
+      "animation": "jump",
+      "frame": 7,
+      "alphaBounds": [
+        0,
+        4,
+        29,
+        54
+      ]
+    },
+    {
+      "file": "x/jump-8.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%208.png",
+      "sha256": "a69f06b039a135408f8bd4d7c364eae989cd396eed17647c194eee88d8bda0bd",
+      "bytes": 1319,
+      "width": 34,
+      "height": 59,
+      "animation": "jump",
+      "frame": 8,
+      "alphaBounds": [
+        2,
+        6,
+        31,
+        51
+      ]
+    },
+    {
+      "file": "x/jump-9.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%209.png",
+      "sha256": "78ce6157ad8945ef21c8ddec4db3425de9e48f5ac8ce38d1407b2bc2772be511",
+      "bytes": 1338,
+      "width": 35,
+      "height": 59,
+      "animation": "jump",
+      "frame": 9,
+      "alphaBounds": [
+        5,
+        9,
+        29,
+        47
+      ]
+    },
+    {
+      "file": "x/jump-10.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump/x_jump%2010.png",
+      "sha256": "36377295ffd549aaa6329b76f7fcf3f70a0f6d887d75d0f3f0d60bbf6841ca9d",
+      "bytes": 1309,
+      "width": 33,
+      "height": 58,
+      "animation": "jump",
+      "frame": 10,
+      "alphaBounds": [
+        0,
+        9,
+        32,
+        43
+      ]
+    },
+    {
+      "file": "x/shoot-0.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%200.png",
+      "sha256": "a637eb250d2b589add91bc9d6f418e7499ae7ccb292605bb7039d32d36956a30",
+      "bytes": 1510,
+      "width": 50,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 0,
+      "alphaBounds": [
+        0,
+        1,
+        49,
+        44
+      ]
+    },
+    {
+      "file": "x/shoot-1.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%201.png",
+      "sha256": "102c650319f82d2d0e75f27d1cad1cbe05960670ba2f61055fc583337cb763a9",
+      "bytes": 1617,
+      "width": 49,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 1,
+      "alphaBounds": [
+        0,
+        1,
+        48,
+        44
+      ]
+    },
+    {
+      "file": "x/shoot-2.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%202.png",
+      "sha256": "3b3d52b40e80681631203119550ff8ee77cea85a2d255c4a723df9f9e5718012",
+      "bytes": 1698,
+      "width": 50,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 2,
+      "alphaBounds": [
+        0,
+        1,
+        49,
+        44
+      ]
+    },
+    {
+      "file": "x/shoot-3.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%203.png",
+      "sha256": "c05ea417caa4fc440a0ef9ff142e34a5f90350e7b51c1509f26e76b0acfda442",
+      "bytes": 1633,
+      "width": 50,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 3,
+      "alphaBounds": [
+        0,
+        0,
+        49,
+        45
+      ]
+    },
+    {
+      "file": "x/shoot-4.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%204.png",
+      "sha256": "0dd088a7e9951e7607009abeca23d48895502692aac396a3f2bc842bde3b8973",
+      "bytes": 1381,
+      "width": 41,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 4,
+      "alphaBounds": [
+        0,
+        0,
+        40,
+        45
+      ]
+    },
+    {
+      "file": "x/shoot-5.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%205.png",
+      "sha256": "178836676fb3ffc0530aacddc94da4c0e23821351de272ff0974acf840151e42",
+      "bytes": 1368,
+      "width": 42,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 5,
+      "alphaBounds": [
+        0,
+        1,
+        41,
+        44
+      ]
+    },
+    {
+      "file": "x/shoot-6.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%206.png",
+      "sha256": "e3e0b17dcebfdc4ad6725b0fbe45e6749f7aaa79cd003767e239f710bd0fa754",
+      "bytes": 1379,
+      "width": 39,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 6,
+      "alphaBounds": [
+        0,
+        1,
+        38,
+        44
+      ]
+    },
+    {
+      "file": "x/shoot-7.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_shoot/x_shoot%207.png",
+      "sha256": "8d60ffac9529a9d60d44d72ca82034044025e54dabd802dd4304348226fbfceb",
+      "bytes": 1278,
+      "width": 35,
+      "height": 46,
+      "animation": "shoot",
+      "frame": 7,
+      "alphaBounds": [
+        0,
+        0,
+        34,
+        45
+      ]
+    },
+    {
+      "file": "x/hurt-0.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_hurt/x_hurt%200.png",
+      "sha256": "381c88f9f19493c684063e99418d9293364f68806d3bbc06b1f6d8ada68272e8",
+      "bytes": 1413,
+      "width": 36,
+      "height": 60,
+      "animation": "hurt",
+      "frame": 0,
+      "alphaBounds": [
+        3,
+        7,
+        32,
+        48
+      ]
+    },
+    {
+      "file": "x/hurt-1.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_hurt/x_hurt%201.png",
+      "sha256": "f232eda227719e5668e82148b9fddbed3318777f69aae1656ec325b452c26104",
+      "bytes": 1578,
+      "width": 35,
+      "height": 61,
+      "animation": "hurt",
+      "frame": 1,
+      "alphaBounds": [
+        0,
+        1,
+        34,
+        55
+      ]
+    },
+    {
+      "file": "x/hurt-2.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_hurt/x_hurt%202.png",
+      "sha256": "e7663eda2df3a15e4916b9942bb36bc73da12cf7343c3c3b101130b17cf1cd1b",
+      "bytes": 1540,
+      "width": 35,
+      "height": 60,
+      "animation": "hurt",
+      "frame": 2,
+      "alphaBounds": [
+        0,
+        7,
+        34,
+        48
+      ]
+    },
+    {
+      "file": "x/hurt-3.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_hurt/x_hurt%203.png",
+      "sha256": "ce7a6876f015a9b2e192f7942fdfa11d0ab1a0a7fbc19779b0fb81436c9dae78",
+      "bytes": 659,
+      "width": 37,
+      "height": 60,
+      "animation": "hurt",
+      "frame": 3,
+      "alphaBounds": [
+        1,
+        7,
+        35,
+        52
+      ]
+    },
+    {
+      "file": "x/wall-0.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump_wall/x_jump_wall%200.png",
+      "sha256": "9ea1bb174c0c1670438383e88a35f075d200b0e804cdefeecf22f8d4fc09a28e",
+      "bytes": 1407,
+      "width": 33,
+      "height": 61,
+      "animation": "wall",
+      "frame": 0,
+      "alphaBounds": [
+        0,
+        0,
+        32,
+        58
+      ]
+    },
+    {
+      "file": "x/wall-1.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump_wall/x_jump_wall%201.png",
+      "sha256": "5b65574b18b73afe35590c8cfc2bd0848520daa6ddf86511115cc88b237f39bf",
+      "bytes": 1373,
+      "width": 32,
+      "height": 61,
+      "animation": "wall",
+      "frame": 1,
+      "alphaBounds": [
+        0,
+        5,
+        31,
+        53
+      ]
+    },
+    {
+      "file": "x/wall-2.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump_wall/x_jump_wall%202.png",
+      "sha256": "336cb3d4d36d6ddbf340ad139551d5c2d5c9e2ad65e6f61c8627eb3178fab3fe",
+      "bytes": 1301,
+      "width": 29,
+      "height": 61,
+      "animation": "wall",
+      "frame": 2,
+      "alphaBounds": [
+        0,
+        5,
+        28,
+        54
+      ]
+    },
+    {
+      "file": "x/wall-3.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump_wall/x_jump_wall%203.png",
+      "sha256": "1ab8877f21ffd62705d18c789daef1347d779d29cde6cce9755aa27eff695818",
+      "bytes": 1384,
+      "width": 33,
+      "height": 61,
+      "animation": "wall",
+      "frame": 3,
+      "alphaBounds": [
+        0,
+        5,
+        32,
+        51
+      ]
+    },
+    {
+      "file": "x/wall-4.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump_wall/x_jump_wall%204.png",
+      "sha256": "cd0261568bb3d0e9ef4ae7a28f8625226afd07081105c0aa873dfc64df12ebfc",
+      "bytes": 1503,
+      "width": 35,
+      "height": 61,
+      "animation": "wall",
+      "frame": 4,
+      "alphaBounds": [
+        0,
+        3,
+        34,
+        57
+      ]
+    },
+    {
+      "file": "x/wall-5.png",
+      "sourceUrl": "https://raw.githubusercontent.com/wabtytsai/Fakeman-X4/fe46a1beacece057b2b953612ad6872374af2077/Sprites/x_jump_wall/x_jump_wall%205.png",
+      "sha256": "addf8778100614c136585338a97dbdb365bda7d93da6e8c01a6884dc9589c741",
+      "bytes": 1295,
+      "width": 29,
+      "height": 60,
+      "animation": "wall",
+      "frame": 5,
+      "alphaBounds": [
+        0,
+        5,
+        28,
+        54
+      ]
+    },
+    {
+      "file": "zero-x4-sheet.gif",
+      "sourceUrl": "https://raw.githubusercontent.com/surcae/MegaMan-X4/805904c629093ef56db1ad940444de5ce9a8ec12/RockMan_imitation/Resource/Pure/Pure/zerox4sheet.gif",
+      "sha256": "f3536a0bd9434f53861e9d2d47e2fc4235bedec65ffb4a3c5c61348ab64d8ce7",
+      "bytes": 119814,
+      "width": 622,
+      "height": 1604,
+      "sourceCommit": "805904c629093ef56db1ad940444de5ce9a8ec12"
+    }
+  ]
+}

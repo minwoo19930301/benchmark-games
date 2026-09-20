@@ -1,6 +1,6 @@
 {
   "repository": "minwoo19930301/benchmark-games",
-  "sourceCommit": "784e41720f3eafcfd2556a881e54fb6d387628bf",
+  "sourceCommit": "da8865b3e4870b498bbf9660a1d29b457db3d04e",
   "games": [
     "mario",
     "sonic",
@@ -36,5 +36,8 @@
     "colony",
     "watchpoint",
     "temple"
-  ]
+  ],
+  "benchmarkVersion": "reference-rebuild-2026-09-21",
+  "benchmarkSchemaVersion": 2,
+  "builtAt": "2026-09-20T15:38:14.593944+00:00"
 }
