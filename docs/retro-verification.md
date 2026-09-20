@@ -1,3 +1,5 @@
+> Historical release record. The current reference rebuild is documented in [rebuild-verification.md](rebuild-verification.md).
+
 # 새 패러디 5종 검증 기록
 
 이 문서는 2026-09-19 로컬 소스의 검증 범위를 기록합니다. 시뮬레이션 완주, 브라우저에서 실제 화면을 확인한 범위, 성능 측정과 공개 배포는 별도의 증거로 구분합니다. 최종 전체 검사와 실제 브라우저 실행 결과를 아래에 기록합니다.

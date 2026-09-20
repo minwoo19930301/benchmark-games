@@ -1,3 +1,5 @@
+> Historical release record. The current reference rebuild is documented in [rebuild-verification.md](rebuild-verification.md).
+
 # Action, RTS, FPS and Flash expansion
 
 The six new cartridges are original-asset playable slices inspired by Mega Man X4/X5/X6, StarCraft, Overwatch, and Fireboy and Watergirl. This is a mechanics and browser performance project, not a claim to reproduce the complete commercial games or to match their production quality.

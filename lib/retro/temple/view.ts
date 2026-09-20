@@ -53,141 +53,229 @@ export function mountTemple(
     c.scale(scale, scale);
     path(
       [
-        [0, -10],
-        [9, -2],
-        [6, 8],
-        [-6, 8],
-        [-9, -2],
+        [-10, -5],
+        [-6, -10],
+        [6, -10],
+        [10, -5],
+        [0, 10],
       ],
       color,
-      '#172e36',
+      '#090d05',
+      2.5,
+    );
+    path(
+      [
+        [-6, -8],
+        [0, -8],
+        [-3, -3],
+        [0, 7],
+        [-8, -4],
+      ],
+      '#ffffff77',
     );
     path(
       [
         [0, -8],
-        [-5, -1],
-        [0, 4],
-        [3, -1],
+        [6, -8],
+        [8, -4],
+        [3, -3],
+        [0, 7],
       ],
-      '#ffffffaa',
+      '#00000018',
     );
     c.restore();
   }
   function pillar(x: number) {
-    rect(x, 82, 42, 350, '#263c3e');
-    rect(x + 4, 90, 33, 366, '#58675b');
-    rect(x + 9, 90, 8, 350, '#77816b');
+    rect(x, 82, 42, 350, '#292d10');
+    rect(x + 4, 90, 33, 366, '#767446');
+    rect(x + 9, 90, 8, 350, '#8a8655');
     for (let y = 110; y < 447; y += 46) {
-      rect(x + 4, y, 33, 2, '#263c3e');
-      rect(x + 17, y + 4, 2, 38, '#394f49');
+      rect(x + 4, y, 33, 2, '#292d10');
+      rect(x + 17, y + 4, 2, 38, '#4c5127');
     }
-    rect(x - 5, 76, 52, 16, '#7f8a70');
-    rect(x - 9, 67, 60, 12, '#43584c');
-    rect(x - 3, 438, 50, 20, '#697962');
+    rect(x - 5, 76, 52, 16, '#938957');
+    rect(x - 9, 67, 60, 12, '#595f2c');
+    rect(x - 3, 438, 50, 20, '#7c8150');
   }
   function hero(h: Hero, index: number) {
-    const moving = Math.abs(h.vx) > 30,
-      cycle = Math.sin(sim.time * 13),
-      color = h.element === 'ember' ? '#ff8c39' : '#52d8df';
+    const fire = h.element === 'ember',
+      moving = Math.abs(h.vx) > 30;
+    const stride = moving ? Math.sin(sim.time * 13) * 4 : 0;
+    const color = fire ? '#f2250b' : '#29bfea',
+      outline = '#08130b';
     c.save();
     c.translate(h.x, h.y);
-    c.globalAlpha = 0.22;
-    c.beginPath();
-    c.ellipse(0, 2, 18, 5, 0, 0, Math.PI * 2);
-    c.fillStyle = '#071b20';
-    c.fill();
-    c.globalAlpha = 1;
-    if (index === sim.active) {
+    const glow = c.createRadialGradient(0, -25, 8, 0, -25, 37);
+    glow.addColorStop(0, fire ? '#ff4b2322' : '#30d6fa22');
+    glow.addColorStop(1, '#00000000');
+    c.fillStyle = glow;
+    c.fillRect(-38, -63, 76, 76);
+    if (index === sim.active)
       path(
         [
-          [-5, -62],
-          [5, -62],
-          [0, -55],
+          [-4, -62],
+          [4, -62],
+          [0, -56],
         ],
-        '#fff9c8',
+        '#eed757',
+        outline,
+        1,
       );
-    }
-    const step = moving ? cycle * 5 : 0;
-    c.strokeStyle = '#153b40';
-    c.lineWidth = 6;
+    // Small bodies, thin limbs and a large element-shaped head match the original silhouettes.
     c.lineCap = 'round';
-    c.beginPath();
-    c.moveTo(-5, -11);
-    c.lineTo(-7 - step, -3);
-    c.moveTo(5, -11);
-    c.lineTo(7 + step, -3);
-    c.stroke();
-    c.strokeStyle = color;
-    c.lineWidth = 3;
-    c.stroke();
-    c.strokeStyle = '#153b40';
-    c.lineWidth = 6;
-    c.beginPath();
-    c.moveTo(-11, -26);
-    c.lineTo(-17 + step, -17);
-    c.moveTo(11, -26);
-    c.lineTo(17 - step, -18);
-    c.stroke();
-    c.strokeStyle = color;
-    c.lineWidth = 3;
-    c.stroke();
-    if (h.element === 'ember') {
-      path(
-        [
-          [-12, -13],
-          [-16, -28],
-          [-10, -37],
-          [-11, -46],
-          [-2, -41],
-          [5, -53],
-          [9, -40],
-          [16, -31],
-          [12, -15],
-          [4, -10],
-        ],
-        '#ed6530',
-        '#203c3e',
-        2.5,
-      );
-      path(
-        [
-          [-8, -20],
-          [-8, -32],
-          [-3, -35],
-          [2, -44],
-          [5, -34],
-          [10, -29],
-          [7, -17],
-          [-1, -15],
-        ],
-        '#ffc966',
-      );
-    } else {
+    c.lineJoin = 'round';
+    const limb = (points: number[][]) => {
       c.beginPath();
-      c.moveTo(1, -50);
-      c.bezierCurveTo(-4, -37, -18, -30, -14, -20);
-      c.bezierCurveTo(-11, -6, 13, -6, 15, -20);
-      c.bezierCurveTo(19, -31, 7, -38, 1, -50);
-      c.fillStyle = color;
-      c.fill();
-      c.lineWidth = 2.5;
-      c.strokeStyle = '#203c3e';
+      points.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+      c.strokeStyle = outline;
+      c.lineWidth = 5.5;
       c.stroke();
-      c.beginPath();
-      c.moveTo(-9, -27);
-      c.quadraticCurveTo(-9, -33, -2, -38);
-      c.strokeStyle = '#c5ffff';
+      c.strokeStyle = color;
       c.lineWidth = 3;
       c.stroke();
+    };
+    limb([
+      [-4, -9],
+      [-5 - stride, -1],
+      [-8 - stride, -1],
+    ]);
+    limb([
+      [4, -9],
+      [5 + stride, -1],
+      [8 + stride, -1],
+    ]);
+    limb([
+      [-5, -19],
+      [-10 + stride, -10],
+    ]);
+    limb([
+      [5, -19],
+      [10 - stride, -10],
+    ]);
+    path(
+      [
+        [-5, -21],
+        [5, -21],
+        [6, -7],
+        [-5, -7],
+      ],
+      color,
+      outline,
+      2,
+    );
+    if (fire) {
+      c.beginPath();
+      c.moveTo(-13, -28);
+      c.bezierCurveTo(-18, -38, -10, -43, -13, -51);
+      c.bezierCurveTo(-5, -47, -9, -39, -5, -39);
+      c.bezierCurveTo(0, -44, 0, -49, -2, -56);
+      c.bezierCurveTo(7, -51, 4, -43, 8, -41);
+      c.bezierCurveTo(12, -47, 10, -49, 10, -50);
+      c.bezierCurveTo(14, -43, 18, -34, 14, -27);
+      c.bezierCurveTo(10, -16, -10, -17, -13, -28);
+      c.fillStyle = color;
+      c.fill();
+      c.strokeStyle = outline;
+      c.lineWidth = 2;
+      c.stroke();
+      path(
+        [
+          [-11, -44],
+          [-9, -49],
+          [-7, -43],
+          [-8, -36],
+        ],
+        '#ff9c18',
+      );
+      path(
+        [
+          [0, -51],
+          [4, -46],
+          [3, -37],
+          [1, -40],
+        ],
+        '#ff8514',
+      );
+    } else {
+      // Watergirl's swept watery fringe and curled droplet bun, not a featureless water blob.
+      c.beginPath();
+      c.ellipse(0, -31, 14, 13, 0, 0, Math.PI * 2);
+      c.fillStyle = color;
+      c.fill();
+      c.strokeStyle = outline;
+      c.lineWidth = 2;
+      c.stroke();
+      circle(-1, -48, 6.5, color);
+      c.strokeStyle = outline;
+      c.lineWidth = 1.8;
+      c.stroke();
+      c.beginPath();
+      c.moveTo(-3, -44);
+      c.bezierCurveTo(-6, -52, 3, -54, 2, -47);
+      c.strokeStyle = outline;
+      c.lineWidth = 1.6;
+      c.stroke();
+      path(
+        [
+          [-16, -35],
+          [-9, -43],
+          [0, -44],
+          [-3, -36],
+          [-9, -34],
+        ],
+        '#57d3f1',
+        outline,
+        1.6,
+      );
+      path(
+        [
+          [0, -44],
+          [8, -42],
+          [16, -35],
+          [6, -35],
+          [2, -37],
+        ],
+        '#5ed9f3',
+        outline,
+        1.6,
+      );
+      path(
+        [
+          [-12, -21],
+          [-16, -19],
+          [-13, -27],
+        ],
+        color,
+        outline,
+        1.4,
+      );
+      path(
+        [
+          [12, -21],
+          [16, -19],
+          [13, -27],
+        ],
+        color,
+        outline,
+        1.4,
+      );
     }
-    circle(-5 + h.face * 2, -27, 4.5, '#fffbdc');
-    circle(6 + h.face * 2, -27, 4.5, '#fffbdc');
-    circle(-4 + h.face * 3, -27, 2, '#1b3540');
-    circle(7 + h.face * 3, -27, 2, '#1b3540');
-    c.strokeStyle = '#204449';
-    c.lineWidth = 1.5;
+    const eye = fire ? '#ffe937' : '#c8f7ff';
+    for (const x of [-5.5, 5.5]) {
+      c.beginPath();
+      c.ellipse(x, -29, 3.6, 2.9, 0, 0, Math.PI * 2);
+      c.fillStyle = eye;
+      c.fill();
+      c.strokeStyle = outline;
+      c.lineWidth = 1.2;
+      c.stroke();
+      circle(x + h.face * 0.8, -29, 1.4, outline);
+    }
+    c.strokeStyle = outline;
+    c.lineWidth = 1.4;
     c.beginPath();
-    c.arc(2, -21, 4, 0.1, Math.PI - 0.1);
+    c.moveTo(-3, -23);
+    c.quadraticCurveTo(0, -21, 4, -23);
     c.stroke();
     c.restore();
   }
@@ -203,7 +291,7 @@ export function mountTemple(
         canvas.height = Math.round(height * ratio);
       }
       c.setTransform(ratio, 0, 0, ratio, 0, 0);
-      rect(0, 0, width, height, '#152b31');
+      rect(0, 0, width, height, '#171b0c');
       const scale = Math.min(width / W, height / H);
       c.translate((width - W * scale) / 2, (height - H * scale) / 2);
       c.scale(scale, scale);
@@ -212,7 +300,7 @@ export function mountTemple(
       c.rect(0, 0, W, H);
       c.clip();
       const sky = c.createLinearGradient(0, 0, 0, H);
-      sky.addColorStop(0, '#142f3a');
+      sky.addColorStop(0, '#262b0d');
       sky.addColorStop(1, sim.level.color);
       c.fillStyle = sky;
       c.fillRect(0, 0, W, H);
@@ -227,30 +315,30 @@ export function mountTemple(
             y + 2,
             66,
             50,
-            ['#314849', '#354c4b', '#2b4446', '#3c504c', '#304648'][shade],
+            ['#363a14', '#3c4018', '#30350f', '#41451b', '#343913'][shade],
           );
           rect(x + 3, y + 3, 64, 2, '#67807422');
           rect(x + 4, y + 48, 61, 2, '#0a272c33');
         }
       for (const x of [100, 383, 663]) {
-        c.fillStyle = '#1c353c';
+        c.fillStyle = '#292e0d';
         c.beginPath();
         c.roundRect(x, 113, 155, 210, [76, 76, 0, 0]);
         c.fill();
-        c.strokeStyle = '#617264';
+        c.strokeStyle = '#676c36';
         c.lineWidth = 9;
         c.stroke();
-        c.strokeStyle = '#102c36';
+        c.strokeStyle = '#202408';
         c.lineWidth = 3;
         c.stroke();
-        rect(x + 11, 264, 133, 60, '#203b40');
+        rect(x + 11, 264, 133, 60, '#343b13');
         for (let j = 0; j < 5; j++)
-          rect(x + 23 + j * 26, 159, 3, 154, '#3c5754');
-        circle(x + 77, 183, 21, '#4b6460');
+          rect(x + 23 + j * 26, 159, 3, 154, '#4a5423');
+        circle(x + 77, 183, 21, '#66713a');
         gem(x + 77, 182, sim.room === 2 ? '#8fc3e8' : '#b9a67b', 1.1);
       }
       for (const x of [25, 285, 615, 938]) pillar(x - 20);
-      c.strokeStyle = '#244b3e';
+      c.strokeStyle = '#2e5012';
       c.lineWidth = 7;
       c.lineCap = 'round';
       for (const x of [44, 305, 617, 907]) {
@@ -265,12 +353,40 @@ export function mountTemple(
               [x + 17, 20 + j * 20],
               [x + 11, 36 + j * 20],
             ],
-            '#537552',
+            '#437c1c',
           );
       }
-      rect(0, 0, W, 43, '#14292ee8');
-      text(`0${sim.room + 1}  /  ${sim.level.name}`, 27, 27, 15, '#d9dbc1');
-      text('EMBER  &  TIDE', 933, 27, 15, '#8fc8c7', 'right');
+      rect(0, 0, W, 43, '#23270eef');
+      text('FIREBOY', 25, 26, 17, '#fc5431');
+      text('&', 111, 26, 15, '#ded56e');
+      text('WATERGIRL', 132, 26, 17, '#4bcbf0');
+      const seconds = Math.floor(sim.time),
+        timer = `${Math.floor(seconds / 60)
+          .toString()
+          .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+      path(
+        [
+          [411, 0],
+          [549, 0],
+          [539, 42],
+          [421, 42],
+        ],
+        '#24290d',
+        '#8b8b4b',
+        3,
+      );
+      text(timer, W / 2, 29, 27, '#f0df48', 'center');
+      text(`FOREST TEMPLE  ${sim.room + 1}/3`, 931, 24, 14, '#d0cb91', 'right');
+      const fireCount = sim.gems.filter(
+        (g, i) => g.element === 'ember' && sim.collected.has(i),
+      ).length;
+      const waterCount = sim.gems.filter(
+        (g, i) => g.element === 'tide' && sim.collected.has(i),
+      ).length;
+      gem(293, 21, '#f32c16', 0.68);
+      text(`${fireCount}/2`, 309, 27, 16, '#e5ddaa');
+      gem(605, 21, '#32c9ef', 0.68);
+      text(`${waterCount}/2`, 621, 27, 16, '#e5ddaa');
       for (const x of [179, 709]) {
         rect(x - 2, 43, 4, 62, '#172e32');
         rect(x - 10, 100, 20, 6, '#ba9a5c');
@@ -291,33 +407,33 @@ export function mountTemple(
       c.lineTo(sim.level.gate, 498);
       c.lineTo(sim.level.gate, 455);
       c.stroke();
-      rect(0, FLOOR, W, 19, '#728376');
-      rect(0, FLOOR + 19, W, 6, '#243e40');
+      rect(0, FLOOR, W, 19, '#7b7947');
+      rect(0, FLOOR + 19, W, 6, '#272d11');
       for (let x = 0; x < W; x += 42) {
-        rect(x + 2, FLOOR + 2, 38, 4, '#a0ac8b');
-        rect(x + 40, FLOOR + 3, 2, 15, '#435b55');
+        rect(x + 2, FLOOR + 2, 38, 4, '#a5a16b');
+        rect(x + 40, FLOOR + 3, 2, 15, '#5a6030');
       }
       for (const p of sim.platforms) {
-        rect(p.x, p.y, p.w, p.h, '#687e6d');
-        rect(p.x, p.y, p.w, 4, '#9ba78a');
+        rect(p.x, p.y, p.w, p.h, '#838352');
+        rect(p.x, p.y, p.w, 4, '#a5a26a');
         for (let x = p.x + 5; x < p.x + p.w - 5; x += 17)
-          rect(x, p.y + 8, 9, 3, '#405954');
+          rect(x, p.y + 8, 9, 3, '#505626');
         path(
           [
             [p.x + 8, p.y + 16],
             [p.x + 20, p.y + 36],
             [p.x + 25, p.y + 16],
           ],
-          '#36534d',
+          '#3a4519',
         );
       }
       for (const pool of sim.level.pools) {
         const color =
           pool.element === 'ember'
-            ? '#e96832'
+            ? '#f1250a'
             : pool.element === 'tide'
-              ? '#36aebe'
-              : '#92b14c';
+              ? '#178ae1'
+              : '#32bc20';
         rect(pool.x, FLOOR - 3, pool.w, 22, '#162f36');
         rect(pool.x + 3, FLOOR + 3, pool.w - 6, 14, color);
         c.beginPath();
@@ -400,28 +516,70 @@ export function mountTemple(
           gem(
             g.x,
             g.y + Math.sin(sim.time * 3 + i) * 3,
-            g.element === 'ember' ? '#ff9b43' : '#79e8ed',
+            g.element === 'ember' ? '#fc2816' : '#34c8f4',
           );
       });
       [873, 923].forEach((x, i) => {
-        const color = i ? '#62cbd5' : '#e8a45d';
-        c.beginPath();
-        c.roundRect(x - 18, sim.exitY - 74, 36, 74, [18, 18, 0, 0]);
-        c.fillStyle = '#122d35';
-        c.fill();
+        const color = i ? '#28bde6' : '#ef2712';
+        const h = sim.heroes[i],
+          ready = Math.abs(h.x - x) < 23 && Math.abs(h.y - sim.exitY) < 5;
+        rect(x - 22, sim.exitY - 77, 44, 77, '#121a06');
+        rect(x - 19, sim.exitY - 74, 38, 74, '#85804a');
+        rect(x - 14, sim.exitY - 67, 28, 67, ready ? '#181e09' : '#626433');
+        c.strokeStyle = '#20270b';
+        c.lineWidth = 2;
+        c.strokeRect(x - 15, sim.exitY - 68, 30, 68);
+        // Original doors are identified with the red male and blue female symbols.
         c.strokeStyle = color;
-        c.lineWidth = 3;
+        c.lineWidth = 2.3;
+        c.beginPath();
+        c.arc(x, sim.exitY - 40, 5.5, 0, Math.PI * 2);
         c.stroke();
-        gem(x, sim.exitY - 47, color, 0.8);
-        rect(x - 14, sim.exitY - 12, 28, 4, color);
-        text(i ? 'II' : 'I', x, sim.exitY - 88, 12, color, 'center');
+        c.beginPath();
+        if (i) {
+          c.moveTo(x, sim.exitY - 34);
+          c.lineTo(x, sim.exitY - 23);
+          c.moveTo(x - 4, sim.exitY - 27);
+          c.lineTo(x + 4, sim.exitY - 27);
+        } else {
+          c.moveTo(x + 4, sim.exitY - 44);
+          c.lineTo(x + 11, sim.exitY - 51);
+          c.lineTo(x + 5, sim.exitY - 51);
+          c.moveTo(x + 11, sim.exitY - 51);
+          c.lineTo(x + 11, sim.exitY - 45);
+        }
+        c.stroke();
+        if (ready) {
+          c.globalAlpha = 0.2;
+          rect(x - 14, sim.exitY - 66, 28, 66, color);
+          c.globalAlpha = 1;
+        }
       });
       sim.heroes.forEach(hero);
       text('같은 색은 안전 · 초록은 모두 위험', 27, 524, 12, '#c1d1bb');
       text('발판 → 문 → E 레버 → 두 출구', 933, 524, 12, '#c1d1bb', 'right');
-      if (sim.transition > 0) {
+      if (sim.transition > 0 || sim.phase === 'won') {
         rect(0, 0, W, H, '#142d3299');
-        text('CHAMBER COMPLETE', W / 2, H / 2, 32, '#fff1bd', 'center');
+        text(
+          sim.phase === 'won' ? 'TEMPLE COMPLETE' : 'LEVEL COMPLETE',
+          W / 2,
+          H / 2,
+          32,
+          '#fff1bd',
+          'center',
+        );
+        text(
+          `${Math.floor(sim.time / 60)
+            .toString()
+            .padStart(2, '0')}:${Math.floor(sim.time % 60)
+            .toString()
+            .padStart(2, '0')}  ·  ${sim.collected.size}/4 DIAMONDS`,
+          W / 2,
+          H / 2 + 35,
+          19,
+          '#e0da95',
+          'center',
+        );
       }
       if (sim.flash > 0) {
         c.globalAlpha = sim.flash * 0.25;

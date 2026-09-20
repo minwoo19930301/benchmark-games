@@ -6,6 +6,7 @@ import {
   type RetroSnapshot,
 } from '../types.ts';
 import {
+  EREGION_MOUTH,
   hazardPhase,
   platformAt,
   stages,
@@ -22,7 +23,7 @@ export type Projectile = {
   damage: number;
   life: number;
   enemy: boolean;
-  kind: 'pellet' | 'charge' | 'orb' | 'flame';
+  kind: 'pellet' | 'charge' | 'orb' | 'flame' | 'bat';
   pierced: number[];
 };
 export type Particle = {
@@ -71,6 +72,10 @@ export class ReploidSimulation implements RetroSimulation {
   flash = 0;
   kills = 0;
   rescues = 0;
+  character: 'x' | 'zero' = 'x';
+  darkHold = 0;
+  darkHoldCasts = 0;
+  private switchHeld = false;
   wallKicks = 0;
   dashCount = 0;
   chargedShots = 0;
@@ -121,8 +126,7 @@ export class ReploidSimulation implements RetroSimulation {
     this.player.y = this.stage.floor;
     this.boss.x = this.stage.end - 160;
     this.boss.y = this.stage.floor;
-    this.boss.hp = this.boss.maxHp =
-      id === 'x4' ? 100 : id === 'x5' ? 112 : 124;
+    this.boss.hp = this.boss.maxHp = id === 'x4' ? 84 : id === 'x5' ? 112 : 124;
     this.collected = this.stage.capsules.map(() => false);
     this.enemies = this.stage.enemies.map((e, i) => ({
       ...e,
@@ -135,6 +139,7 @@ export class ReploidSimulation implements RetroSimulation {
     }));
   }
   clearInput() {
+    this.switchHeld = false;
     this.player.charge = 0;
     this.player.jumpBuffer = 0;
     this.held = { jump: false, attack: false, guard: false, special: false };
@@ -230,6 +235,7 @@ export class ReploidSimulation implements RetroSimulation {
       hurt: 0,
     });
     this.shots = [];
+    this.darkHold = 0;
     if (this.boss.active) {
       Object.assign(this.boss, {
         hp: this.boss.maxHp,
@@ -240,6 +246,7 @@ export class ReploidSimulation implements RetroSimulation {
         y: this.stage.floor,
         cycle: 0,
         timer: 0,
+        fired: false,
       });
     }
     this.flash = 0.25;
@@ -286,6 +293,15 @@ export class ReploidSimulation implements RetroSimulation {
     this.time += dt;
     const p = this.player;
     const previousDash = p.dash;
+    this.darkHold = Math.max(0, this.darkHold - dt);
+    if (input.switch && !this.switchHeld) {
+      this.character = this.character === 'x' ? 'zero' : 'x';
+      p.charge = 0;
+      p.saber = 0;
+      this.held.attack = false;
+      this.audioCues.ability++;
+    }
+    this.switchHeld = input.switch;
     for (const key of [
       'invulnerable',
       'dash',
@@ -302,11 +318,14 @@ export class ReploidSimulation implements RetroSimulation {
       p[key] = Math.max(0, p[key] - dt);
     this.shake = Math.max(0, this.shake - dt);
     this.flash = Math.max(0, this.flash - dt);
-    const direction = Number(input.right) - Number(input.left);
+    const direction =
+      this.darkHold > 0 ? 0 : Number(input.right) - Number(input.left);
     if (direction && p.wallLock <= 0 && p.hurt <= 0) p.facing = direction;
-    if (input.jump && !this.held.jump) p.jumpBuffer = 0.12;
+    if (input.jump && !this.held.jump && this.darkHold === 0)
+      p.jumpBuffer = 0.12;
     if (
       input.guard &&
+      this.darkHold === 0 &&
       !this.held.guard &&
       p.dashCooldown <= 0 &&
       (p.grounded || (this.stage.airDash && p.airDash))
@@ -412,16 +431,19 @@ export class ReploidSimulation implements RetroSimulation {
     if (wasGrounded && !p.grounded && p.vy >= 0) p.coyote = 0.08;
     if (p.y > 500) this.respawn();
     if (this.phase !== 'playing') return;
-    if (input.attack) {
+    if (input.attack && this.character === 'x' && this.darkHold === 0) {
       if (!this.held.attack && p.shoot <= 0 && p.hurt <= 0) this.shoot(0);
       p.charge = Math.min(1.4, p.charge + dt);
-    } else if (this.held.attack) {
+    } else if (this.held.attack && this.character === 'x') {
       if (p.charge >= 0.38 && p.hurt <= 0) this.shoot(p.charge >= 1 ? 2 : 1);
       p.charge = 0;
     }
     if (
-      input.special &&
-      !this.held.special &&
+      ((input.special &&
+        !this.held.special &&
+        (this.character === 'zero' || this.stage.id === 'x6')) ||
+        (input.attack && !this.held.attack && this.character === 'zero')) &&
+      this.darkHold === 0 &&
       p.saberCooldown <= 0 &&
       p.hurt <= 0
     ) {
@@ -539,12 +561,14 @@ export class ReploidSimulation implements RetroSimulation {
     y = this.boss.y - 33,
   ) {
     this.shots.push({
-      x: this.boss.x,
+      x:
+        this.boss.x +
+        (this.stage.id === 'x4' ? this.boss.facing * EREGION_MOUTH.x : 0),
       y,
       vx,
       vy,
-      r: kind === 'flame' ? 12 : 7,
-      damage: kind === 'flame' ? 3 : 2,
+      r: kind === 'flame' ? (this.stage.id === 'x4' ? 8 : 12) : 7,
+      damage: kind === 'flame' && this.stage.id !== 'x4' ? 3 : 2,
       life: 4,
       enemy: true,
       kind,
@@ -582,19 +606,51 @@ export class ReploidSimulation implements RetroSimulation {
         b.fired = true;
         const side = b.facing;
         if (stage.id === 'x4') {
-          for (const vy of b.phase === 2 ? [-60, 0, 60] : [-30, 30])
-            this.bossShot(side * 220, vy);
+          // Both volleys leave the visible mouth. The low breath aims down toward
+          // the hunter; the high volley can still be crossed underneath.
+          const mouthX = b.x + side * EREGION_MOUTH.x;
+          const mouthY = b.y + EREGION_MOUTH.y;
+          const aimY =
+            b.pattern === 1
+              ? clamp(
+                  ((p.y - 24 - mouthY) * 220) /
+                    Math.max(60, Math.abs(p.x - mouthX)),
+                  -130,
+                  130,
+                )
+              : 0;
+          for (const spread of b.phase === 2 ? [-55, 0, 55] : [-28, 28])
+            this.bossShot(side * 220, aimY + spread, 'flame', mouthY);
         } else if (stage.id === 'x5') {
-          for (let i = -1; i <= 1; i++) {
-            const dx = p.x - b.x,
-              dy = p.y - 24 - (b.y - 33);
-            const a = Math.atan2(dy, dx) + i * (b.phase === 2 ? 0.24 : 0.16);
-            this.bossShot(Math.cos(a) * 190, Math.sin(a) * 190);
-          }
+          if (b.pattern === 2) {
+            // Dark Hold's expanding ring is a real, avoidable freeze projectile.
+            this.darkHoldCasts++;
+            this.bossShot(side * 140, 0, 'orb', stage.floor - 22);
+            this.shots[this.shots.length - 1].r = 15;
+            this.shots[this.shots.length - 1].damage = 0;
+          } else
+            for (let i = -1; i <= 1; i++) {
+              const dx = p.x - b.x,
+                dy = p.y - 24 - (b.y - 33);
+              const a = Math.atan2(dy, dx) + i * (b.phase === 2 ? 0.24 : 0.16);
+              this.bossShot(Math.cos(a) * 190, Math.sin(a) * 190, 'bat');
+            }
         } else {
-          this.bossShot(side * 190, 0, 'flame', stage.floor - 12);
-          if (b.phase === 2)
-            this.bossShot(-side * 190, 0, 'flame', stage.floor - 12);
+          if (b.pattern === 2) {
+            // Blaze Heatnix drops burning feathers from above the locked target.
+            for (const offset of [-90, 0, 90]) {
+              this.bossShot(0, 170, 'flame', stage.floor - 185);
+              this.shots[this.shots.length - 1].x = clamp(
+                b.targetX + offset,
+                stage.arena + 35,
+                stage.end - 35,
+              );
+            }
+          } else {
+            this.bossShot(side * 190, 0, 'flame', stage.floor - 12);
+            if (b.phase === 2)
+              this.bossShot(-side * 190, 0, 'flame', stage.floor - 12);
+          }
         }
       }
       if (Math.abs(p.x - b.x) < 39 && Math.abs(p.y - b.y) < 57)
@@ -602,7 +658,7 @@ export class ReploidSimulation implements RetroSimulation {
     }
     if (b.timer > 0) return;
     if (b.mode === 'intro' || b.mode === 'recover') {
-      b.pattern = b.cycle++ % 3 === 0 ? 0 : 1;
+      b.pattern = b.cycle++ % 3;
       b.mode = 'tell';
       b.timer = b.phase === 2 ? 0.65 : 0.9;
       b.targetX = p.x;
@@ -652,7 +708,13 @@ export class ReploidSimulation implements RetroSimulation {
           shot.y + shot.r > p.y - 39 &&
           shot.y - shot.r < p.y
         ) {
-          this.damage(shot.damage, shot.x);
+          if (shot.damage === 0 && this.stage.id === 'x5') {
+            this.darkHold = 0.65;
+            p.dash = 0;
+            p.vx = 0;
+            p.charge = 0;
+            this.audioCues.ability++;
+          } else this.damage(shot.damage, shot.x);
           shot.life = 0;
         }
       } else {
@@ -705,12 +767,13 @@ export class ReploidSimulation implements RetroSimulation {
       objective: b.active
         ? `${this.stage.bossName} · ${b.phase === 2 ? 'OVERDRIVE' : 'PHASE 01'} · 붉은 예고를 보고 점프 / 대시`
         : p.x < 650
-          ? 'J 길게 눌렀다 떼기 · L 대시 + SPACE 점프 · K 세이버'
+          ? '엑스: J 차지 버스터 · F 엑스/제로 교대 · L 대시 + SPACE 점프'
           : p.x < 1250
             ? '벽을 향해 이동 + SPACE 반복: 벽차기'
-            : '중간 저장 지점을 통과하고 반응로 수호자를 격파하세요',
+            : `${this.stage.sector} · 체크포인트를 통과하고 ${this.stage.bossName}를 격파하세요`,
       stats: [
-        { label: 'ARMOR', value: `${p.hp}/24` },
+        { label: 'HUNTER', value: this.character === 'x' ? 'X' : 'ZERO' },
+        { label: 'LIFE ENERGY', value: `${p.hp}/24` },
         { label: 'LIVES', value: this.lives },
         {
           label: 'CHARGE',
@@ -727,10 +790,13 @@ export function benchmarkReploid(sim: ReploidSimulation): Input {
     p = sim.player,
     b = sim.boss,
     stage = sim.stage;
+  if (sim.character !== 'x') input.switch = true;
   input.attack = p.charge < 1.08;
   input.interact = true;
   if (b.active) {
     const distance = b.x - p.x;
+    if (stage.id === 'x4')
+      input.switch = sim.character !== (Math.abs(distance) < 87 ? 'zero' : 'x');
     const target = b.x < stage.arena + 245 ? b.x + 185 : b.x - 185;
     if (Math.abs(p.x - target) > 12) {
       input.right = p.x < target;

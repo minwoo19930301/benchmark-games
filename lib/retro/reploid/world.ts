@@ -1,3 +1,6 @@
+/** Local sprite coordinate used by both Eregion's mouth glow and real fire origin. */
+export const EREGION_MOUTH = { x: 76, y: -73 } as const;
+
 export type StageId = 'x4' | 'x5' | 'x6';
 export type Platform = {
   x: number;
@@ -47,14 +50,14 @@ const ground = (x: number, end: number): Platform => ({
 export const stages: Record<StageId, Stage> = {
   x4: {
     id: 'x4',
-    title: 'NEON RECLAIMER',
-    subtitle: '네온 회수 작전',
-    sector: 'RAINLINE / FREIGHT DISTRICT',
-    bossName: 'VOLT MANTIS',
-    accent: '#56e6d3',
-    sky: '#101e35',
-    far: '#223c53',
-    metal: '#405671',
+    title: 'MEGA MAN X4',
+    subtitle: '스카이 라군 · 공중 도시의 추락',
+    sector: 'SKY LAGOON',
+    bossName: 'EREGION',
+    accent: '#55c9ff',
+    sky: '#65a8d6',
+    far: '#6d9db4',
+    metal: '#618f9e',
     light: '#ffc66d',
     end: 3520,
     arena: 2920,
@@ -93,10 +96,10 @@ export const stages: Record<StageId, Stage> = {
   },
   x5: {
     id: 'x5',
-    title: 'ORBITAL AFTERBURN',
-    subtitle: '궤도 잔광',
-    sector: 'APOGEE / ORBITAL DOCK',
-    bossName: 'ORBIT NAUTILUS',
+    title: 'MEGA MAN X5',
+    subtitle: '천체관 · 다크 네크로뱃',
+    sector: 'PLANETARIUM / DARK NECROBAT',
+    bossName: 'DARK NECROBAT',
     accent: '#8dcaff',
     sky: '#12132d',
     far: '#343051',
@@ -140,10 +143,10 @@ export const stages: Record<StageId, Stage> = {
   },
   x6: {
     id: 'x6',
-    title: 'ECLIPSE FOUNDRY',
-    subtitle: '식의 용광로',
-    sector: 'ASHFALL / REACTOR SHAFT',
-    bossName: 'CINDER JACKAL',
+    title: 'MEGA MAN X6',
+    subtitle: '마그마 지대 · 블레이즈 히트닉스',
+    sector: 'MAGMA AREA',
+    bossName: 'BLAZE HEATNIX',
     accent: '#ffbd69',
     sky: '#211b2a',
     far: '#49333c',

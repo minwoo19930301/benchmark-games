@@ -34,7 +34,7 @@ function readyStrike(
   return enemy;
 }
 
-test('ocarina starts as a complete playable quest with distinct heart, melody and Warden state', () => {
+test('ocarina starts as a complete playable quest with distinct heart, melody and Gohma state', () => {
   const simulation = new OcarinaSimulation();
   const snapshot = simulation.snapshot();
   assert.equal(snapshot.phase, 'playing');
@@ -42,7 +42,7 @@ test('ocarina starts as a complete playable quest with distinct heart, melody an
   assert.equal(simulation.hearts, 5);
   assert.equal(simulation.player.x, START.x);
   assert.equal(simulation.player.z, START.z);
-  assert.match(snapshot.objective, /이슬/);
+  assert.match(snapshot.objective, /사리아/);
   assert.equal(simulation.enemies.filter((enemy) => enemy.boss).length, 1);
 });
 
@@ -52,11 +52,11 @@ test('sword has distance, facing and per-swing damage rather than damage each si
   position(simulation, enemy.x, enemy.z + 3.8);
   simulation.step(FIXED, { ...idleInput(), attack: true });
   assert.equal(enemy.hp, 3, 'out-of-range attack must miss');
-  advance(simulation, 0.5);
+  advance(simulation, 1.2);
   position(simulation, enemy.x, enemy.z + 2, 0);
   simulation.step(FIXED, { ...idleInput(), attack: true });
   assert.equal(enemy.hp, 3, 'an enemy behind the sword must not be hit');
-  advance(simulation, 0.5, { guard: true });
+  advance(simulation, 1.2, { guard: true });
   position(simulation, enemy.x, enemy.z + 2, Math.PI);
   simulation.step(FIXED, { ...idleInput(), attack: true, guard: true });
   assert.equal(enemy.hp, 1);
@@ -67,6 +67,13 @@ test('sword has distance, facing and per-swing damage rather than damage each si
     'holding the same swing cannot apply repeated damage',
   );
   advance(simulation, 0.25, { attack: true, guard: true });
+  assert.equal(
+    enemy.hp,
+    1,
+    'holding J charges; a new press is required for the next basic swing',
+  );
+  simulation.step(FIXED, { ...idleInput(), guard: true });
+  simulation.step(FIXED, { ...idleInput(), attack: true, guard: true });
   assert.equal(enemy.alive, false);
   assert.equal(simulation.enemiesDefeated, 1);
   assert.ok(simulation.score >= 170);
@@ -121,7 +128,13 @@ test('melodies require proximity and their declared order before the gate opens'
   for (let index = 0; index < 3; index += 1) {
     const stone = MELODY_STONES[index];
     position(simulation, stone.x, stone.z + 1.8);
-    advance(simulation, 1.5, { interact: true });
+    advance(simulation, 0.9);
+    simulation.step(FIXED, { ...idleInput(), interact: true });
+    assert.equal(simulation.playingSong, index);
+    for (const note of stone.notes) {
+      simulation.step(FIXED, idleInput());
+      simulation.step(FIXED, { ...idleInput(), [note]: true });
+    }
     assert.equal(simulation.melodies, index + 1);
     assert.equal(simulation.gateOpen, index === 2);
   }
@@ -131,7 +144,7 @@ test('melodies require proximity and their declared order before the gate opens'
       .map((event) => [event.x, event.z]),
     MELODY_STONES.map((stone) => [stone.x, stone.z]),
   );
-  assert.match(simulation.snapshot().objective, /야근 수호자/);
+  assert.match(simulation.snapshot().objective, /고마/);
 });
 
 test('the locked gate and pond are real collision boundaries and the open gate is traversable', () => {
@@ -147,7 +160,7 @@ test('the locked gate and pond are real collision boundaries and the open gate i
   assert.ok(simulation.player.x >= POND.x + POND.radiusX + 0.5);
 });
 
-test('the final shrine requires all melodies and a defeated Warden', () => {
+test('the final shrine requires all melodies and a defeated Gohma', () => {
   const simulation = new OcarinaSimulation();
   position(simulation, SHRINE.x, SHRINE.z + 1);
   advance(simulation, 0.1, { interact: true });
@@ -169,7 +182,10 @@ test('benchmark controller only returns legal input and never patches simulation
   const before = JSON.stringify(simulation);
   const input = benchmarkOcarina(simulation);
   assert.equal(JSON.stringify(simulation), before);
-  assert.deepEqual(Object.keys(input).sort(), Object.keys(idleInput()).sort());
+  assert.deepEqual(
+    Object.keys(input).sort((a, b) => a.localeCompare(b)),
+    Object.keys(idleInput()).sort((a, b) => a.localeCompare(b)),
+  );
   assert.ok(Object.values(input).every((value) => typeof value === 'boolean'));
 });
 
@@ -181,9 +197,8 @@ test('normal benchmark input completes the full quest at 30, 60 and 120 Hz rende
     let frames = 0;
     while (simulation.phase === 'playing' && frames < frameRate * 90) {
       accumulator += 1 / frameRate;
-      const input = benchmarkOcarina(simulation);
       while (accumulator >= FIXED - 1e-10) {
-        simulation.step(FIXED, input);
+        simulation.step(FIXED, benchmarkOcarina(simulation));
         accumulator -= FIXED;
       }
       frames += 1;

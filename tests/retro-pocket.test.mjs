@@ -62,7 +62,7 @@ test('standing in grass never spawns encounters; walking does, deterministically
   assert.equal(standing.encounters, 0);
   const a = wildBattle(),
     b = wildBattle();
-  assert.equal(a.battle.id, 'dokkaebud');
+  assert.equal(a.battle.id, 'pidgey');
   assert.equal(a.encounters, 1);
   assert.deepEqual(a, b);
 });
@@ -80,18 +80,19 @@ test('ember, leaf, water form a complete type advantage triangle used by combat'
   const basic = wildBattle(),
     strong = wildBattle(),
     weak = wildBattle();
-  weak.party[0] = { id: 'puddleot', hp: species.puddleot.maxHp };
+  for (const g of [basic, strong, weak]) g.battle.id = 'bulbasaur';
+  weak.party[0] = { id: 'squirtle', hp: species.squirtle.maxHp };
   basic.step(1 / 120, buttons({ attack: true }));
   strong.step(1 / 120, buttons({ special: true }));
   weak.step(1 / 120, buttons({ special: true }));
   assert.equal(basic.battle.hp, 17);
-  assert.equal(strong.battle.hp, 6);
-  assert.equal(weak.battle.hp, 17);
+  assert.equal(strong.battle.hp, 4);
+  assert.equal(weak.battle.hp, 19);
   assert.ok(strong.battle.hp < weak.battle.hp);
   assert.match(strong.message, /Super effective/);
   assert.match(weak.message, /Not very effective/);
   assert.equal(strong.pal.hp, 34, 'a surviving foe answers exactly once');
-  assert.equal(weak.pal.hp, 29, 'enemy attacks also obey type matchups');
+  assert.equal(weak.pal.hp, 28, 'enemy attacks also obey type matchups');
 });
 
 test('held battle actions have a turn cooldown instead of attacking each simulation tick', () => {
@@ -101,7 +102,7 @@ test('held battle actions have a turn cooldown instead of attacking each simulat
   advance(game, 0.5, { attack: true });
   assert.equal(game.battle.turn, 1);
   assert.equal(game.battle.hp, 17);
-  advance(game, 0.25, { attack: true });
+  advance(game, 0.6, { attack: true });
   assert.equal(game.battle.turn, 2);
   assert.equal(game.battle.hp, 10);
 });
@@ -119,8 +120,8 @@ test('capture requires at most 45% HP, spends an orb, and adds a living unique t
   const hpBeforeCapture = game.pal.hp;
   game.step(1 / 120, buttons({ guard: true }));
   assert.equal(game.balls, 4);
-  assert.deepEqual(game.caught, ['dokkaebud']);
-  assert.equal(game.party[1].hp, species.dokkaebud.maxHp);
+  assert.deepEqual(game.caught, ['pidgey']);
+  assert.equal(game.party[1].hp, species.pidgey.maxHp);
   assert.equal(
     game.pal.hp,
     hpBeforeCapture,
@@ -134,8 +135,8 @@ test('capture requires at most 45% HP, spends an orb, and adds a living unique t
 
 test('duplicate captures cannot satisfy the two-species quest', () => {
   const game = wildBattle();
-  game.caught.push('dokkaebud');
-  game.party.push({ id: 'dokkaebud', hp: 30 });
+  game.caught.push('pidgey');
+  game.party.push({ id: 'pidgey', hp: 30 });
   game.battle.hp = 1;
   game.step(1 / 120, buttons({ guard: true }));
   assert.equal(game.caught.length, 1);
@@ -156,13 +157,13 @@ test('orb and healing supplies are limited, while the actual clinic interaction 
   assert.equal(game.cakes, 0);
   assert.equal(
     game.pal.hp,
-    25,
-    'cake heals 22 before the ordinary counterattack',
+    24,
+    'potion heals 22 before the ordinary counterattack',
   );
   ready(game);
   game.step(1 / 120, buttons({ interact: true }));
   assert.equal(game.cakes, 0);
-  assert.equal(game.pal.hp, 25);
+  assert.equal(game.pal.hp, 24);
   const clinic = new PocketSimulation();
   clinic.pal.hp = 1;
   clinic.balls = 0;
@@ -170,26 +171,29 @@ test('orb and healing supplies are limited, while the actual clinic interaction 
   for (let frame = 0; frame < 240 && clinic.player.x > CLINIC.x + 0.5; frame++)
     clinic.step(1 / 120, buttons({ left: true }));
   clinic.step(1 / 120, buttons({ interact: true }));
-  assert.equal(clinic.pal.hp, species.tangerex.maxHp);
+  assert.equal(clinic.pal.hp, species.charmander.maxHp);
   assert.equal(clinic.balls, 6);
   assert.equal(clinic.cakes, 3);
 });
 
 test('battle switching selects living teammates and a fainted pal automatically yields to one', () => {
   const game = wildBattle();
-  game.party.push({ id: 'puddleot', hp: 34 });
-  game.step(1 / 120, buttons({ right: true }));
-  assert.equal(game.pal.id, 'puddleot');
-  assert.equal(
-    game.battle.turn,
-    0,
-    'switching itself does not count as an attack',
-  );
+  game.party.push({ id: 'squirtle', hp: 34 });
+  const tap = (key) => {
+    game.step(1 / 120, buttons({ [key]: true }));
+    game.step(1 / 120, buttons());
+  };
+  tap('right');
+  tap('jump');
+  tap('down');
+  tap('jump');
+  assert.equal(game.pal.id, 'squirtle');
+  assert.equal(game.battle.turn, 1, 'a valid switch consumes one enemy turn');
   ready(game);
   game.pal.hp = 1;
   game.step(1 / 120, buttons({ attack: true }));
   assert.equal(game.party[1].hp, 0);
-  assert.equal(game.pal.id, 'tangerex');
+  assert.equal(game.pal.id, 'charmander');
   assert.equal(game.phase, 'playing');
 });
 
@@ -200,7 +204,7 @@ test('rival gates on two different captures and refuses capture balls', () => {
   game.step(1 / 120, buttons({ interact: true }));
   assert.equal(game.mode, 'world');
   assert.match(game.message, /two different friends/);
-  game.caught = ['dokkaebud', 'puddleot'];
+  game.caught = ['pidgey', 'rattata'];
   advance(game, 0.4);
   game.step(1 / 120, buttons({ interact: true }));
   assert.equal(game.battle.kind, 'rival');
@@ -214,7 +218,7 @@ test('rival gates on two different captures and refuses capture balls', () => {
 
 test('wild knockouts do not count as captures or win the quest', () => {
   const game = wildBattle();
-  advance(game, 3, { special: true });
+  advance(game, 5, { special: true });
   assert.equal(game.mode, 'world');
   assert.equal(game.caught.length, 0);
   assert.equal(game.score, 100);
@@ -241,7 +245,7 @@ for (const hz of [30, 60, 120]) {
     }
     assert.equal(game.phase, 'won');
     assert.equal(game.rivalDefeated, true);
-    assert.deepEqual(game.caught, ['dokkaebud', 'puddleot']);
+    assert.deepEqual(game.caught, ['pidgey', 'rattata']);
     assert.equal(game.encounters, 2);
     assert.equal(game.balls, 4);
     assert.equal(game.party.length, 3);
@@ -310,7 +314,7 @@ test('pixel view draws both game modes without changing simulation, caps DPR, an
     assert.equal(canvas.width, 960);
     assert.equal(canvas.height, 720);
     assert.deepEqual(structuredClone(game), before);
-    assert.ok(words.includes('CITRUS TOWN / ROUTE 1'));
+    assert.ok(words.includes('PALLET TOWN / ROUTE 1'));
     assert.ok(view.metrics().drawCalls > 0);
     const savedCalls = calls;
     view.dispose();
@@ -320,9 +324,9 @@ test('pixel view draws both game modes without changing simulation, caps DPR, an
     const battle = wildBattle();
     const battleView = mountPocket(canvas, battle);
     battleView.render(320, 240);
-    assert.ok(words.includes('DOKKAEBUD'));
-    assert.ok(words.includes('TANGEREX'));
-    assert.ok(words.includes('J QUICK BUMP'));
+    assert.ok(words.includes('PIDGEY'));
+    assert.ok(words.includes('CHARMANDER'));
+    assert.ok(words.includes('FIGHT'));
     battleView.dispose();
   } finally {
     if (oldDpr === undefined) delete globalThis.devicePixelRatio;

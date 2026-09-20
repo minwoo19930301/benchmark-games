@@ -645,3 +645,161 @@
     max-width: calc(100% - 175px);
   }
 }
+
+/* Let the cartridge's own health bars, damage display and camera define the screen. */
+.reference-shell {
+  background: #10131b;
+}
+.reference-shell .retro-hud {
+  height: 36px;
+  box-sizing: border-box;
+  padding: 3px 14px;
+  gap: 12px;
+  border-bottom: 1px solid #273342;
+  background: #141c27;
+  color: #e3e9f2;
+}
+.reference-shell .retro-game-title {
+  flex: 1;
+  max-width: none;
+  min-width: 0;
+}
+.reference-shell .retro-game-title small {
+  display: none;
+}
+.reference-shell .retro-game-title strong {
+  font-size: 11px;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.reference-shell .retro-stats {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.reference-shell .retro-tools {
+  position: static;
+}
+.reference-shell .retro-tools button,
+.reference-shell .retro-tools a {
+  background: #202c3b;
+  border-color: #3c4a5e;
+  padding: 5px 8px;
+  font-size: 10px;
+}
+.reference-shell .retro-canvas,
+.reference-shell.has-input-hint .retro-canvas {
+  inset: 36px 0 44px;
+  height: calc(100% - 80px);
+}
+.reference-shell .retro-input-hint {
+  display: none;
+}
+.reference-shell .retro-controls {
+  background: #141c27;
+  color: #cad4e0;
+  font-size: 9px;
+  height: 44px;
+  box-sizing: border-box;
+  justify-content: center;
+  padding: 8px 12px;
+}
+.reference-shell .retro-controls kbd {
+  border-color: #576579;
+}
+.reference-shell .retro-mission {
+  top: 42px;
+  font-size: 10px;
+}
+.reference-shell .mission-playing {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.reference-shell .retro-overlay {
+  top: 36px;
+  bottom: 44px;
+}
+.reference-shell .retro-perf {
+  top: auto;
+  right: 10px;
+  bottom: 48px;
+  padding: 6px 8px;
+  gap: 2px;
+  font-size: 8px;
+  background: #111b29e6;
+  color: #eaf2fa;
+  border-color: #5f7388;
+}
+.reference-shell .retro-perf strong {
+  font-size: 16px;
+}
+.reference-shell .retro-suite-label {
+  top: auto;
+  bottom: 49px;
+  left: 10px;
+  right: auto;
+  font-size: 9px;
+  padding: 5px 8px;
+}
+@media (max-width: 650px), (pointer: coarse) {
+  .reference-shell .retro-canvas,
+  .reference-shell.has-input-hint .retro-canvas {
+    inset: 36px 0 112px;
+    height: calc(100% - 148px);
+  }
+  .reference-shell .retro-overlay {
+    top: 36px;
+    bottom: 112px;
+  }
+  .reference-shell .retro-perf,
+  .reference-shell .retro-suite-label {
+    bottom: 116px;
+  }
+  .reference-shell .retro-hud {
+    padding: 3px 8px;
+  }
+  .reference-shell .retro-game-title {
+    flex: 1;
+    max-width: calc(100% - 178px);
+  }
+  .reference-shell .retro-touch button {
+    background: #27384eea;
+    color: #e9f2fc;
+    border-color: #72849b;
+  }
+  .reference-shell .retro-action-pad {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex: 1;
+  }
+  .reference-shell .retro-action-pad button {
+    min-width: 0;
+    font-size: 7px;
+    height: 44px;
+    padding: 2px;
+  }
+  .reference-shell .retro-action-pad strong {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 650px), (pointer: coarse) {
+  .reference-shell.retro-colony .retro-canvas {
+    inset: 36px 0 162px;
+    height: calc(100% - 198px);
+  }
+  .reference-shell.retro-colony .retro-overlay {
+    bottom: 162px;
+  }
+  .reference-shell.retro-colony .retro-perf,
+  .reference-shell.retro-colony .retro-suite-label {
+    bottom: 166px;
+  }
+}

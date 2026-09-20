@@ -46,7 +46,17 @@ function button(sim, name) {
   const bounds = BUTTONS.find((entry) => entry.command === name);
   click(sim, { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h / 2 });
 }
+function buildDepot(sim) {
+  tick(sim, { ultimate: true, left2: true });
+  pointer(sim, project({ x: 9.5, y: 20.5 }, sim.camera, aspect), {
+    primary: true,
+    primaryPressed: true,
+  });
+  advance(sim, 7);
+}
 function buildBarracks(sim) {
+  if (!sim.buildings.some((b) => b.kind === 'depot' && b.progress >= 1))
+    buildDepot(sim);
   tick(sim, { ultimate: true, special: true });
   pointer(sim, project({ x: 10.5, y: 17.5 }, sim.camera, aspect), {
     primary: true,
@@ -57,7 +67,7 @@ function buildBarracks(sim) {
 test('initial colony has two harvesting workers, an idle builder, defensive troops and unexplored enemy territory', () => {
   const sim = new ColonySimulation();
   assert.equal(sim.phase, 'playing');
-  assert.equal(sim.minerals, 220);
+  assert.equal(sim.minerals, 400);
   assert.equal(sim.friendlyUnits().length, 5);
   assert.equal(
     sim.units.filter((unit) => unit.order.kind === 'harvest').length,
@@ -150,13 +160,21 @@ test('building placement charges only valid sites and requires a worker to reach
   assert.equal(sim.buildMode, null, 'no selection cannot build');
   tick(sim);
   tick(sim, { ultimate: true, special: true });
+  assert.equal(
+    sim.buildMode,
+    null,
+    'Barracks requires a completed Supply Depot',
+  );
+  buildDepot(sim);
+  const beforeMinerals = sim.minerals;
+  tick(sim, { ultimate: true, special: true });
   assert.equal(sim.buildMode, 'barracks');
   pointer(sim, project(BASE, sim.camera, aspect), {
     primaryPressed: true,
     primary: true,
   });
-  assert.equal(sim.buildings.length, 2);
-  assert.equal(sim.minerals, 220);
+  assert.equal(sim.buildings.length, 3);
+  assert.equal(sim.minerals, beforeMinerals);
   pointer(sim, project({ x: 10.5, y: 17.5 }, sim.camera, aspect), {
     primaryPressed: true,
     primary: true,
@@ -165,8 +183,8 @@ test('building placement charges only valid sites and requires a worker to reach
     (building) => building.kind === 'barracks',
   );
   assert.ok(barracks);
-  assert.equal(sim.minerals, 120);
-  assert.equal(sim.spent, 100);
+  assert.equal(sim.minerals, beforeMinerals - 150);
+  assert.equal(sim.spent, 250);
   assert.equal(barracks.progress, 0);
   assert.equal(sim.buildMode, null);
   assert.ok(
@@ -175,10 +193,10 @@ test('building placement charges only valid sites and requires a worker to reach
         unit.order.kind === 'build' && unit.order.target === barracks.id,
     ),
   );
-  advance(sim, 7);
+  advance(sim, 8);
   assert.equal(barracks.progress, 1);
   assert.equal(barracks.hp, barracks.maxHp);
-  assert.equal(sim.audioCues.ability, 1);
+  assert.equal(sim.audioCues.ability, 2);
   assert.equal(sim.walkable(barracks.x, barracks.y), false);
 });
 
@@ -189,7 +207,7 @@ test('construction cannot entomb units and a right-click on a visible enemy spri
   const enemy = sim.units.find((unit) => unit.enemy);
   Object.assign(enemy, { x: 11.5, y: 15.5 });
   advance(sim, 0.15);
-  button(sim, 'army');
+  tick(sim, { switch: true });
   const body = project(enemy, sim.camera, aspect);
   rightClick(sim, {
     x: body.x,
@@ -208,7 +226,7 @@ test('command HUD buttons produce bounded queues, charge resources once per pres
     'cannot queue before barracks completion',
   );
   buildBarracks(sim);
-  advance(sim, 7);
+  advance(sim, 8);
   const barracks = sim.buildings.find(
     (building) => building.kind === 'barracks',
   );
@@ -216,7 +234,7 @@ test('command HUD buttons produce bounded queues, charge resources once per pres
   for (let i = 0; i < 7; i += 1) button(sim, 'marine');
   assert.equal(barracks.queue.length, 5);
   assert.equal(sim.commands.train, 5);
-  assert.equal(sim.spent, 100 + 35 * 5);
+  assert.equal(sim.spent, 250 + 50 * 5);
   const count = sim.friendlyUnits().length;
   advance(sim, 2.5);
   assert.equal(sim.friendlyUnits().length, count + 1);
@@ -270,7 +288,7 @@ test('A* goes around blocked rock cells and units traverse the route without ent
 
 test('minimap clicks pan the camera and issue world-space group orders without selecting HUD elements', () => {
   const sim = new ColonySimulation();
-  button(sim, 'army');
+  tick(sim, { switch: true });
   const selected = [...sim.selected];
   click(sim, minimapPoint({ x: 21, y: 9 }));
   assert.ok(
@@ -315,7 +333,7 @@ test('range, targeting, projectile travel and return fire determine combat damag
   assert.ok(sim.audioCues.shot > 0);
   assert.ok(
     enemy.hp < enemy.maxHp,
-    'friendly pulse rifles damage a visible enemy',
+    'friendly Gauss rifles damage a visible enemy',
   );
   assert.ok(
     sim.friendlyUnits().some((unit) => unit.hp < unit.maxHp),
@@ -401,7 +419,7 @@ test('normal build-order benchmark wins through economy, production and battle a
     assert.ok(
       sim.buildings.find((building) => building.kind === 'headquarters').hp > 0,
     );
-    assert.equal(sim.commands.build, 2);
+    assert.equal(sim.commands.build, 3);
     assert.ok(sim.commands.train >= 5 && sim.commands.attackMove > 0);
     assert.ok(sim.gathered >= 200 && sim.kills > 2 && sim.waves >= 1);
     assert.ok(sim.time >= 20 && sim.time < 90);
@@ -490,7 +508,7 @@ test('canvas view has a populated first frame, caps DPR, reports real draw opera
     assert.ok(view.metrics().entities >= 6);
     assert.ok(view.metrics().drawCalls > 700);
     assert.ok(
-      calls.some(([name, label]) => name === 'fillText' && label === '병영'),
+      calls.some(([name, label]) => name === 'fillText' && label === '배럭'),
     );
     view.dispose();
     view.dispose();
@@ -505,4 +523,135 @@ test('canvas view has a populated first frame, caps DPR, reports real draw opera
     if (dpr) Object.defineProperty(globalThis, 'devicePixelRatio', dpr);
     else delete globalThis.devicePixelRatio;
   }
+});
+
+test('Terran supply comes from living completed buildings and a destroyed depot blocks queued training', () => {
+  const sim = new ColonySimulation();
+  assert.equal(sim.supplyUsed(), 5);
+  assert.equal(sim.supplyCap(), 10);
+  buildDepot(sim);
+  assert.equal(sim.supplyCap(), 18);
+  const depot = sim.buildings.find((b) => b.kind === 'depot');
+  const seed = sim.units.find((u) => u.kind === 'worker');
+  for (let i = 0; i < 5; i++)
+    sim.units.push({
+      ...seed,
+      id: 300 + i,
+      x: 1.5 + i,
+      y: 20,
+      hp: 60,
+      order: { kind: 'hold', x: 1.5 + i, y: 20 },
+      path: [],
+      cargo: 0,
+      returning: false,
+    });
+  assert.equal(sim.supplyUsed(), 10);
+  tick(sim, { reload: true });
+  const hq = sim.buildings.find((b) => b.kind === 'headquarters');
+  assert.equal(hq.queue.length, 1);
+  depot.hp = 0;
+  const clock = hq.trainTime;
+  advance(sim, 1);
+  assert.equal(sim.supplyCap(), 10);
+  assert.equal(hq.trainTime, clock);
+  assert.equal(hq.queue.length, 1);
+  const funds = sim.minerals;
+  tick(sim, { reload: true });
+  assert.equal(hq.queue.length, 1);
+  assert.equal(sim.minerals, funds, 'supply rejection does not spend minerals');
+  depot.hp = 500;
+  advance(sim, 3.1);
+  assert.equal(sim.supplyUsed(), 11);
+  assert.equal(hq.queue.length, 0);
+});
+
+function completeBunker(sim) {
+  for (let n = 0; n < 30 * 120; n++) {
+    tick(sim, benchmarkColony(sim));
+    const bunker = sim.buildings.find(
+      (b) => b.kind === 'turret' && b.progress === 1 && b.hp > 0,
+    );
+    if (bunker) {
+      sim.clearInput();
+      return bunker;
+    }
+  }
+  assert.fail('normal build order must complete a bunker');
+}
+test('an empty Bunker cannot fire; Marines enter through right-click orders and four slots are enforced', () => {
+  const sim = new ColonySimulation(),
+    bunker = completeBunker(sim);
+  const enemy = sim.units.find((u) => u.enemy);
+  Object.assign(enemy, { x: bunker.x + 4, y: bunker.y, hp: 40, cooldown: 20 });
+  advance(sim, 0.15);
+  assert.equal(bunker.cooldown, 0, 'empty structure has no weapon');
+  const marine = sim.units.find((u) => u.kind === 'marine');
+  sim.selected = new Set([marine.id]);
+  rightClick(sim, project(bunker, sim.camera, aspect));
+  assert.equal(marine.order.kind, 'enter');
+  for (let n = 0; n < 6 * 120 && !marine.garrison; n++) tick(sim);
+  assert.equal(marine.garrison, bunker.id);
+  assert.equal(
+    sim.entity(marine.id),
+    undefined,
+    'embarked units cannot be individually targeted',
+  );
+  const occupants = sim.occupants(bunker).length;
+  advance(sim, 1);
+  assert.ok(
+    bunker.cooldown > 0 || enemy.hp === 0,
+    'loaded Marines fire from the Bunker',
+  );
+  const fresh = sim.units.find((u) => u.kind === 'marine' && !u.garrison);
+  for (let n = 0; n < 5; n++)
+    sim.units.push({
+      ...fresh,
+      id: 500 + n,
+      x: bunker.x - 2,
+      y: bunker.y + 0.02 * n,
+      hp: 40,
+      order: { kind: 'enter', x: bunker.x, y: bunker.y, target: bunker.id },
+      path: [],
+      garrison: null,
+    });
+  advance(sim, 5);
+  assert.equal(sim.occupants(bunker).length, 4);
+  assert.ok(occupants >= 1);
+  sim.selected = new Set([bunker.id]);
+  button(sim, 'unload');
+  assert.equal(sim.occupants(bunker).length, 0);
+  assert.ok(
+    sim
+      .friendlyUnits()
+      .filter((u) => u.kind === 'marine')
+      .every((u) => sim.walkable(u.x, u.y)),
+    JSON.stringify(
+      sim
+        .friendlyUnits()
+        .filter((u) => u.kind === 'marine' && !sim.walkable(u.x, u.y))
+        .map((u) => [u.id, u.x, u.y, u.garrison]),
+    ),
+  );
+});
+test('hold-position shoots in range without chasing; Stop cancels the previous movement order', () => {
+  const sim = new ColonySimulation(),
+    marine = sim.units.find((u) => u.kind === 'marine'),
+    enemy = sim.units.find((u) => u.enemy);
+  sim.selected = new Set([marine.id]);
+  tick(sim, { right2: true });
+  assert.equal(marine.order.kind, 'hold');
+  Object.assign(enemy, {
+    x: marine.x + 6,
+    y: marine.y,
+    cooldown: 100,
+    order: { kind: 'hold', x: marine.x + 6, y: marine.y },
+  });
+  const start = { x: marine.x, y: marine.y };
+  advance(sim, 0.5);
+  assert.ok(Math.hypot(marine.x - start.x, marine.y - start.y) < 0.1);
+  rightClick(sim, minimapPoint({ x: 10, y: 19 }));
+  assert.equal(marine.order.kind, 'move');
+  tick(sim, { jump2: true });
+  assert.equal(marine.order.kind, 'idle');
+  assert.equal(marine.path.length, 0);
 });

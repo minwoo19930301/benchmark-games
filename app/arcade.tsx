@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { catalog, findGame } from '../lib/retro/catalog';
 import {
+  BENCHMARK_VERSION,
   readRecords,
   saveRecord,
   type BenchmarkRecord,
@@ -16,7 +17,8 @@ function exportRecords(records: BenchmarkRecord[]) {
       [
         JSON.stringify(
           {
-            schema: 1,
+            schema: 2,
+            benchmarkVersion: BENCHMARK_VERSION,
             note: 'Foreground browser measurements; compare same browser, viewport and hardware.',
             records,
           },
@@ -65,9 +67,9 @@ export default function Arcade() {
       window.location.hash = suite[0];
     }
   }, [suite, selected]);
-  const runSuite = (newOnly = false) => {
-    const games = newOnly
-      ? catalog.filter((game) => Number(game.number) >= 8)
+  const runSuite = (fightersOnly = false) => {
+    const games = fightersOnly
+      ? catalog.filter((game) => game.id === 'smash' || game.id === 'iron')
       : catalog;
     setSuiteSize(games.length);
     setSuite(games.map((game) => game.id));
@@ -115,8 +117,18 @@ export default function Arcade() {
                   {game.id === 'ocarina'
                     ? 'OCARINA'
                     : game.id === 'commando'
-                      ? 'COMMANDO'
-                      : game.id.toUpperCase()}
+                      ? 'METAL SLUG'
+                      : game.id === 'iron'
+                        ? 'TEKKEN'
+                        : game.id === 'pocket'
+                          ? 'POKÉMON'
+                          : game.id === 'colony'
+                            ? 'STARCRAFT'
+                            : game.id === 'watchpoint'
+                              ? 'OVERWATCH'
+                              : game.id === 'temple'
+                                ? 'FIRE & WATER'
+                                : game.id.toUpperCase()}
                 </a>
               ))}
             </>
@@ -163,7 +175,7 @@ export default function Arcade() {
       ) : (
         <main className="arcade-library">
           <div className="library-masthead">
-            <span>BENCHMARK GAMES · VOL. 03</span>
+            <span>BENCHMARK GAMES · VOL. 04</span>
             <span>INSERT COIN? NO. JUST PLAY.</span>
           </div>
           <header className="library-heading">
@@ -192,7 +204,7 @@ export default function Arcade() {
               <small>
                 오락실부터 PC방까지, 다시 꺼내 든
                 <br />
-                {catalog.length}개의 독립 패러디 + Mario & Sonic
+                {catalog.length}개의 재구현 + Mario & Sonic
               </small>
             </aside>
           </header>
@@ -206,30 +218,28 @@ export default function Arcade() {
             </div>
             <div className="suite-buttons">
               <button onClick={() => runSuite(true)}>
-                새 게임{' '}
-                {catalog.filter((game) => Number(game.number) >= 8).length}종
-                실행 <span>↗</span>
+                스매시 · 철권 벤치마크 <span>↗</span>
               </button>
               <button onClick={() => runSuite()}>
                 전체 {catalog.length}종 벤치마크 <span>↗</span>
               </button>
             </div>
           </section>
-          <section className="new-cartridges" aria-label="이번에 추가된 게임">
-            <span>NEW / PC방과 플래시게임의 기억</span>
+          <section
+            className="new-cartridges"
+            aria-label="다시 만든 게임 바로가기"
+          >
+            <span>REBUILT / 원작 기준으로 다시 만든 게임</span>
             {catalog
-              .filter((game) => Number(game.number) >= 8)
+              .filter((game) => Number(game.number) <= 7)
               .map((game) => (
                 <a key={game.id} href={`#${game.id}`}>
                   {game.korean} ↗
                 </a>
               ))}
           </section>
-          <section className="cartridge-list" aria-label="패러디 게임 목록">
-            {[
-              ...catalog.filter((game) => Number(game.number) >= 8),
-              ...catalog.filter((game) => Number(game.number) < 8),
-            ].map((game) => (
+          <section className="cartridge-list" aria-label="게임 목록">
+            {[...catalog].map((game) => (
               <article
                 className={`cartridge-row cartridge-${game.id}`}
                 key={game.id}
@@ -242,7 +252,7 @@ export default function Arcade() {
                   aria-hidden="true"
                 >
                   <img
-                    src={`${import.meta.env.BASE_URL}previews/${game.id}.png`}
+                    src={`${import.meta.env.BASE_URL}previews/${game.id}.png?v=${BENCHMARK_VERSION}`}
                     alt=""
                     loading="lazy"
                   />
@@ -258,7 +268,7 @@ export default function Arcade() {
                   </h2>
                   <h3>{game.title}</h3>
                   <p className="cartridge-description">{game.description}</p>
-                  <small>INSPIRED BY {game.reference}</small>
+                  <small>REFERENCE / {game.reference}</small>
                 </div>
                 <a
                   className="cartridge-play"
@@ -295,8 +305,8 @@ export default function Arcade() {
               </button>
             </header>
             <p className="ledger-note">
-              평균 FPS · 프레임 간격 p95 · 프레임당 CPU 작업 시간. 같은
-              기기·브라우저·화면 크기에서 비교하세요. 숨겨진 탭은
+              평균 FPS · 프레임 간격 p95 · 프레임당 CPU 작업 시간. 같은 구현
+              버전·기기·브라우저·화면 크기에서 비교하세요. 숨겨진 탭은
               일시정지됩니다.
             </p>
             {records.length ? (
@@ -340,7 +350,7 @@ export default function Arcade() {
           <footer className="library-footer">
             <b>B/G — BUILT TO PLAY</b>
             <p>
-              자체 제작한 캐릭터·배경·코드로 구성한 비공식 팬 패러디입니다.
+              원작의 캐릭터와 조작을 참고한 짧은 비공식 브라우저 재구현입니다.
               <br />
               참고 작품의 상표와 캐릭터 권리는 각 권리자에게 있습니다.
             </p>

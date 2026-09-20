@@ -1,5 +1,6 @@
 import type { RetroView } from '../types.ts';
 import { pixelArt } from './art.ts';
+import { createHunterSprites } from './sprites.ts';
 import { hazardPhase, platformAt } from './world.ts';
 import type { ReploidSimulation } from './simulation.ts';
 
@@ -12,125 +13,309 @@ export function mountReploid(
   const buffer = document.createElement('canvas');
   const ctx = buffer.getContext('2d')!;
   if (!ctx) throw new Error('픽셀 화면을 준비하지 못했습니다.');
-  const g = pixelArt(ctx),
+  const sprites = createHunterSprites();
+  const g = pixelArt(ctx, sprites),
     stage = sim.stage;
   let disposed = false;
   const hash = (n: number) => {
     const x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
     return x - Math.floor(x);
   };
-  const gear = (
-    x: number,
-    y: number,
-    radius: number,
-    time: number,
-    color: string,
-  ) => {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(time);
-    for (let i = 0; i < 12; i++) {
-      ctx.rotate(Math.PI / 6);
-      g.rect(radius - 3, -5, 12, 10, color);
-    }
-    ctx.beginPath();
-    ctx.arc(0, 0, radius, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(0, 0, radius * 0.52, 0, Math.PI * 2);
-    ctx.fillStyle = stage.sky;
-    ctx.fill();
-    g.rect(-4, -4, 8, 8, stage.metal);
-    ctx.restore();
-  };
   function background(vw: number, camX: number, camY: number) {
     g.rect(0, 0, vw, 360, stage.sky);
-    if (stage.id === 'x5') {
-      for (let i = 0; i < 100; i++) {
-        const x = (hash(i + 1) * 1800 - camX * 0.04 + 1800) % 1800;
-        g.rect(
-          x,
-          hash(i + 501) * 220,
-          i % 7 ? 1 : 2,
-          i % 7 ? 1 : 2,
-          i % 3 ? '#707aaf' : '#dbe9ef',
-        );
-      }
-      ctx.beginPath();
-      ctx.arc(vw * 0.77 - camX * 0.035, 112, 102, 0, Math.PI * 2);
-      ctx.fillStyle = '#373969';
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(vw * 0.77 - camX * 0.035 + 14, 91, 94, 0, Math.PI * 2);
-      ctx.fillStyle = '#181a3a';
-      ctx.fill();
-      for (let i = 0; i < 4; i++)
-        g.line(
-          [
-            vw * 0.77 - camX * 0.035 - 99,
-            140 + i * 3,
-            vw * 0.77 - camX * 0.035 + 98,
-            68 + i * 3,
-          ],
-          i % 2 ? '#565477' : '#8b7695',
-          2,
-        );
-    } else if (stage.id === 'x4') {
-      g.rect(0, 76, vw, 70, '#20364c');
-      g.rect(0, 123, vw, 34, '#36515e');
-      for (let i = 0; i < 22; i++) {
-        const x = i * 92 - ((camX * 0.12) % 92),
-          h = 45 + hash(i) * 99;
-        g.rect(x, 220 - h, 69, h, '#1b2b43');
-        g.rect(x + 7, 213 - h, 42, 7, '#1c3349');
+    if (stage.id === 'x4') {
+      // Sky Lagoon's elevated, white-green city hangs over a vast cloud layer.
+      const skyBands = ['#5c9bd0', '#71b1dc', '#91c9e6', '#b6dce9', '#d8ebeb'];
+      skyBands.forEach((color, index) => g.rect(0, index * 50, vw, 51, color));
+      for (let layer = 0; layer < 2; layer++)
+        for (let i = 0; i < 12; i++) {
+          const x = i * 150 - ((camX * (0.025 + layer * 0.025)) % 150),
+            y = 135 + layer * 62 + (i % 3) * 12;
+          g.poly(
+            [
+              x - 25,
+              y + 20,
+              x - 12,
+              y + 8,
+              x + 12,
+              y + 8,
+              x + 28,
+              y - 7,
+              x + 69,
+              y - 7,
+              x + 86,
+              y + 5,
+              x + 121,
+              y + 8,
+              x + 134,
+              y + 24,
+            ],
+            layer ? '#eff9ef' : '#d9edf0',
+            '',
+          );
+        }
+      for (let i = 0; i < 13; i++) {
+        const x = i * 130 - ((camX * 0.14) % 130),
+          h = 48 + hash(i) * 86;
+        g.rect(x, 205 - h, 63, h, '#81a9bc');
+        g.rect(x + 5, 200 - h, 47, 6, '#b3d4db');
+        g.rect(x + 23, 178 - h, 14, 24, '#8eb9cc');
+        g.rect(x + 29, 165 - h, 3, 17, '#517d98');
         for (let row = 0; row < 8; row++)
           for (let col = 0; col < 4; col++)
-            if (hash(i * 41 + row * 5 + col) > 0.35)
-              g.rect(
-                x + 10 + col * 13,
-                230 - h + row * 12,
-                5,
-                3,
-                col % 2 ? '#436a72' : '#806861',
-              );
-        g.rect(x + 20, 200 - h, 2, 15, '#58727b');
-      }
-    } else {
-      g.rect(0, 119, vw, 150, '#3d2832');
-      for (let i = 0; i < 13; i++) {
-        const x = i * 160 - ((camX * 0.13) % 160);
+            g.rect(x + 8 + col * 12, 214 - h + row * 10, 5, 4, '#588dab');
+        g.rect(x - 14, 204, 89, 8, '#668da6');
         g.poly(
-          [x - 30, 200, x + 15, 78, x + 67, 115, x + 98, 200],
-          '#352b36',
+          [x - 8, 212, x + 18, 234, x + 49, 236, x + 73, 212],
+          '#9fb8c6',
           '',
         );
-        g.rect(x + 18, 169, 23, 80, '#834a3c');
-        g.rect(x + 25, 170, 5, 81, '#c56e49');
-        g.rect(x + 29, 170, 3, 80, '#e49b61');
       }
-    }
-    // A second, closer structural layer has its own parallax, not a flat backdrop.
-    for (let i = 0; i < 14; i++) {
-      const x = i * 230 - ((camX * 0.36) % 230),
-        top = 113 - camY * 0.15;
-      g.rect(x, top, 18, 180, '#26384b');
-      g.rect(x + 4, top, 3, 178, stage.far);
-      g.rect(x - 12, top + 12, 205, 10, stage.far);
-      g.line([x + 18, top + 23, x + 189, top + 94], stage.far, 5);
-      g.rect(x + 43, top + 30, 122, 72, '#192c3d');
-      for (let j = 0; j < 5; j++)
-        g.rect(x + 49, top + 36 + j * 12, 110, 3, stage.far);
-      if (stage.id === 'x5') {
-        g.line([x + 170, top + 25, x + 182, top + 150], '#51637b', 3);
-        g.rect(x + 153, top + 121, 58, 8, '#69849a');
+      for (let i = 0; i < 7; i++) {
+        const x = i * 260 - ((camX * 0.34) % 260),
+          y = 176 - camY * 0.12;
+        g.rect(x, y, 146, 82, '#bed4cb');
+        g.rect(x + 8, y + 9, 128, 59, '#689b9b');
+        g.rect(x + 18, y + 18, 103, 14, '#487a8c');
+        g.rect(x + 18, y + 39, 103, 13, '#7eb5b0');
+        for (let col = 0; col < 5; col++)
+          g.rect(x + 20 + col * 22, y + 19, 2, 30, '#a9d9d1');
+        g.rect(x - 13, y + 69, 173, 12, '#d6e6d3');
+        g.rect(x - 7, y + 79, 163, 14, '#8bb0ab');
+        g.poly(
+          [x + 146, y + 18, x + 189, y + 13, x + 183, y + 42, x + 150, y + 46],
+          '#8eafad',
+          '',
+        );
+        if (i % 2 === 0)
+          g.poly(
+            [
+              x + 102,
+              y - 4,
+              x + 114,
+              y + 15,
+              x + 124,
+              y + 6,
+              x + 137,
+              y + 30,
+              x + 147,
+              y + 16,
+              x + 154,
+              y - 4,
+            ],
+            '#426473',
+            '',
+          );
       }
-      if (stage.id === 'x6')
-        gear(x + 107, top + 63, 35, sim.time * 0.2, '#53404a');
+    } else if (stage.id === 'x5') {
+      // Planetarium: constellations, huge projection planets and a circular star dome.
+      for (let i = 0; i < 125; i++) {
+        const x = (hash(i + 1) * 1600 - camX * 0.04 + 1600) % 1600,
+          y = hash(i + 501) * 262;
+        g.rect(
+          x,
+          y,
+          i % 8 ? 1 : 2,
+          i % 8 ? 1 : 2,
+          i % 3 ? '#8f94ce' : '#e5e3fc',
+        );
+      }
+      const planetX = vw * 0.72 - camX * 0.022;
+      ctx.fillStyle = '#394381';
+      ctx.beginPath();
+      ctx.arc(planetX, 115, 76, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#161d45';
+      ctx.beginPath();
+      ctx.arc(planetX + 24, 97, 70, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#8a86b7';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.ellipse(planetX, 117, 118, 18, -0.3, 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 7; i++) {
+        const x = i * 210 - ((camX * 0.12) % 210),
+          y = 38 + (i % 3) * 22;
+        g.line(
+          [
+            x,
+            y,
+            x + 29,
+            y + 18,
+            x + 53,
+            y + 10,
+            x + 83,
+            y + 40,
+            x + 105,
+            y + 24,
+          ],
+          '#5f5684',
+          1,
+        );
+        for (const [dx, dy] of [
+          [0, 0],
+          [29, 18],
+          [53, 10],
+          [83, 40],
+          [105, 24],
+        ])
+          g.rect(x + dx - 1, y + dy - 1, 3, 3, '#b6c2e9');
+      }
+      for (let i = 0; i < 6; i++) {
+        const x = i * 320 - ((camX * 0.33) % 320),
+          top = 12 - camY * 0.1;
+        ctx.strokeStyle = '#4c456f';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.ellipse(x + 150, top + 132, 147, 127, 0, Math.PI, Math.PI * 2);
+        ctx.stroke();
+        g.rect(x + 2, top + 130, 13, 180, '#3f405f');
+        g.rect(x + 289, top + 130, 13, 180, '#3f405f');
+        g.rect(x + 8, top + 142, 4, 140, '#8680a5');
+        g.rect(x + 293, top + 142, 4, 140, '#8680a5');
+        for (let mark = 0; mark < 10; mark++)
+          g.rect(x + 25 + mark * 26, top + 267, 14, 4, '#7b67a0');
+        g.poly(
+          [
+            x + 135,
+            top + 228,
+            x + 144,
+            top + 203,
+            x + 157,
+            top + 203,
+            x + 166,
+            top + 228,
+          ],
+          '#777297',
+        );
+        g.rect(x + 129, top + 229, 43, 8, '#a8a4bb');
+      }
+    } else {
+      // Magma Area is exposed basalt and molten rock rather than a recolored factory.
+      for (let layer = 0; layer < 3; layer++) {
+        const color = ['#362b36', '#573039', '#713c39'][layer],
+          parallax = 0.08 + layer * 0.07;
+        for (let i = 0; i < 10; i++) {
+          const x = i * 160 - ((camX * parallax) % 160),
+            base = 190 + layer * 31;
+          g.poly(
+            [
+              x - 30,
+              360,
+              x - 12,
+              base - 68,
+              x + 20,
+              base - 91,
+              x + 37,
+              base - 48,
+              x + 75,
+              base - 119,
+              x + 130,
+              base - 70,
+              x + 170,
+              360,
+            ],
+            color,
+            '',
+          );
+          g.line(
+            [
+              x + 73,
+              base - 109,
+              x + 65,
+              base - 51,
+              x + 87,
+              base - 15,
+              x + 82,
+              350,
+            ],
+            layer === 2 ? '#eb7844' : '#a9503c',
+            layer === 2 ? 6 : 3,
+          );
+          if (layer === 2)
+            g.line(
+              [
+                x + 72,
+                base - 107,
+                x + 64,
+                base - 50,
+                x + 86,
+                base - 14,
+                x + 81,
+                350,
+              ],
+              '#ffd982',
+              2,
+            );
+        }
+      }
+      g.rect(0, 304, vw, 56, '#bb4d32');
+      g.rect(0, 306, vw, 9, '#ffb654');
+      for (let i = 0; i < 25; i++) {
+        const x = (i * 61 - camX * 0.23 + sim.time * 14) % vw,
+          y = 318 + (i % 4) * 10;
+        g.line([x, y, x + 25, y - 2, x + 43, y + 2], '#f08440', 3);
+      }
+      for (let i = 0; i < 10; i++) {
+        const x = i * 170 - ((camX * 0.34) % 170);
+        g.poly(
+          [
+            x - 30,
+            0,
+            x + 39,
+            0,
+            x + 27,
+            40,
+            x + 18,
+            22,
+            x + 6,
+            57,
+            x - 7,
+            21,
+            x - 21,
+            47,
+          ],
+          '#30282d',
+          '',
+        );
+      }
     }
   }
   function platform(x: number, y: number, w: number, h: number, kind?: string) {
-    g.rect(x, y, w, h, '#1a2a39');
+    if (stage.id === 'x6' && h > 25) {
+      g.rect(x, y, w, h, '#42323b');
+      g.rect(x, y, w, 5, '#b17d63');
+      g.rect(x, y + 5, w, 8, '#775349');
+      for (let col = 0; col < w; col += 49) {
+        const cw = Math.min(45, w - col);
+        g.poly(
+          [
+            x + col,
+            y + 17,
+            x + col + cw,
+            y + 13,
+            x + col + cw - 3,
+            y + 58,
+            x + col + 8,
+            y + 64,
+          ],
+          '#63434a',
+        );
+        g.line(
+          [x + col + 8, y + 23, x + col + 20, y + 38, x + col + 14, y + 54],
+          '#bd6b48',
+          2,
+        );
+      }
+      if (kind === 'belt') {
+        g.rect(x, y, w, 6, '#887572');
+        for (let col = 0; col < w; col += 16)
+          g.rect(x + col + ((sim.time * 44) % 16), y + 1, 8, 3, '#ffd083');
+      }
+      return;
+    }
+    g.rect(x, y, w, h, stage.id === 'x4' ? '#4b747f' : '#28273e');
     g.rect(x, y, w, 5, '#d2dcd0');
     g.rect(x, y + 5, w, 7, stage.metal);
     g.rect(x, y + 12, w, 3, '#102231');
@@ -204,21 +389,21 @@ export function mountReploid(
       Math.round(-camY + Math.cos(sim.time * 74) * shake),
     );
     // Cables and powered strips frame the real collision geometry.
-    for (let x = 170; x < stage.end; x += 350) {
+    for (let x = 170; stage.id === 'x5' && x < stage.end; x += 350) {
       if (x < camX - 100 || x > camX + vw + 100) continue;
       g.rect(x, 64, 7, 208, '#263b4b');
       g.rect(x + 2, 69, 2, 185, stage.metal);
       g.line([x, 95, x + 85, 107, x + 175, 90], '#52687a', 2);
       g.rect(x - 16, 135, 44, 26, '#163044');
       g.rect(x - 13, 138, 38, 20, '#386879');
-      g.text(`${Math.floor(x / 350) + 1}:SYS`, x - 10, 151, 8, stage.accent);
+      g.text(`${Math.floor(x / 350) + 1}:STAR`, x - 10, 151, 8, stage.accent);
     }
     for (const s of stage.platforms) {
       const at = platformAt(s, sim.time);
       if (at.x + at.w >= camX && at.x <= camX + vw)
         platform(at.x, at.y, at.w, at.h, at.kind);
     }
-    // The arena's physical end is a sealed reactor bulkhead, including the
+    // The arena's physical end is a sealed boss gate, including the
     // surrounding machinery exposed by the wider, centered boss framing.
     if (stage.end < camX + vw + 24) {
       const x = stage.end;
@@ -240,16 +425,20 @@ export function mountReploid(
       g.rect(x + 101, 124, 10, 187, '#233744');
       g.rect(x + 104, 154, 4, 123, stage.accent);
       g.rect(x + 27, 88, 158, 23, '#324959');
-      g.text('REACTOR / SEALED', x + 106, 103, 9, stage.light, 'center');
-      g.rect(x + 62, 202, 89, 28, '#102631');
       g.text(
-        'CORE ' + stage.id.toUpperCase(),
+        stage.id === 'x4'
+          ? 'SKY LAGOON'
+          : stage.id === 'x5'
+            ? 'PLANETARIUM'
+            : 'MAGMA CHAMBER',
         x + 106,
-        220,
-        11,
-        stage.accent,
+        103,
+        9,
+        stage.light,
         'center',
       );
+      g.rect(x + 62, 202, 89, 28, '#102631');
+      g.text(stage.bossName, x + 106, 220, 11, stage.accent, 'center');
       for (let y = 38; y < 290; y += 64) {
         g.rect(x + 199, y, 17, 47, '#455b65');
         g.rect(x + 205, y + 4, 5, 39, '#809c9b');
@@ -429,6 +618,42 @@ export function mountReploid(
           '',
         );
         g.rect(shot.x - 3, shot.y - shot.r * 0.5, 13, shot.r, '#edfff0');
+      } else if (shot.kind === 'bat') {
+        const wing = Math.sin(sim.time * 32 + shot.x) * 4;
+        g.poly(
+          [
+            shot.x - 16,
+            shot.y - 8 - wing,
+            shot.x - 5,
+            shot.y - 3,
+            shot.x,
+            shot.y - 6,
+            shot.x + 5,
+            shot.y - 3,
+            shot.x + 16,
+            shot.y - 8 - wing,
+            shot.x + 10,
+            shot.y + 5,
+            shot.x,
+            shot.y + 2,
+            shot.x - 10,
+            shot.y + 5,
+          ],
+          '#c7a4e3',
+        );
+        g.rect(shot.x - 3, shot.y - 2, 2, 2, '#ff777d');
+        g.rect(shot.x + 2, shot.y - 2, 2, 2, '#ff777d');
+      } else if (shot.enemy && shot.damage === 0) {
+        ctx.strokeStyle = '#cf8bfd';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(shot.x, shot.y, shot.r, 0, Math.PI * 2);
+        ctx.stroke();
+        g.line(
+          [shot.x, shot.y - 8, shot.x, shot.y, shot.x + 7, shot.y + 4],
+          '#f1dcff',
+          2,
+        );
       } else if (shot.kind === 'flame') {
         g.poly(
           [
@@ -464,10 +689,10 @@ export function mountReploid(
     }
     ctx.globalAlpha = 1;
     const signs = [
-      [170, 'HOLD J / CHARGE'],
+      [170, sim.character === 'x' ? 'HOLD J / CHARGE' : 'J / K Z-SABER'],
       [610, 'L + SPACE / DASH JUMP'],
       [1025, 'WALL KICK / SPACE'],
-      [stage.arena - 160, 'REACTOR ACCESS'],
+      [stage.arena - 160, 'BOSS GATE'],
     ] as const;
     for (const [x, label] of signs) {
       if (x > camX - 120 && x < camX + vw + 120) {
@@ -482,19 +707,19 @@ export function mountReploid(
         g.rect(stage.arena + 2, y, 4, 9, '#ffa777');
     }
     ctx.restore();
-    // Foreground rain, orbital dust or embers makes each location move differently.
+    // Drifting sky debris, orbital dust and rising embers distinguish the foregrounds.
     for (let i = 0; i < 34; i++) {
       const x =
         (hash(i + 900) * vw -
-          sim.time * (stage.id === 'x4' ? 70 : 10) +
+          sim.time * (stage.id === 'x4' ? 26 : 10) +
           99999) %
         vw;
       const y =
         (hash(i + 1900) * 360 +
-          sim.time * (stage.id === 'x4' ? 240 : stage.id === 'x6' ? -23 : 8) +
+          sim.time * (stage.id === 'x4' ? 12 : stage.id === 'x6' ? -23 : 8) +
           99999) %
         360;
-      if (stage.id === 'x4') g.line([x, y, x - 3, y + 9], '#668a9b', 1);
+      if (stage.id === 'x4') g.rect(x, y, 2, 2, '#e0f2ec');
       else
         g.rect(
           x,
@@ -521,7 +746,13 @@ export function mountReploid(
         i < p.hp ? (p.hp <= 6 ? '#ef8c7a' : stage.accent) : '#203346',
       );
     g.text('EN', 23, 145, 9, '#d7ede4', 'center');
-    g.text(stage.id.toUpperCase() + ' / ' + stage.title, 46, 26, 11, '#d4e8e4');
+    g.text(
+      stage.title + ' / ' + (sim.character === 'x' ? 'X' : 'ZERO'),
+      46,
+      26,
+      11,
+      '#d4e8e4',
+    );
     g.text(stage.sector, 46, 41, 8, '#81a1b2');
     if (p.charge > 0) {
       g.rect(46, 48, 60, 3, '#304b5d');
@@ -577,11 +808,22 @@ export function mountReploid(
     } else if (sim.time < 4.2) {
       g.rect(vw / 2 - 137, 314, 274, 28, '#152c3c');
       g.text(
-        'RECLAIMER UNIT 07 // SYSTEM ONLINE',
+        sim.character === 'x' ? 'MEGA MAN X // READY' : 'ZERO // READY',
         vw / 2,
         331,
         10,
         stage.accent,
+        'center',
+      );
+    }
+    if (sim.darkHold > 0) {
+      g.rect(vw / 2 - 61, 77, 122, 19, '#3e2857');
+      g.text(
+        'DARK HOLD ' + sim.darkHold.toFixed(1),
+        vw / 2,
+        90,
+        10,
+        '#f2c9ff',
         'center',
       );
     }
@@ -602,6 +844,7 @@ export function mountReploid(
     render,
     dispose() {
       disposed = true;
+      sprites.dispose();
       buffer.width = 1;
       buffer.height = 1;
     },

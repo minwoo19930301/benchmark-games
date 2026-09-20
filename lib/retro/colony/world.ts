@@ -1,6 +1,6 @@
 export const MAP_W = 30;
 export const MAP_H = 24;
-export const HUD_TOP = 0.78;
+export const HUD_TOP = 0.75;
 export const BASE = { x: 6, y: 17 };
 export const ENEMY_BASE = { x: 25, y: 5 };
 export const MINERALS = [
@@ -68,12 +68,15 @@ export function unproject(point: Point, camera: Camera, aspect: number): Point {
 export type Command =
   | 'barracks'
   | 'turret'
+  | 'depot'
   | 'marine'
   | 'worker'
   | 'army'
   | 'workers'
   | 'assault'
-  | 'stop';
+  | 'hold'
+  | 'stop'
+  | 'unload';
 export const BUTTONS: {
   command: Command;
   label: string;
@@ -84,25 +87,26 @@ export const BUTTONS: {
   w: number;
   h: number;
 }[] = [
-  ['barracks', '병영', 'B', 100],
-  ['turret', '포탑', 'T', 80],
-  ['marine', '해병', 'M', 35],
-  ['worker', '일꾼', 'R', 45],
-  ['army', '전투병 선택', 'F', 0],
-  ['workers', '일꾼 선택', 'Q', 0],
+  ['barracks', '배럭', 'B', 150],
+  ['depot', '서플라이', 'V', 100],
+  ['turret', '벙커', 'T', 100],
+  ['marine', '마린', 'M', 50],
+  ['worker', 'SCV', 'R', 50],
   ['assault', '공격 이동', 'A', 0],
-  ['stop', '정지', '■', 0],
+  ['hold', '위치 사수', 'H', 0],
+  ['stop', '정지', 'S', 0],
+  ['unload', '내리기', '↥', 0],
 ].map(([command, label, key, cost], index) => ({
   command: command as Command,
   label: String(label),
   key: String(key),
   cost: Number(cost),
-  x: 0.47 + (index % 4) * 0.128,
-  y: 0.81 + Math.floor(index / 4) * 0.085,
-  w: 0.119,
-  h: 0.073,
+  x: 0.664 + (index % 3) * 0.108,
+  y: 0.783 + Math.floor(index / 3) * 0.069,
+  w: 0.101,
+  h: 0.06,
 }));
-export const MINIMAP = { x: 0.016, y: 0.805, w: 0.183, h: 0.172 };
+export const MINIMAP = { x: 0.018, y: 0.785, w: 0.2, h: 0.19 };
 export function inRect(
   point: Point,
   rect: { x: number; y: number; w: number; h: number },
