@@ -1,5 +1,11 @@
 # Benchmark Games — 방과후 오락실
 
+<!-- PROJECT-PRESENTATION:START -->
+<a href="https://minwoo19930301.github.io/benchmark-games/"><img src="public/previews/smash.png" alt="Benchmark Games — 방과후 오락실" width="960"></a>
+
+[![OPEN APP](https://img.shields.io/badge/OPEN%20APP-2C6049?style=for-the-badge)](https://minwoo19930301.github.io/benchmark-games/) [![QUICK START](https://img.shields.io/badge/QUICK%20START-374151?style=for-the-badge)](#run) [![SOURCE](https://img.shields.io/badge/SOURCE-444444?style=for-the-badge)](https://github.com/minwoo19930301/benchmark-games)
+<!-- PROJECT-PRESENTATION:END -->
+
 [직접 플레이](https://minwoo19930301.github.io/benchmark-games/#arcade) · [구현·검증 범위](docs/rebuild-verification.md) · [에셋 출처](docs/ASSET-CREDITS.md)
 
 브라우저에서 플레이하고 성능을 측정하는 **13개 게임 모음**입니다. 11종을 원작의 캐릭터, 화면 구성, 조작 방식에 맞춰 다시 구현했습니다. 이전의 택배·야근·가상 캐릭터 테마를 제거했습니다. Mario와 Sonic은 기존 버전입니다.
