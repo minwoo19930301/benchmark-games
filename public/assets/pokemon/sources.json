@@ -1,0 +1,62 @@
+[
+  {
+    "file": "public/assets/pokemon/bulbasaur-front.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/1.png",
+    "bytes": 407,
+    "sha256": "38195ffec35d684c64846803132c5c15ba13f1534a48dec8c39742a414d5f429"
+  },
+  {
+    "file": "public/assets/pokemon/bulbasaur-back.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/1.png",
+    "bytes": 228,
+    "sha256": "2b61f46149161d52f1518ee9a74c1ce4165eae04a0d0105b6213d454000f5e88"
+  },
+  {
+    "file": "public/assets/pokemon/charmander-front.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/4.png",
+    "bytes": 437,
+    "sha256": "b39fb80ab1f052a97c8995457ff4e7f66299f0c9ddb500aff138735948fb4825"
+  },
+  {
+    "file": "public/assets/pokemon/charmander-back.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/4.png",
+    "bytes": 196,
+    "sha256": "167bbee115f28041d236e5269bb2b2b6354f02d9bda3ce445e75898a9306f6e6"
+  },
+  {
+    "file": "public/assets/pokemon/squirtle-front.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/7.png",
+    "bytes": 372,
+    "sha256": "fc8004c232465a0eecbdaf9fe3dc5a98a9a35743ad68c7e4a5ac6ddd0691ae45"
+  },
+  {
+    "file": "public/assets/pokemon/squirtle-back.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/7.png",
+    "bytes": 248,
+    "sha256": "6031fa82fb58852affc98cfbd2ea018a38ba503253ca24e96d8cb9997f357f8e"
+  },
+  {
+    "file": "public/assets/pokemon/pidgey-front.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/16.png",
+    "bytes": 337,
+    "sha256": "9e0a5b86e11d8869ca82b1fee3f7ebe2beef95c378284458d9673a4c01be0081"
+  },
+  {
+    "file": "public/assets/pokemon/pidgey-back.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/16.png",
+    "bytes": 175,
+    "sha256": "d1aa2906c3c818ac21e5281f0fa46bf411455e2e78f7ec0d21022880118407f0"
+  },
+  {
+    "file": "public/assets/pokemon/rattata-front.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/transparent/19.png",
+    "bytes": 373,
+    "sha256": "3aba02360fcabb8de8b8e56361ba3e85241ed8ff94a5c721e126a53f136cc186"
+  },
+  {
+    "file": "public/assets/pokemon/rattata-back.png",
+    "source": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/19.png",
+    "bytes": 163,
+    "sha256": "f2257f6cbc6a7b1909e7f7f8656af20eb2b9be7357b9954cf1d0c7f7515da13b"
+  }
+]

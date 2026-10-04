@@ -1,0 +1,250 @@
+{
+  "copyright": "Metal Slug character and stage artwork: SNK. Public fan-project mirrors are provenance, not an SNK license grant.",
+  "files": [
+    {
+      "file": "marco.png",
+      "source": "https://github.com/zzarcon/html5-slug/blob/master/game/assets/marco.png",
+      "sha256": "4714393989af505c1e6f930af67303c4599e166e4d2bbcb574c13d9fa5c625db"
+    },
+    {
+      "file": "marco.xml",
+      "source": "https://github.com/zzarcon/html5-slug/blob/master/game/assets/marco.xml",
+      "sha256": "b8a41b1db29690ffb9a3895794bdb6af0dcaedd2e507a7a602ff2768e035c4cd"
+    },
+    {
+      "file": "mission-1.png",
+      "source": "https://github.com/zzarcon/html5-slug/blob/master/game/assets/mission-1.png",
+      "sha256": "130b283b93f37f643d65da3da19fd91d9fd146fa2bb269fcde8e0bdebb874e6e"
+    },
+    {
+      "file": "rifle-soldier.png",
+      "source": "https://github.com/alejru08/Metal-Slug/blob/master/images/rifle_soldier.png",
+      "sha256": "fc573139475b59696dd1ae431d8b2651809f612c456bbc31f596db98feb84fc3"
+    },
+    {
+      "file": "pow.png",
+      "source": "https://github.com/alejru08/Metal-Slug/blob/master/images/NPC.png",
+      "sha256": "a946d11b59c4f05d03b24f95eb5ed6dae29f1dfada8b4c7a406b5a0643b4c4d2"
+    },
+    {
+      "file": "jungle.png",
+      "source": "https://github.com/alejru08/Metal-Slug/blob/master/images/bgMS.png",
+      "sha256": "b5621b2dfd2aa7bc69151c31b9a546f9f5992a4418ef14d63878c52e30a11872"
+    },
+    {
+      "file": "crouch.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/Player/PlayerCrouch.png",
+      "sha256": "af42cbb75a95a481d52eb7d55e312c443eed937fa7200929081cfef7aa349535"
+    },
+    {
+      "file": "jump.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/Player/PlayerJump.png",
+      "sha256": "752053d4dddc191e2a4a96f138835be1b99148e9b660a9fa9ef39ae76edd7e52"
+    },
+    {
+      "file": "up.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/Player/PlayerUp.png",
+      "sha256": "81fc7edb2cb18d473dd27ea011684cd8c43d75d96ab185270132ee3ce36b3adc"
+    },
+    {
+      "file": "throw.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/Player/PlayerGrenade.png",
+      "sha256": "74af9227badf3e271dac4fe7636707ae271716ff77a326ba99a36b096fe8f52b"
+    },
+    {
+      "file": "knife-0.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/0.png",
+      "sha256": "e92033d322d2d03519b3b91aeadd04dca9365aa6cd0ed44ec80b63b09f1528fd"
+    },
+    {
+      "file": "knife-1.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/1.png",
+      "sha256": "9aa34096bcb433c474378202081917998a25ef6de06af829487f78238de9b235"
+    },
+    {
+      "file": "knife-2.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/2.png",
+      "sha256": "6d275ca258bc05cb6ebfde3c2e045d918786715ffe076de704feefa62c0d2cb5"
+    },
+    {
+      "file": "knife-3.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/3.png",
+      "sha256": "e129224fa23c696df259714a14a4db80b80bec2c228e0bf63bb2b853240bf4d8"
+    },
+    {
+      "file": "knife-4.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/4.png",
+      "sha256": "0a6f4038d0577b553936f7dd3927795ccbf2b91405ffb405b30d053b47a11e87"
+    },
+    {
+      "file": "knife-5.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/5.png",
+      "sha256": "041591aab0047968d63ba7715fa14f3cefaabab3d661f5a91b02070fc360e015"
+    },
+    {
+      "file": "knife-6.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/6.png",
+      "sha256": "e129224fa23c696df259714a14a4db80b80bec2c228e0bf63bb2b853240bf4d8"
+    },
+    {
+      "file": "knife-7.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerKnife/7.png",
+      "sha256": "e92033d322d2d03519b3b91aeadd04dca9365aa6cd0ed44ec80b63b09f1528fd"
+    },
+    {
+      "file": "fire-0.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/0.png",
+      "sha256": "652148cb2f4b68c3322230473a834f4e61481c2e97e75f98d379fcad95d2f4db"
+    },
+    {
+      "file": "fire-1.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/1.png",
+      "sha256": "5ab5cf7728fd164deb5f69d95df33696aa0b925163487c12833aa53b2fc86a4c"
+    },
+    {
+      "file": "fire-2.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/2.png",
+      "sha256": "bb6eec9cee15a0bc499bf034269a31bbc8055c902d505f7305a9cdd52589e4f5"
+    },
+    {
+      "file": "fire-3.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/3.png",
+      "sha256": "a6074bf35744ce998b2a498f6f8b34b5d495d824db4659e45e2214192e205680"
+    },
+    {
+      "file": "fire-4.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/4.png",
+      "sha256": "fed541cb020fc09b78536fda5e1cb6631ff37df33ca65ef1081d463d22ddad54"
+    },
+    {
+      "file": "fire-5.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/5.png",
+      "sha256": "144036138869527adcee7f968ba6b84da2602a0e699dcc1b135320cc906b3b2b"
+    },
+    {
+      "file": "fire-6.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/6.png",
+      "sha256": "1ba3de6f048db3adb7ebc431a97ddaadde6c8da98952622aee322e6f441c8b9d"
+    },
+    {
+      "file": "fire-7.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/PlayerShooting/7.png",
+      "sha256": "ffc16db9cd6116527db0725882edbabb2397b08e72d2bda9128ed803f5ee0b02"
+    },
+    {
+      "file": "blast-0.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/0.png",
+      "sha256": "5ff1fa3ffe0472c7253f5209ed1034bc20917572c66f03da7ee3f639580eeaa6"
+    },
+    {
+      "file": "blast-1.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/1.png",
+      "sha256": "c6cef81ef404ea42bda235bf8f77058bd9f0dd4dcd39b2e07c5e5acfe7cf047a"
+    },
+    {
+      "file": "blast-2.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/2.png",
+      "sha256": "c58f06105e7f7da19e4c536deb5892726a049219ffad5899e6aa4cb31599c3e8"
+    },
+    {
+      "file": "blast-3.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/3.png",
+      "sha256": "0a9365c75949eb01f2f6e9b869106612d5d4c7f6aa2e92e0648f735618d03ec0"
+    },
+    {
+      "file": "blast-4.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/4.png",
+      "sha256": "c963294f2db1980a40e435d7c834c6e43d458048cbd00e599040ec5dce2de9ff"
+    },
+    {
+      "file": "blast-5.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/5.png",
+      "sha256": "7a49f29ba7501cdffe862bf37ff6c8bbb38d360ee2fb24033a087e9cc1e1338b"
+    },
+    {
+      "file": "blast-6.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/6.png",
+      "sha256": "46d447778f023bc725a11fdbdec93b354526d5c02ecdac9584a49e11c3fdaf84"
+    },
+    {
+      "file": "blast-7.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/7.png",
+      "sha256": "61edc0f11fcf8dbf04d148be377a14cb40a8fdcef5067b2eb640ea258efb107c"
+    },
+    {
+      "file": "blast-8.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/8.png",
+      "sha256": "51d0f17446cd317da1051f712c02911738a25f2f69972dd5be5d7648b4ea1b31"
+    },
+    {
+      "file": "blast-9.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/9.png",
+      "sha256": "6d2317ea8504f4ab9b130653ae177852bd3bad0535c0b33bed0b6e4000dd6061"
+    },
+    {
+      "file": "blast-10.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/10.png",
+      "sha256": "66ce227326fd10c8b0f4b97766a7a3c5d873c534f899dddce21b34eb52948036"
+    },
+    {
+      "file": "blast-11.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/11.png",
+      "sha256": "1f39cc00dae43448e88e164d0df4c7978fee0e1e138a06365ebd85eeb644403e"
+    },
+    {
+      "file": "blast-12.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/12.png",
+      "sha256": "240f394edfc780a929a0946dbe1bca3d6aa46041782dd6952f7a67efbe33ebc9"
+    },
+    {
+      "file": "blast-13.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/13.png",
+      "sha256": "9dd3e5febf5c809a7da8963fdfc8ab42ffc2ae936c673f9133e214b781f56442"
+    },
+    {
+      "file": "blast-14.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/14.png",
+      "sha256": "e5dfc109e20313fc07fb13cb04a5479bde7c2ab2217eded29a538fd0a99cf897"
+    },
+    {
+      "file": "blast-15.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/15.png",
+      "sha256": "fb3708270ca0ac19ec70a3f19da23b6c0abb874c9146ad5fada5123511b21684"
+    },
+    {
+      "file": "blast-16.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/16.png",
+      "sha256": "04dfe5572cc37cdf2d4fc505fca8b15499c59d62c7a82779d9b3a1fc68a5c98d"
+    },
+    {
+      "file": "blast-17.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/17.png",
+      "sha256": "73cc89a63ccf0589f21d72afac18368ffb0e2f09a0b1d2372b3a8b2c3b6e64c9"
+    },
+    {
+      "file": "blast-18.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/18.png",
+      "sha256": "cfb1ebfefc24756cdd21e9fc634fa9d8a7e24dc57c4f2c1b2327ee7a8e8c0d68"
+    },
+    {
+      "file": "blast-19.png",
+      "source": "https://raw.githubusercontent.com/nathancy/Metal-Slug/master/Metal_Slug/ProjectileGrenadeExplosion/19.png",
+      "sha256": "2a728e9728c1644acfb4bafc7f680e515e371369814ef37a7425dde2e21f35c6"
+    },
+    {
+      "file": "tetsuyuki.png",
+      "source": "https://raw.githubusercontent.com/Diddylcp/MetalSlugPhaser/main/images/mission1/finalBoss/bossStructure.png",
+      "sha256": "bd30acaa4b97f76290d407cadc7a5c21217246ba38eeec036dc55fe7662033e4"
+    },
+    {
+      "file": "sv001-idle.png",
+      "source": "https://raw.githubusercontent.com/hashir249/MetalSlug/d8543f1cda692097e07b097a7ee5d611c7ffb387/assets/textures/metalslug_idle.png",
+      "sha256": "a0ee4aa0c227009790422c889fc7a6d5fccec55e29909ee2287032aab5c20462"
+    },
+    {
+      "file": "sv001-move.png",
+      "source": "https://raw.githubusercontent.com/hashir249/MetalSlug/d8543f1cda692097e07b097a7ee5d611c7ffb387/assets/textures/metalslug_straight.png",
+      "sha256": "b1a2d0a1de7ddaa0c2af876e8992a8c0a020590fc74acd1a451c3d3685dbf0da"
+    }
+  ]
+}

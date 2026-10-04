@@ -1,0 +1,643 @@
+/* Saturated blue, ring gold, and condensed race lettering echo the Sonic cartridge. */
+.sonic-shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  color: #174575;
+  background: #a8e9f6;
+  font-family: 'Avenir Next', 'Apple SD Gothic Neo', Arial, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.sonic-view {
+  position: absolute;
+  inset: 0;
+}
+.sonic-view canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  touch-action: none;
+}
+.sonic-hud {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  align-items: flex-start;
+  gap: 36px;
+  pointer-events: none;
+  z-index: 3;
+}
+.sonic-stage-label {
+  display: grid;
+  gap: 4px;
+  padding-top: 2px;
+}
+.sonic-stage-label strong {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+}
+.sonic-stage-label span {
+  font:
+    10px ui-monospace,
+    monospace;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sonic-stage-label i {
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+}
+.sonic-stats {
+  display: flex;
+  gap: 35px;
+  margin: 0;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+.sonic-stats dt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font:
+    700 10px ui-monospace,
+    monospace;
+  letter-spacing: 1.1px;
+}
+.sonic-stats dd {
+  font:
+    900 26px 'Avenir Next Condensed',
+    'Arial Narrow',
+    Arial,
+    sans-serif;
+  letter-spacing: -0.5px;
+  margin: 1px 0 0;
+}
+.sonic-life-stat dd span {
+  font-size: 17px;
+}
+.ring-symbol {
+  display: inline-block;
+  width: 10px;
+  height: 12px;
+  border: 2px solid #a56500;
+  border-radius: 50%;
+}
+.sonic-hud-actions {
+  display: flex;
+  gap: 7px;
+  margin-left: auto;
+  pointer-events: auto;
+}
+.sonic-hud-actions button {
+  width: 37px;
+  height: 37px;
+  border: 1px solid #17457550;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: #174575;
+  background: #f5fcffb8;
+  font:
+    700 10px ui-monospace,
+    monospace;
+  cursor: pointer;
+}
+.sonic-hud-actions button svg {
+  width: 20px;
+  height: 20px;
+}
+.sonic-hud-actions button[aria-pressed='true'] {
+  background: #174fdf;
+  color: white;
+  border-color: #174fdf;
+}
+.sonic-hud-actions .sonic-pause {
+  font-size: 19px;
+  font-family: Arial, sans-serif;
+}
+.sonic-shell button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.sonic-shell button:focus-visible {
+  outline: 3px solid #ffb900;
+  outline-offset: 4px;
+}
+.sonic-course {
+  position: absolute;
+  top: 84px;
+  left: 32px;
+  right: 32px;
+  height: 3px;
+  background: #1745751c;
+  z-index: 2;
+}
+.sonic-course > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #1958df;
+  transition: width 0.1s linear;
+}
+.sonic-course > i {
+  position: absolute;
+  top: -2px;
+  width: 3px;
+  height: 7px;
+  background: #17457562;
+}
+.sonic-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 75px 6vw;
+  pointer-events: none;
+}
+.sonic-title-panel {
+  position: relative;
+  width: min(530px, 50vw);
+  padding-bottom: 12px;
+  pointer-events: auto;
+}
+.sonic-kicker {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font:
+    700 10px ui-monospace,
+    monospace;
+  letter-spacing: 2.8px;
+  margin: 0 0 22px;
+}
+.sonic-kicker > span {
+  width: 24px;
+  height: 3px;
+  background: #174fdf;
+}
+.sonic-title-panel h1 {
+  margin: 0;
+  color: #1551d9;
+  font:
+    italic 1000 clamp(62px, 8.8vw, 140px)/0.84 'Avenir Next Condensed',
+    'Arial Narrow',
+    Arial,
+    sans-serif;
+  letter-spacing: -0.07em;
+  text-shadow: 0 3px 0 #f6feff;
+}
+.sonic-title-panel h1 em {
+  font-style: inherit;
+}
+.sonic-subtitle {
+  display: block;
+  width: max-content;
+  color: #174575;
+  margin: 18px 0 0 7px;
+  letter-spacing: 6px;
+  font:
+    900 16px 'Avenir Next',
+    Arial,
+    sans-serif;
+}
+.title-dot {
+  color: #ffb900;
+}
+.sonic-intro-copy {
+  margin: 27px 0 24px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.8;
+  color: #173e67;
+}
+.sonic-start {
+  min-height: 55px;
+  min-width: 207px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  border: 0;
+  border-bottom: 4px solid #c18a00;
+  border-radius: 3px;
+  padding: 0 20px;
+  background: #ffda42;
+  color: #164471;
+  font-size: 15px;
+  font-weight: 850;
+  cursor: pointer;
+}
+.sonic-start span {
+  font-size: 25px;
+  font-weight: 400;
+}
+.sonic-start:hover:not(:disabled) {
+  background: #ffe474;
+}
+.sonic-start:active:not(:disabled) {
+  border-bottom-width: 1px;
+  transform: translateY(3px);
+}
+.sonic-start-hint {
+  font-size: 10px;
+  line-height: 1.7;
+  margin: 16px 0 0;
+  font-weight: 600;
+}
+.sonic-personal-best {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin: 28px 0 0;
+  font:
+    10px ui-monospace,
+    monospace;
+  letter-spacing: 1px;
+}
+.sonic-personal-best strong {
+  font-size: 14px;
+}
+.sonic-act-stamp {
+  position: absolute;
+  right: 4vw;
+  bottom: 12%;
+  border-top: 2px solid #174575;
+  display: flex;
+  flex-direction: column;
+  width: 125px;
+  padding-top: 10px;
+  text-align: right;
+  color: #174575;
+  transform: rotate(-5deg);
+}
+.sonic-act-stamp span {
+  font:
+    700 9px ui-monospace,
+    monospace;
+  letter-spacing: 2px;
+}
+.sonic-act-stamp strong {
+  font:
+    italic 1000 76px/1.1 'Avenir Next Condensed',
+    'Arial Narrow',
+    Arial,
+    sans-serif;
+}
+.sonic-results {
+  display: flex;
+  gap: 26px;
+  margin: 0 0 22px;
+}
+.sonic-results dt {
+  font:
+    700 10px ui-monospace,
+    monospace;
+  letter-spacing: 1px;
+}
+.sonic-results dd {
+  font:
+    900 25px 'Avenir Next Condensed',
+    Arial,
+    sans-serif;
+  margin: 4px 0 0;
+}
+.sonic-speed {
+  position: absolute;
+  bottom: 75px;
+  left: 32px;
+  width: 132px;
+  padding: 11px 14px;
+  border-left: 3px solid #ffcf32;
+  background: #f6fcfff2;
+  color: #174575;
+}
+.sonic-speed > span {
+  font:
+    800 9px ui-monospace,
+    monospace;
+  letter-spacing: 1.5px;
+}
+.sonic-speed > strong {
+  float: right;
+  font:
+    italic 900 31px/0.85 'Avenir Next Condensed',
+    Arial,
+    sans-serif;
+}
+.sonic-speed > div {
+  height: 3px;
+  background: #dae5ee;
+  margin-top: 13px;
+}
+.sonic-speed > div > i {
+  display: block;
+  height: 100%;
+  background: #174fdf;
+}
+.sonic-speed p {
+  position: relative;
+  font:
+    800 8px ui-monospace,
+    monospace;
+  margin: 12px 0 2px;
+  padding-bottom: 7px;
+}
+.sonic-speed p b {
+  float: right;
+}
+.sonic-speed p span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: #eaaa00;
+}
+.sonic-footer {
+  position: absolute;
+  bottom: 23px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  color: #173e67;
+  pointer-events: none;
+}
+.sonic-footer p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  font-weight: 700;
+  background: #f2fbffde;
+  padding: 10px 13px;
+  border-radius: 3px;
+}
+.sonic-footer kbd {
+  font:
+    600 9px ui-monospace,
+    monospace;
+  padding: 3px 5px;
+  border: 1px solid #17457540;
+  border-bottom-width: 2px;
+  border-radius: 2px;
+}
+.sonic-footer small {
+  font:
+    9px ui-monospace,
+    monospace;
+  letter-spacing: 0.3px;
+  background: #f2fbffba;
+  padding: 6px;
+}
+.sonic-performance {
+  position: absolute;
+  top: 104px;
+  right: 32px;
+  z-index: 5;
+  display: grid;
+  gap: 5px;
+  padding: 10px 13px;
+  background: #f2fbffe8;
+  color: #174575;
+  font:
+    9px ui-monospace,
+    monospace;
+  border: 1px solid #17457530;
+}
+.sonic-performance strong {
+  font-size: 14px;
+}
+.sonic-performance button {
+  margin-top: 5px;
+  padding: 6px 8px;
+  border: 1px solid #17457550;
+  background: white;
+  color: inherit;
+  font:
+    600 10px Arial,
+    sans-serif;
+  cursor: pointer;
+}
+.sonic-performance b {
+  padding-top: 3px;
+  font:
+    600 9px Arial,
+    sans-serif;
+}
+.sonic-touch {
+  display: none;
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  gap: 8px;
+}
+.sonic-touch button {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 2px solid #f5fcfff0;
+  background: #174fdfd6;
+  color: white;
+  font:
+    850 10px 'Avenir Next',
+    Arial,
+    sans-serif;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.sonic-touch button:nth-child(-n + 2) {
+  font-size: 24px;
+  width: 54px;
+}
+.sonic-touch button:nth-child(3) {
+  margin-left: auto;
+}
+.sonic-touch button:last-child {
+  background: #ffdb45;
+  color: #174575;
+  width: 65px;
+}
+@media (max-width: 1000px) {
+  .sonic-hud {
+    gap: 24px;
+    left: 24px;
+    right: 24px;
+  }
+  .sonic-stats {
+    gap: 24px;
+  }
+  .sonic-score-stat {
+    display: none;
+  }
+  .sonic-title-panel {
+    width: 57vw;
+  }
+  .sonic-subtitle {
+    font-size: 12px;
+    letter-spacing: 4px;
+  }
+}
+@media (max-width: 650px) {
+  .sonic-hud {
+    top: 17px;
+    left: 18px;
+    right: 18px;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .sonic-stage-label {
+    width: calc(100% - 140px);
+    order: 0;
+  }
+  .sonic-stage-label strong {
+    font-size: 11px;
+  }
+  .sonic-stage-label span {
+    font-size: 8px;
+  }
+  .sonic-hud-actions {
+    order: 1;
+  }
+  .sonic-hud-actions button {
+    width: 32px;
+    height: 32px;
+  }
+  .sonic-stats {
+    order: 2;
+    gap: 28px;
+    width: 100%;
+  }
+  .sonic-stats dd {
+    font-size: 24px;
+  }
+  .sonic-stats dt {
+    font-size: 9px;
+  }
+  .sonic-course {
+    top: 111px;
+    left: 18px;
+    right: 18px;
+  }
+  .sonic-overlay {
+    padding: 110px 26px 115px;
+    align-items: center;
+  }
+  .sonic-title-panel {
+    width: min(95%, 420px);
+  }
+  .sonic-title-panel h1 {
+    font-size: clamp(60px, 17vw, 96px);
+  }
+  .sonic-kicker {
+    margin-bottom: 19px;
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+  .sonic-subtitle {
+    font-size: 12px;
+    letter-spacing: 4px;
+    margin-top: 15px;
+  }
+  .sonic-intro-copy {
+    font-size: 12px;
+    max-width: 270px;
+    margin: 22px 0 19px;
+  }
+  .sonic-start {
+    min-height: 51px;
+    font-size: 14px;
+  }
+  .sonic-start-hint {
+    max-width: 270px;
+    font-size: 10px;
+  }
+  .sonic-act-stamp {
+    display: none;
+  }
+  .sonic-footer {
+    left: 18px;
+    right: 18px;
+    bottom: 84px;
+  }
+  .sonic-footer p {
+    display: none;
+  }
+  .sonic-footer small {
+    font-size: 8px;
+  }
+  .sonic-touch {
+    display: flex;
+  }
+  .sonic-speed {
+    left: auto;
+    right: 18px;
+    bottom: 87px;
+    width: 112px;
+  }
+  .sonic-performance {
+    top: 129px;
+    right: 18px;
+  }
+  .sonic-personal-best {
+    margin-top: 18px;
+  }
+}
+@media (pointer: coarse) {
+  .sonic-touch {
+    display: flex;
+  }
+  .sonic-footer {
+    bottom: 85px;
+  }
+  .sonic-footer p {
+    display: none;
+  }
+  .sonic-speed {
+    bottom: 122px;
+  }
+}
+@media (max-height: 580px) and (min-width: 651px) {
+  .sonic-title-panel h1 {
+    font-size: 76px;
+  }
+  .sonic-kicker {
+    margin-bottom: 12px;
+  }
+  .sonic-overlay {
+    padding-top: 85px;
+    padding-bottom: 60px;
+  }
+  .sonic-intro-copy {
+    margin: 15px 0;
+    font-size: 12px;
+  }
+  .sonic-start {
+    min-height: 46px;
+  }
+  .sonic-start-hint {
+    margin-top: 9px;
+  }
+  .sonic-act-stamp {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sonic-course > span {
+    transition: none;
+  }
+  .sonic-start:active:not(:disabled) {
+    transform: none;
+  }
+}
