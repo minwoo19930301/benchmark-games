@@ -15,7 +15,8 @@ export default function Home() {
   const host = useRef<HTMLDivElement>(null),
     game = useRef<GameHandle | null>(null);
   const [state, setState] = useState(initial),
-    [error, setError] = useState('');
+    [error, setError] = useState(''),
+    [touchRun, setTouchRun] = useState(false);
   useEffect(() => {
     if (!host.current) return;
     let unregister = () => {};
@@ -127,25 +128,62 @@ export default function Home() {
         </span>
         <small>팬 제작 · Nintendo 공식 게임 아님</small>
       </footer>
-      <nav className="touch-controls" aria-label="터치 조작">
-        {(['left', 'right', 'jump'] as const).map((action) => (
-          <Button
-            key={action}
-            aria-label={
-              action === 'jump' ? '점프' : action === 'left' ? '왼쪽' : '오른쪽'
-            }
-            onPointerDown={(e) => {
-              e.preventDefault();
-              e.currentTarget.setPointerCapture(e.pointerId);
-              game.current?.input(action, true);
-            }}
-            onPointerUp={() => game.current?.input(action, false)}
-            onPointerCancel={() => game.current?.input(action, false)}
-            onLostPointerCapture={() => game.current?.input(action, false)}
-          >
-            {action === 'jump' ? 'JUMP' : action === 'left' ? '←' : '→'}
-          </Button>
-        ))}
+      <nav
+        className="touch-controls"
+        aria-label="터치 조작"
+        aria-describedby="touch-help"
+      >
+        <small id="touch-help" className="touch-help">
+          RUN 달리기 전환 · JUMP 길게 누르면 높이 점프
+        </small>
+        {(['left', 'right', 'run', 'jump'] as const).map((action) =>
+          action === 'run' ? (
+            <Button
+              key={action}
+              className="touch-run"
+              aria-label="터치 달리기"
+              aria-pressed={touchRun}
+              disabled={state.phase !== 'playing' || !!error}
+              onPointerDown={(e) => e.preventDefault()}
+              onClick={() => {
+                const enabled = !touchRun;
+                game.current?.setTouchRun(enabled);
+                setTouchRun(enabled);
+              }}
+            >
+              {touchRun ? 'RUN ✓' : 'RUN'}
+            </Button>
+          ) : (
+            <Button
+              key={action}
+              className={`touch-${action}`}
+              disabled={state.phase !== 'playing' || !!error}
+              aria-label={
+                action === 'jump'
+                  ? '점프'
+                  : action === 'left'
+                    ? '왼쪽'
+                    : '오른쪽'
+              }
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.currentTarget.setPointerCapture(e.pointerId);
+                game.current?.input(action, true, `pointer:${e.pointerId}`);
+              }}
+              onPointerUp={(e) =>
+                game.current?.input(action, false, `pointer:${e.pointerId}`)
+              }
+              onPointerCancel={(e) =>
+                game.current?.input(action, false, `pointer:${e.pointerId}`)
+              }
+              onLostPointerCapture={(e) =>
+                game.current?.input(action, false, `pointer:${e.pointerId}`)
+              }
+            >
+              {action === 'jump' ? 'JUMP' : action === 'left' ? '←' : '→'}
+            </Button>
+          ),
+        )}
       </nav>
     </main>
   );

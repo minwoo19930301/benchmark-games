@@ -90,7 +90,7 @@ FPS 패널의 **자동 벤치마크**는 같은 게임 시뮬레이션에 일반
 
 [![실제 로컬 실행 화면 — Mario 2.5D Green Hills](docs/preview.jpg)](https://minwoo19930301.github.io/benchmark-games/#mario)
 
-Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. Touch controls support movement and jumping. Release jump for a short hop. Jump on enemies, collect coins and reach the flag; three lives and a 180-second timer. Blur or a hidden tab pauses and clears held controls.
+Arrow keys / A,D move; Space / W / Up jump; hold Shift to run; Escape pauses. Touch controls support movement and jumping, plus a **RUN toggle** so running jumps need only two fingers. Release jump for a short hop. Brief jump taps are retained until the next physics step, including on high-refresh displays. Jump on enemies, collect coins and reach the flag; three lives and a 180-second timer. Blur or a hidden tab pauses and clears held controls. The touch RUN preference stays selected through pause/restart; movement still requires a fresh direction press.
 
 ## Run
 
@@ -122,4 +122,4 @@ npm audit
 - `lib/retro/runtime.ts`: 120Hz 고정 갱신, 입력 수명 관리와 프레임 계측.
 - `lib/retro/{smash,iron,ocarina,commando,pocket,reploid,colony,watchpoint,temple}`: 순수 시뮬레이션, 실제 입력 벤치마크, 화면 렌더러.
 - `public/previews`: 실제 브라우저 스크린샷. `public/assets/pokemon`: 로컬 1세대 스프라이트와 출처 기록.
-- `lib/game`, `lib/sonic`: 기존 Mario와 Sonic. Mario의 선택적 `document.modelContext` 지원은 해당 API가 없으면 작동하지 않습니다.
+- `lib/game`, `lib/sonic`: 기존 Mario와 Sonic. Mario의 키보드·터치 입력은 `lib/game/input.ts`가 관리합니다(키와 손가락별 독립 입력, 짧은 점프 탭 보존, 터치 RUN 설정). Mario의 선택적 `document.modelContext` 지원은 해당 API가 없으면 작동하지 않습니다.

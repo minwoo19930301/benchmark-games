@@ -8,6 +8,7 @@ import {
   PLAYER_HEIGHT,
 } from '../lib/game/world.ts';
 import { followCamera } from '../lib/game/camera.ts';
+import { GameControls } from '../lib/game/input.ts';
 
 test('camera contains the whole character moving either direction at portrait and landscape ratios', () => {
   for (const aspect of [320 / 900, 390 / 844, 768 / 1024, 16 / 9, 32 / 9]) {
@@ -190,9 +191,12 @@ for (const run of [true, false]) {
     ? { raised: 3.3, gap: 2, enemy: 3 }
     : { raised: 2, gap: 0.2, enemy: 1.7 };
   for (const hz of [30, 60, 120])
-    test(`complete the actual level through ${run ? 'run' : 'walk-only'}/jump input at ${hz} Hz`, () => {
+    test(`complete the actual level through touch ${run ? 'run-toggle' : 'walk-only'}/jump input at ${hz} Hz`, () => {
       const game = new Simulation();
+      const controls = new GameControls();
       game.start();
+      controls.set('right', 'pointer:1', true);
+      controls.setRunToggle(run);
       let jumps = 0,
         lastJump = false;
       for (
@@ -222,7 +226,8 @@ for (const run of [true, false]) {
         lastJump = jump;
         const beforeX = p.x;
         const beforeLives = game.state.lives;
-        game.advance(1 / hz, { left: false, right: true, run, jump });
+        controls.set('jump', 'pointer:2', jump);
+        game.advance(1 / hz, controls.sample());
         if (game.state.lives === beforeLives)
           assert.ok(
             p.x >= beforeX - 0.5,
